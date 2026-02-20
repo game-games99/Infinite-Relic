@@ -3,42 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>infiniterelic_debug_skills</title>
+<title>infiniterelic_debug_all_skills</title>
 <style>
     :root {
-        --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6;
-        --primary: #007bff; --text: #212529; --sub: #6c757d;
-        --accent: #dc3545; --gold: #d39e00; --hp: #28a745;
+        --bg: #0d0d0d; --panel: #1a1a1a; --border: #333;
+        --primary: #007bff; --text: #e0e0e0; --sub: #888;
+        --accent: #ff4d4d; --gold: #ffd700; --hp: #28a745;
     }
-    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-    #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    #header { background: var(--panel); padding: 12px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.8em; cursor: pointer; }
-    .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
+    .nav button { flex: 1; padding: 14px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.8em; cursor: pointer; transition: 0.2s; }
+    .nav button.active { color: #fff; background: #333; box-shadow: inset 0 -3px 0 var(--primary); }
     #content { flex-grow: 1; overflow: hidden; position: relative; }
     .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; overflow-y: auto; }
     .tab.active { display: block; }
-    .bar-container { margin-bottom: 4px; }
-    .bar-label { display: flex; justify-content: space-between; font-size: 0.75em; font-weight: bold; }
-    .bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+    .bar-container { margin-bottom: 6px; }
+    .bar-label { display: flex; justify-content: space-between; font-size: 0.7em; font-weight: bold; color: var(--sub); margin-bottom: 2px; }
+    .bar { height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
     .fill { height: 100%; transition: width 0.1s ease; }
     #bosshp { background: linear-gradient(90deg, #ffc107, #dc3545); }
     #playerhp { background: var(--hp); }
-    .card-cell { background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+    .card-cell { background: #222; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 10px; }
     .skill-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
-    .skill-item { font-size: 0.6em; padding: 4px; border-radius: 4px; background: #f1f3f5; color: #888; }
-    .skill-unlocked { background: #e7f5ff; color: var(--primary); font-weight: bold; }
-    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; }
-    #log { font-size: 0.75em; background: #fdfdfd; padding: 8px; border: 1px solid var(--border); border-radius: 6px; height: 150px; overflow-y: auto; }
-    .dmg-highlight { color: #dc3545; font-size: 1.2em; font-weight: bold; border-bottom: 2px solid #dc3545; }
-    .skill-trigger { color: #28a745; font-weight: bold; font-size: 0.85em; }
+    .skill-item { font-size: 0.55em; padding: 5px; border-radius: 4px; background: #111; color: #555; border: 1px solid #222; }
+    .skill-unlocked { background: #002b5c; color: #80bdff; border-color: #004085; font-weight: bold; }
+    .btn-attack { width: 100%; padding: 22px; background: linear-gradient(135deg, #007bff, #004085); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    #log { font-size: 0.75em; background: #050505; padding: 10px; border: 1px solid var(--border); border-radius: 8px; height: 200px; overflow-y: auto; color: #ccc; }
+    .dmg-highlight { color: #ff4d4d; font-size: 1.3em; font-weight: bold; text-shadow: 0 0 10px rgba(255,77,77,0.5); }
+    .skill-log { color: #28a745; font-weight: bold; margin-bottom: 2px; }
+    .crit-log { color: #ffd700; font-weight: bold; }
 </style>
 </head>
 <body>
 <div id="header">
-    <div class="bar-container"><div class="bar-label"><span>魔神</span><span id="bosshp-text">100%</span></div><div class="bar"><div id="bosshp" class="fill"></div></div></div>
-    <div class="bar-container"><div class="bar-label"><span>HP</span><span id="playerhp-text">0/0</span></div><div class="bar"><div id="playerhp" class="fill"></div></div></div>
-    <div style="font-size:0.8em; margin-top:5px;">ATK: <span id="sum-atk">0</span> | Lv: <span id="p-lv">1</span></div>
+    <div class="bar-container"><div class="bar-label"><span>魔神 (GOD)</span><span id="bosshp-text">100%</span></div><div class="bar"><div id="bosshp" class="fill"></div></div></div>
+    <div class="bar-container"><div class="bar-label"><span>HP (Mage-Enhanced)</span><span id="playerhp-text">0/0</span></div><div class="bar"><div id="playerhp" class="fill"></div></div></div>
+    <div style="font-size:0.85em; margin-top:5px; color:var(--sub);">最終ATK: <span id="sum-atk" style="color:var(--text)">0</span> | Lv: <span id="p-lv">100</span></div>
 </div>
 <div class="nav">
     <button onclick="showTab('battle', this)" class="active">討伐</button>
@@ -47,23 +48,22 @@
     <button onclick="showTab('relic', this)">遺物</button>
 </div>
 <div id="content">
-    <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">魔神に攻撃</button><div id="log"></div></div>
+    <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">全権能解放攻撃</button><div id="log"></div></div>
     <div id="status" class="tab"><div id="statusList"></div></div>
     <div id="power" class="tab"><div id="powerList"></div></div>
     <div id="relic" class="tab"><div id="relicList"></div></div>
 </div>
 <script>
-const SAVE_KEY = "MAJIN_SKILL_CHECK_V1";
+const BOSS_MAX_HP = 1e20;
 const POWER_NAMES = ["剣神の残火","不滅の守護者","魔導王の遺志","覇王の残光","絶影の残影","修羅の咆哮","真理の残滓","神託の残響","虚無の深淵","機工の心臓"];
 const RELIC_GRADES = ["欠片", "心得", "記憶", "極意", "魂", "神域", "深淵", "虚無", "真理", "超越"];
-const STEPS = [10, 50, 150, 300, 500, 800, 1200, 2000, 3500, 5000];
 
-let p, currentBossHP = 1e20, longPressInterval = null, isPressing = false;
+let p, currentBossHP = BOSS_MAX_HP, longPressInterval = null, isPressing = false;
 
 function init() {
-    // デバッグ用全解放データ（⭐︎6〜10遺物は数は持つが効果は未設定にするため、計算式で調整）
+    // 全スキル習得状態のデバッグデータ
     let debugInv = {};
-    for(let i=0; i<100; i++) { debugInv[i] = 5000; }
+    for(let i=0; i<100; i++) debugInv[i] = 5000;
     p = { lv: 100, exp: 0, inventory: debugInv, deathCount: 0 };
     
     document.getElementById("attackBtn").addEventListener("mousedown", startAtk);
@@ -80,66 +80,61 @@ function calcStats() {
     let relicAtk = 0;
     Object.keys(p.inventory).forEach(id => {
         const grade = id % 10;
-        // ⭐︎6〜10(grade >= 5)の効果は一旦未設定（0加算）にする
-        if (grade < 5) {
-            relicAtk += (grade + 1) * 100 * p.inventory[id];
-        }
+        if (grade < 5) relicAtk += (grade + 1) * 100 * p.inventory[id]; // ⭐︎6~10は効果未設定
     });
     
-    let logs = [];
-    let mageMult = 1;
-    // 魔導王の再臨(10番目)
-    if (p.inventory[29] >= 5000) { mageMult = 2; logs.push("【魔導王の再臨】全権能2倍"); }
-
-    let s = { maxHP: p.lv * 100 + 10, baseAtk: 10 + (p.lv * 5) + relicAtk, multi: 1 };
+    const mageMult = 2; // 【魔導王の再臨】全効果2倍
+    let s = { maxHP: (p.lv * 100 + 10) * 1000 * mageMult, baseAtk: 10 + (p.lv * 5) + relicAtk, multi: 1 };
     
-    // スキル反映
-    if (isPressing && p.inventory[55] >= 800) { s.multi *= (10 * mageMult); logs.push("【飽くなき闘争】ATK 10倍(×再臨)"); }
-    if (p.inventory[39] >= 5000) { s.baseAtk += (p.lv * 5000 * mageMult); logs.push("【至高の御座】Lv加算(×再臨)"); }
-    if (p.inventory[84] >= 500) { s.maxHP *= (1000 * mageMult); logs.push("【存在の否定】最大HP 1000倍(×再臨)"); }
-    if (p.inventory[91] >= 50) { s.multi *= (100 * mageMult); logs.push("【過負荷の熱】HP全快 100倍(×再臨)"); }
+    // 常時・状況発動スキルの計算
+    s.baseAtk += (p.lv * 5000 * mageMult); // 【至高の御座】
+    if (isPressing) s.multi *= (10 * mageMult); // 【飽くなき闘争】
+    if (p.inventory[91] >= 50) s.multi *= (100 * mageMult); // 【過負荷の熱】HP全快
 
     s.finalAtk = s.baseAtk * (1 + p.deathCount * 0.001) * s.multi;
-    s.activeSkills = logs;
     return s;
 }
 
 function battle() {
     const s = calcStats();
     let dmg = s.finalAtk;
-    let specialLogs = [];
+    let logs = [];
 
-    // 虚構の崩壊(真理6番目)
-    if (p.inventory[65] >= 800) {
-        const propDmg = (1e20 * 0.00000001);
-        dmg += propDmg;
-        specialLogs.push(`【虚構の崩壊】割合ダメージ: ${Math.floor(propDmg).toLocaleString()}`);
+    // 確率発動系スキルの判定
+    // 1. 運命の断罪 (10%)
+    if (Math.random() < 0.1) {
+        dmg *= 10000;
+        logs.push(`<span class="crit-log">【運命の断罪】10,000倍撃！</span>`);
     }
 
+    // 2. 詠唱破棄 (25%)
+    if (Math.random() < 0.25) {
+        dmg *= 2;
+        logs.push(`<span class="skill-log">【詠唱破棄】スキル連鎖！</span>`);
+    }
+
+    // 3. 虚構の崩壊 (割合)
+    const ratioDmg = BOSS_MAX_HP * 0.00000001;
+    dmg += ratioDmg;
+    
     currentBossHP -= dmg;
-    
-    // スキル発動ログの表示
-    if (s.activeSkills.length > 0) {
-        addLog(`<span class="skill-trigger">${s.activeSkills.join(" ")}</span>`);
-    }
-    if (specialLogs.length > 0) {
-        addLog(`<span class="skill-trigger">${specialLogs.join(" ")}</span>`);
-    }
+    if(currentBossHP < 0) currentBossHP = 0;
 
-    // ダメージ強調
+    // ログ出力
+    if(logs.length > 0) addLog(logs.join(" "));
+    addLog(`【虚構の崩壊】割合ダメージ: ${Math.floor(ratioDmg).toLocaleString()}`);
     addLog(`魔神に <span class="dmg-highlight">${Math.floor(dmg).toLocaleString()}</span> ダメージ！`);
+    addLog(`<span style="color:#666">魔神の反撃！即死を【聖域の盾】で1%に変換... 再起。</span>`);
     
-    addLog(`<span style="color:red">即死攻撃を受け再起した。</span>`);
     p.deathCount++;
     refresh();
 }
 
 function refresh() {
     const s = calcStats();
-    document.getElementById("bosshp").style.width = (currentBossHP / 1e20 * 100) + "%";
-    document.getElementById("bosshp-text").innerText = (currentBossHP / 1e20 * 100).toFixed(6) + "%";
+    document.getElementById("bosshp").style.width = (currentBossHP / BOSS_MAX_HP * 100) + "%";
+    document.getElementById("bosshp-text").innerText = (currentBossHP / BOSS_MAX_HP * 100).toFixed(6) + "%";
     document.getElementById("playerhp-text").innerText = `${s.maxHP.toLocaleString()} / ${s.maxHP.toLocaleString()}`;
-    document.getElementById("p-lv").innerText = p.lv;
     document.getElementById("sum-atk").innerText = Math.floor(s.finalAtk).toLocaleString();
     
     if(document.activeTab === 'status') renderStatus(s);
@@ -149,28 +144,29 @@ function refresh() {
 
 function renderStatus(s) {
     document.getElementById("statusList").innerHTML = `
-        <div class="status-item"><span>最大HP</span><span>${s.maxHP.toLocaleString()}</span></div>
-        <div class="status-item"><span>最終ATK</span><span>${Math.floor(s.finalAtk).toLocaleString()}</span></div>
-        <div class="status-item"><span>再起回数</span><span>${p.deathCount}</span></div>
+        <div class="card-cell">
+            <div style="font-size:0.9em; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px;">ステータス</div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>最大HP</span><span style="color:var(--hp)">${s.maxHP.toLocaleString()}</span></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>最終ATK</span><span style="color:var(--accent)">${Math.floor(s.finalAtk).toLocaleString()}</span></div>
+            <div style="display:flex; justify-content:space-between;"><span>再起回数</span><span style="color:var(--gold)">${p.deathCount}</span></div>
+        </div>
     `;
 }
 
 function renderPower() {
     document.getElementById("powerList").innerHTML = POWER_NAMES.map((name, idx) => {
-        let count = 0; for(let i=0; i<10; i++) count += p.inventory[idx*10+i];
-        return `<div class="card-cell"><b>${name}</b> (遺物:${count})<div class="skill-list">
-            ${[...Array(10)].map((_, i) => `<div class="skill-item ${p.inventory[idx*10+i] >= 1 ? 'skill-unlocked' : ''}">⭐︎${i+1}解放</div>`).join("")}
+        return `<div class="card-cell"><b>${name}</b><div class="skill-list">
+            ${[...Array(10)].map((_, i) => `<div class="skill-item skill-unlocked">⭐︎${i+1} 発動中</div>`).join("")}
         </div></div>`;
     }).join("");
 }
 
 function renderRelic() {
-    const ids = Object.keys(p.inventory).filter(id => p.inventory[id] > 0);
+    const ids = Object.keys(p.inventory);
     document.getElementById("relicList").innerHTML = ids.map(id => {
         const grade = id % 10;
-        // ⭐︎6〜10(grade >= 5)は効果0として表示
         const effect = grade < 5 ? (grade + 1) * 100 * p.inventory[id] : 0;
-        return `<div class="card-cell">⭐︎${grade+1} ${POWER_NAMES[Math.floor(id/10)].split("の")[0]}の${RELIC_GRADES[grade]} ×${p.inventory[id]}<br><small style="color:var(--hp)">効果: ATK +${effect} ${grade >= 5 ? '(未設定)' : ''}</small></div>`;
+        return `<div class="card-cell" style="font-size:0.8em">⭐︎${grade+1} ${POWER_NAMES[Math.floor(id/10)].split("の")[0]}の遺物 ×${p.inventory[id]}<br><span style="color:var(--hp)">効果: ATK +${effect} ${grade >= 5 ? '(未設定)' : ''}</span></div>`;
     }).join("");
 }
 
@@ -186,7 +182,7 @@ function showTab(id, btn) {
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 25) l.removeChild(l.lastChild);
+    l.prepend(d); if(l.childNodes.length > 30) l.removeChild(l.lastChild);
 }
 
 init();
