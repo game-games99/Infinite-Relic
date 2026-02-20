@@ -3,212 +3,290 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>魔神討伐伝 - 輪廻転生 -</title>
+<title>魔神討伐伝 - DPS究極進化 -</title>
 <style>
     :root {
-        --bg: #0f172a; --panel: #1e293b; --border: #334155;
-        --primary: #38bdf8; --text: #f1f5f9; --sub: #94a3b8;
-        --accent: #f43f5e; --gold: #fbbf24; --death: #a855f7; --exp: #22c55e;
+        --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6;
+        --primary: #007bff; --text: #212529; --sub: #6c757d;
+        --accent: #dc3545; --gold: #d39e00; --death: #6f42c1; --exp: #28a745;
     }
-    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-    
-    /* ヘッダー: ステータス */
-    #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); font-size: 0.8em; }
+    body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    #header { background: var(--panel); padding: 8px 12px; border-bottom: 2px solid var(--border); flex-shrink: 0; font-size: 0.8em; }
     .bar-container { margin-bottom: 4px; }
-    .bar { height: 8px; background: #000; border-radius: 4px; overflow: hidden; }
-    .fill { height: 100%; transition: width 0.1s; }
-    #bosshp { background: linear-gradient(90deg, #f59e0b, #e11d48); }
-    #playerhp { background: linear-gradient(90deg, #10b981, #3b82f6); }
-    
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 8px; }
-    .stat-box { background: rgba(255,255,255,0.05); padding: 4px; border-radius: 4px; text-align: center; }
-    .stat-label { font-size: 0.7em; color: var(--sub); display: block; }
-    .stat-val { font-weight: bold; color: var(--primary); }
-
-    /* メインエリア */
-    .nav { display: flex; background: #000; }
-    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: var(--sub); font-size: 0.8em; cursor: pointer; }
-    .nav button.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
-
+    .bar-label { display: flex; justify-content: space-between; font-size: 0.7em; margin-bottom: 1px; }
+    .bar { height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
+    .fill { height: 100%; transition: width 0.1s ease; }
+    #bosshp { background: linear-gradient(90deg, #ffc107, #dc3545); }
+    #playerhp { background: linear-gradient(90deg, #28a745, #20c997); }
+    #exp-bar { background: var(--primary); }
+    #job-exp-bar { background: var(--death); }
+    .stats-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 5px; background: rgba(0,0,0,0.03); padding: 5px; border-radius: 4px; }
+    .stat-item { display: flex; justify-content: space-between; font-size: 0.85em; }
+    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .nav button { flex: 1; padding: 10px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.75em; cursor: pointer; }
+    .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
     #content { flex-grow: 1; overflow-y: auto; position: relative; }
-    .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; }
+    .tab { display: none; padding: 12px; height: 100%; box-sizing: border-box; }
     .tab.active { display: block; }
-
-    /* バトル */
-    .battle-layout { display: flex; flex-direction: column; height: 100%; }
-    .dps-card { background: #000; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 10px; border: 1px solid var(--border); }
-    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #000; font-weight: bold; border: none; border-radius: 12px; font-size: 1.2em; }
-    #mini-log { height: 100px; overflow-y: hidden; font-size: 0.75em; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 4px; }
-
-    /* リスト系 */
-    .list-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-    .card { background: var(--panel); border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.75em; }
-    .job-card { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .dps-display { text-align: center; padding: 10px; background: #212529; color: #00ff00; font-family: monospace; font-size: 1.2em; border-radius: 4px; margin-bottom: 10px; }
+    .btn-attack { width: 100%; padding: 18px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
+    #log { flex-grow: 1; margin-top: 8px; overflow-y: auto; font-size: 0.75em; background: #fafafa; padding: 8px; border: 1px solid var(--border); border-radius: 4px; }
+    .log-entry { margin-bottom: 2px; padding: 2px 0; border-bottom: 1px solid #eee; }
+    .relic-cell { background: #fff; border: 1px solid var(--border); padding: 6px; font-size: 0.7em; display: flex; flex-direction: column; cursor: pointer; }
+    .detail-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 20; padding: 15px; display: none; }
 </style>
 </head>
 <body>
 
 <div id="header">
     <div class="bar-container">
-        <div class="bar-label" style="display:flex; justify-content:space-between;"><span>魔神</span><span id="boss-per">100%</span></div>
+        <div class="bar-label"><span>魔神</span><span id="bosshp-text">100.00%</span></div>
         <div class="bar"><div id="bosshp" class="fill"></div></div>
     </div>
     <div class="bar-container">
-        <div class="bar-label" style="display:flex; justify-content:space-between;"><span>Player HP</span><span id="hp-text">100/100</span></div>
+        <div class="bar-label"><span>プレイヤーHP</span><span id="playerhp-text">0/0</span></div>
         <div class="bar"><div id="playerhp" class="fill"></div></div>
     </div>
-    <div class="stats-grid">
-        <div class="stat-box"><span class="stat-label">ATK</span><span id="sum-atk" class="stat-val">0</span></div>
-        <div class="stat-box"><span class="stat-label">敗北数</span><span id="sum-death" class="stat-val" style="color:var(--death)">0</span></div>
-        <div class="stat-box"><span class="stat-label">次Lvまで</span><span id="sum-exp" class="stat-val">0%</span></div>
+    <div class="bar-container">
+        <div class="bar-label"><span id="p-lv-text">Lv.1 主人公</span><span id="exp-text">0%</span></div>
+        <div class="bar"><div id="exp-bar" class="fill"></div></div>
+    </div>
+    <div class="bar-container">
+        <div class="bar-label"><span id="p-job-text">剣聖 Lv.1</span><span id="job-exp-text">0%</span></div>
+        <div class="bar"><div id="job-exp-bar" class="fill"></div></div>
+    </div>
+    <div class="stats-summary">
+        <div class="stat-item"><span>ATK:</span><span id="sum-atk">0</span></div>
+        <div class="stat-item"><span>敗北数:</span><span id="sum-death" style="color:var(--death)">0</span></div>
+        <div class="stat-item"><span>クリ率:</span><span id="sum-crit">5%</span></div>
+        <div class="stat-item"><span>増幅:</span><span id="sum-dmg">100%</span></div>
     </div>
 </div>
 
 <div class="nav">
     <button onclick="showTab('battle', this)" class="active">討伐</button>
-    <button onclick="showTab('job', this)">職業(20)</button>
-    <button onclick="showTab('relic', this)">遺物(250)</button>
+    <button onclick="showTab('status', this)">詳細情報</button>
+    <button onclick="showTab('job', this)">職業</button>
+    <button onclick="showTab('equip', this)">遺物</button>
 </div>
 
 <div id="content">
     <div id="battle" class="tab active">
-        <div class="battle-layout">
-            <div class="dps-card">
-                <div style="font-size:0.8em; color:var(--sub)">CURRENT DPS</div>
-                <div id="dps-val" style="font-size:1.8em; color:var(--primary); font-family:monospace;">0</div>
-            </div>
-            <button class="btn-attack" id="attackBtn">魔神を討伐する</button>
-            <div id="mini-log"></div>
+        <div style="display:flex; flex-direction:column; height:100%;">
+            <div class="dps-display">DPS: <span id="dps-val">0</span></div>
+            <button class="btn-attack" id="attackBtn">魔神に攻撃</button>
+            <div id="log"></div>
         </div>
     </div>
-
-    <div id="job" class="tab">
-        <div id="job-list"></div>
-    </div>
-
-    <div id="relic" class="tab">
-        <div class="list-grid" id="relic-grid"></div>
-    </div>
+    <div id="status" class="tab"><div id="statusDetails"></div></div>
+    <div id="job" class="tab"><div id="jobList"></div></div>
+    <div id="equip" class="tab"><div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:4px;" id="relicGrid"></div></div>
+    <div id="detailPanel" class="detail-overlay"><button style="width:100%; padding:10px; margin-bottom:10px;" onclick="closeDetail()">戻る</button><div id="detailContent"></div></div>
 </div>
 
 <script>
 const BOSS_MAX_HP = 1e24;
-const JOBS = ["剣聖","魔導師","神官","覇王","賢者","暗殺者","竜騎士","修羅","錬金術師","吟遊詩人","死霊使い","聖騎士","風来坊","狂戦士","機工士","時魔道師","格闘家","弓聖","召喚師","博徒"];
-const SKILLS = ["一閃","連撃","波動","覚醒","極意"]; // 各職5つ、計100
-const ADJ = ["古の","幻の","聖なる","呪われし","輝く","深淵の","黄金の","虚空の","紅蓮の","蒼天の"];
-const OBJ = ["秘石","聖杯","手袋","指輪","冠","外套","剣","盾","魔鏡","天球"];
-
-let p = {
-    lv:1, exp:0, job:"剣聖", death:0, 
-    jobLevels: {}, inventory: {}, curHP: 1000
+const JOBS_DATA = {
+    "剣聖": ["烈風斬", "雷鳴一閃", "空破斬", "奥義・天断", "神殺しの刃"],
+    "神官": ["癒しの光", "守護の結界", "天罰の光", "奇跡の風", "聖域の守り"],
+    "魔導師": ["火炎球", "氷結槍", "落雷", "崩壊の魔印", "宇宙の真理"],
+    "覇王": ["覇気", "支配の眼光", "次元の蹂虙", "覇道一撃", "天地開闢"],
+    "賢者": ["知恵の閃き", "魔力収束", "時空魔法", "因果逆転", "全知全能"],
+    "暗殺者": ["毒刃乱舞", "隠影の術", "急所穿ち", "影縫い", "絶命の極意"],
+    "竜騎士": ["竜の跳躍", "火竜の吐息", "旋回昇龍", "雷竜の激昂", "滅竜奥義"],
+    "修羅": ["闘気爆発", "無双連撃", "剛力破砕", "血戦の誓い", "真・阿修羅"],
+    "錬金術師": ["混合薬液", "等価交換", "物質変質", "賢者の石", "黄金律"],
+    "吟遊詩人": ["鎮魂歌", "勇気の賛歌", "希望の旋律", "神々の絶唱", "終焉の歌"],
+    "死霊使い": ["亡者召喚", "腐食の呪い", "魂の捕食", "冥府の門", "不死者の王"],
+    "聖騎士": ["献身の盾", "聖なる審判", "福音の光", "神威の波動", "究極の加護"],
+    "風来坊": ["疾風自在", "木の葉隠れ", "一服の涼", "旅路の果て", "雲外蒼天"],
+    "狂戦士": ["激昂の咆哮", "不屈の精神", "血塗れの粉砕", "暴走する力", "終焉の戦"],
+    "機工士": ["照準固定", "自動砲台", "過負荷稼働", "展開型兵装", "最終兵器"],
+    "時魔道師": ["加速の刻", "遅延の砂", "停止の呪文", "回帰の刻印", "ビッグバン"],
+    "格闘家": ["正拳突き", "連弾", "発勁", "鉄山靠", "真・神拳"],
+    "弓聖": ["早撃ち", "狙撃", "魔矢貫通", "天雨の矢", "極星の導き"],
+    "召喚師": ["契約の徴", "異界現界", "共鳴する魂", "融合変身", "真・召喚"],
+    "博徒": ["賽の目", "一か八か", "強奪の一手", "大逆転劇", "ジャックポット"]
 };
-let currentBossHP = BOSS_MAX_HP;
+
+let p, longPressIdx, isProcessing = false;
 let dpsPool = [];
+let currentBossHP = BOSS_MAX_HP;
+let currentHP = 1000;
+const SAVE_KEY = "MAJIN_DPS_V8";
+
+const R_ADJ = ["古の", "魂の", "幻の", "輝く", "禁忌の", "神の", "闇の", "星の", "虚空の", "紅蓮の"];
+const R_OBJ = ["秘石", "紋章", "宝具", "腕輪", "剣", "盾", "首飾り", "指輪", "魔導書", "牙"];
 
 function init() {
-    JOBS.forEach(j => p.jobLevels[j] = 1);
+    const saved = localStorage.getItem(SAVE_KEY);
+    p = saved ? JSON.parse(saved) : {
+        lv: 1, exp: 0, job: "剣聖", inventory: {}, 
+        jobLevels: {}, jobExp: {}, deathCount: 0
+    };
+    Object.keys(JOBS_DATA).forEach(j => {
+        if (!p.jobLevels[j]) p.jobLevels[j] = 1;
+        if (p.jobExp[j] === undefined) p.jobExp[j] = 0;
+    });
+    currentHP = 1000 + (p.lv * 100);
     const btn = document.getElementById("attackBtn");
-    btn.onclick = () => { battle(); };
-    setInterval(() => {
-        let val = dpsPool.reduce((a,b)=>a+b, 0);
-        document.getElementById("dps-val").innerText = val.toLocaleString();
-        dpsPool = [];
-    }, 1000);
+    const handleStart = (e) => { e.preventDefault(); if(!longPressIdx) { battle(); longPressIdx = setInterval(battle, 100); } };
+    const handleStop = () => { clearInterval(longPressIdx); longPressIdx = null; };
+    btn.addEventListener("mousedown", handleStart); btn.addEventListener("mouseup", handleStop);
+    btn.addEventListener("touchstart", handleStart, {passive: false}); btn.addEventListener("touchend", handleStop);
+    setInterval(updateDPS, 1000);
     refresh();
 }
 
-function getRelic(id) {
-    const name = ADJ[id % 10] + OBJ[Math.floor(id / 25) % 10] + (id % 25);
-    return { name, id };
+function getRelicData(id) {
+    const seed = parseInt(id);
+    const name = R_ADJ[seed % 10] + R_OBJ[Math.floor(seed / 10) % 10] + " #" + seed;
+    const typeKey = ["ATK", "CRIT", "C_DMG", "FAST"][seed % 4];
+    const isDeathType = (seed % 13 === 0);
+    const isGold = (seed % 50 === 0);
+    const baseVal = isGold ? (seed % 5 + 5) * 10 : (seed % 5 + 1);
+    let effectText = typeKey === "ATK" ? `ATK +${baseVal * 10}` : typeKey === "CRIT" ? `Crit率 +${baseVal}%` : typeKey === "C_DMG" ? `Crit倍率 +${baseVal*5}%` : `経験値効率 +${baseVal}%`;
+    if (isDeathType) effectText = "敗北数で全ステータス強化";
+    return { id, name, typeKey, val: baseVal, effectText, isGold, isDeathType };
 }
 
 function battle() {
-    let atk = (p.lv * 100) + (p.jobLevels[p.job] * 50) + (p.death * 50);
-    // スキル効果(簡易)
-    let sCount = Math.floor(p.jobLevels[p.job] / 5) + 1;
-    let dmg = atk * sCount;
-    
-    // 魔神の反撃
-    let enemyAtk = p.lv * 50;
-    p.curHP -= enemyAtk;
-    
-    if (p.curHP <= 0) {
-        p.death++;
-        p.curHP = 1000 + (p.lv * 100);
-        addLog(`<span style="color:var(--accent)">【敗北】魔神の圧倒的力に屈した。強化されて蘇る。</span>`);
+    if (isProcessing) return;
+    isProcessing = true;
+    let stats = calcStats();
+    let isCrit = Math.random() < (stats.crit / 100);
+    let dmg = Math.floor(stats.atk * (0.9 + Math.random() * 0.2) * stats.dmgM * stats.deathM);
+    if (isCrit) dmg = Math.floor(dmg * stats.critM);
+
+    // 魔神のHP処理
+    if (dmg >= currentBossHP) {
+        addLog(`<span style="color:var(--gold)">討伐成功！魔神を消滅させた。</span>`);
+        currentBossHP = BOSS_MAX_HP;
     } else {
-        if (dmg >= currentBossHP) {
-            addLog(`<span style="color:var(--gold)">【完全討伐】魔神を消滅させた！</span>`);
+        currentBossHP -= dmg;
+        if (currentBossHP < 1) {
+            addLog(`<span style="color:var(--accent)">仕留め損ねた！魔神が全回復した。</span>`);
             currentBossHP = BOSS_MAX_HP;
-        } else {
-            currentBossHP -= dmg;
-            if (currentBossHP < 1) currentBossHP = BOSS_MAX_HP; // 回復
-            addLog(`魔神に ${dmg.toLocaleString()} ダメージ`);
         }
-        dpsPool.push(dmg);
-        p.exp += 100;
-        checkLevelUp();
     }
-    refresh();
+    dpsPool.push(dmg);
+
+    // 被ダメージと敗北
+    let enemyDmg = Math.floor(100 + (p.lv * 10));
+    currentHP -= enemyDmg;
+    if (currentHP <= 0) {
+        p.deathCount++;
+        currentHP = stats.maxHP;
+        addLog(`<span style="color:var(--death)">敗北！死の経験が力に変わる…</span>`);
+    } else {
+        addLog(`⚔️ ${dmg.toLocaleString()} ダメージ (被弾: ${enemyDmg})`);
+    }
+
+    // 経験値
+    let gainExp = Math.floor(dmg * 0.01 * stats.fast) + 10;
+    p.exp += gainExp; p.jobExp[p.job] += gainExp;
+    addLog(`<span style="color:var(--exp)">+${gainExp} EXP</span>`);
+
+    if (Math.random() < 0.1) {
+        let rId = Math.floor(Math.random() * 250);
+        p.inventory[rId] = (p.inventory[rId] || 0) + 1;
+        addLog(`<span style="color:var(--gold)">★ 遺物獲得: ${getRelicData(rId).name}</span>`);
+    }
+    checkLevelUp(); refresh(); isProcessing = false;
+}
+
+function calcStats() {
+    let baseAtk = 5000 + (p.lv * 500) + (p.jobLevels[p.job] * 200);
+    let stats = { atk: baseAtk, crit: 5, critM: 1.5, dmgM: 1.0, deathM: 1.0 + (p.deathCount * 0.01), fast: 1.0, maxHP: 1000 + (p.lv * 100) };
+    Object.keys(p.inventory).forEach(id => {
+        const d = getRelicData(id); const count = p.inventory[id];
+        if (d.isDeathType) stats.deathM *= (1 + (p.deathCount * d.val * 0.0001 * count));
+        else {
+            if (d.typeKey === "ATK") stats.atk += d.val * 10 * count;
+            if (d.typeKey === "CRIT") stats.crit += d.val * count;
+            if (d.typeKey === "C_DMG") stats.critM += (d.val * 0.05 * count);
+            if (d.typeKey === "FAST") stats.fast += (d.val * 0.01 * count);
+        }
+    });
+    return stats;
+}
+
+function updateDPS() {
+    let total = dpsPool.reduce((a, b) => a + b, 0);
+    document.getElementById("dps-val").innerText = total.toLocaleString();
+    dpsPool = [];
 }
 
 function checkLevelUp() {
-    if (p.exp >= p.lv * 500) {
-        p.exp = 0; p.lv++;
-        p.jobLevels[p.job]++;
-        addLog(`<span style="color:var(--exp)">LvUP! 職業スキル「${SKILLS[p.jobLevels[p.job]%5]}」が強化。</span>`);
+    const getNext = (lv) => Math.pow(lv, 3) * 1000;
+    while (p.exp >= getNext(p.lv)) { 
+        p.exp -= getNext(p.lv); p.lv++; 
+        addLog(`<span style="color:var(--primary)">LvUP: ${p.lv}</span>`);
+    }
+    const getJNext = (lv) => Math.pow(lv, 3) * 500;
+    while (p.jobExp[p.job] >= getJNext(p.jobLevels[p.job])) { 
+        p.jobExp[p.job] -= getJNext(p.jobLevels[p.job]); p.jobLevels[p.job]++; 
+        addLog(`<span style="color:var(--death)">JobLvUP: ${p.jobLevels[p.job]}</span>`);
     }
 }
 
 function refresh() {
-    document.getElementById("boss-per").innerText = (currentBossHP/BOSS_MAX_HP*100).toFixed(10) + "%";
-    document.getElementById("bosshp").style.width = (currentBossHP/BOSS_MAX_HP*100) + "%";
-    
-    let maxHP = 1000 + (p.lv * 100);
-    document.getElementById("hp-text").innerText = `${p.curHP} / ${maxHP}`;
-    document.getElementById("playerhp").style.width = (p.curHP / maxHP * 100) + "%";
-    
-    document.getElementById("sum-atk").innerText = ((p.lv*100) + (p.death*50)).toLocaleString();
-    document.getElementById("sum-death").innerText = p.death;
-    document.getElementById("sum-exp").innerText = Math.floor(p.exp / (p.lv*500) * 100) + "%";
-
+    const stats = calcStats();
+    const hpPer = (currentBossHP / BOSS_MAX_HP * 100);
+    document.getElementById("bosshp").style.width = hpPer + "%";
+    document.getElementById("bosshp-text").innerText = hpPer.toFixed(10) + "%";
+    document.getElementById("playerhp-text").innerText = `${currentHP.toLocaleString()} / ${stats.maxHP.toLocaleString()}`;
+    document.getElementById("playerhp").style.width = (currentHP / stats.maxHP * 100) + "%";
+    document.getElementById("exp-bar").style.width = (p.exp / (Math.pow(p.lv, 3) * 1000) * 100) + "%";
+    document.getElementById("p-lv-text").innerText = `Lv.${p.lv} 主人公`;
+    document.getElementById("job-exp-bar").style.width = (p.jobExp[p.job] / (Math.pow(p.jobLevels[p.job], 3) * 500) * 100) + "%";
+    document.getElementById("p-job-text").innerText = `${p.job} Lv.${p.jobLevels[p.job]}`;
+    document.getElementById("sum-atk").innerText = Math.floor(stats.atk * stats.deathM).toLocaleString();
+    document.getElementById("sum-death").innerText = p.deathCount.toLocaleString();
+    document.getElementById("sum-crit").innerText = stats.crit + "%";
+    document.getElementById("sum-dmg").innerText = Math.floor(stats.deathM * 100) + "%";
     if (document.getElementById("job").classList.contains("active")) renderJobs();
-    if (document.getElementById("relic").classList.contains("active")) renderRelics();
-}
-
-function renderJobs() {
-    document.getElementById("job-list").innerHTML = JOBS.map(j => `
-        <div class="card job-card">
-            <span>${j} (Lv.${p.jobLevels[j]})</span>
-            <button onclick="p.job='${j}';refresh();" ${p.job===j?'disabled':''}>${p.job===j?'稼働中':'転職'}</button>
-        </div>
-    `).join("");
-}
-
-function renderRelics() {
-    let html = "";
-    for(let i=0; i<250; i++) {
-        if (i < 20) { // デモ用に一部表示
-            let r = getRelic(i);
-            html += `<div class="card">${r.name}<br><span style="color:var(--sub)">ID:${i}</span></div>`;
-        }
-    }
-    document.getElementById("relic-grid").innerHTML = html + `<div class="card">...他 ${250-20} 種</div>`;
+    if (document.getElementById("equip").classList.contains("active")) renderEquip();
+    if (document.getElementById("status").classList.contains("active")) renderStatus(stats);
+    localStorage.setItem(SAVE_KEY, JSON.stringify(p));
 }
 
 function addLog(m) {
-    const l = document.getElementById("mini-log");
-    l.innerHTML = `<div>${m}</div>` + l.innerHTML;
-    if (l.childNodes.length > 5) l.removeChild(l.lastChild);
+    const l = document.getElementById("log");
+    const d = document.createElement("div"); d.className = "log-entry"; d.innerHTML = m;
+    l.prepend(d); if (l.childNodes.length > 15) l.removeChild(l.lastChild);
+}
+
+function renderStatus(s) {
+    document.getElementById("statusDetails").innerHTML = `<h4>詳細ステータス</h4><p>基礎ATK: ${s.atk.toLocaleString()}</p><p>クリ倍率: ${s.critM.toFixed(2)}x</p><p>敗北ボーナス: x${s.deathM.toFixed(2)}</p>`;
+}
+
+function renderJobs() {
+    document.getElementById("jobList").innerHTML = Object.keys(JOBS_DATA).map(j => `
+        <div class="list-item"><span><b>${j}</b> (Lv.${p.jobLevels[j]})<br><small>${JOBS_DATA[j].join("/")}</small></span><button onclick="p.job='${j}'; refresh();">転職</button></div>
+    `).join("");
+}
+
+function renderEquip() {
+    document.getElementById("relicGrid").innerHTML = Object.keys(p.inventory).map(id => {
+        const d = getRelicData(id);
+        return `<div class="relic-cell" onclick="openRelicDetail(${id})"><span style="${d.isGold?'color:var(--gold)':''}">${d.name}</span><span>×${p.inventory[id]}</span></div>`;
+    }).join("");
+}
+
+function openRelicDetail(id) {
+    const d = getRelicData(id);
+    showDetail(`<h3>${d.name}</h3><hr><p>${d.effectText}</p><p>所持: ${p.inventory[id]}</p>`);
 }
 
 function showTab(id, btn) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.getElementById(id).classList.add("active");
     document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
+    btn.classList.add("active"); refresh();
 }
-
+function showDetail(c) { document.getElementById("detailContent").innerHTML = c; document.getElementById("detailPanel").style.display = "block"; }
+function closeDetail() { document.getElementById("detailPanel").style.display = "none"; }
 init();
 </script>
 </body>
