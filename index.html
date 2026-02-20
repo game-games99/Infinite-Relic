@@ -10,7 +10,6 @@
         --primary: #007bff; --text: #212529; --sub: #6c757d;
         --accent: #dc3545; --gold: #d39e00; --death: #6f42c1; --exp: #28a745;
     }
-    /* 修正箇所：画面全体をスワイプ不要にするための高さ制御 */
     body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     
     #header { background: var(--panel); padding: 8px 12px; border-bottom: 2px solid var(--border); flex-shrink: 0; font-size: 0.9em; }
@@ -23,7 +22,6 @@
     #exp-bar { background: var(--primary); }
     #job-exp-bar { background: var(--death); }
     
-    /* 修正箇所：統計情報のコンパクト化 */
     .stats-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 6px; background: rgba(0,0,0,0.05); padding: 6px; border-radius: 6px; }
     .stat-item { display: flex; justify-content: space-between; font-size: 0.85em; font-weight: bold; }
 
@@ -35,7 +33,6 @@
     .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; }
     .tab.active { display: block; }
 
-    /* 修正箇所：ボタンサイズの最適化 */
     .btn-attack { width: 100%; padding: 12px; background: var(--primary); color: #fff; font-size: 1.0em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 2px; }
     
     #log { flex-grow: 1; margin-top: 6px; overflow-y: auto; font-size: 0.7em; background: #fafafa; padding: 6px; border: 1px solid var(--border); border-radius: 4px; }
@@ -48,7 +45,7 @@
 
 <div id="header">
     <div class="bar-container">
-        <div class="bar-label"><span>魔神</span><span id="bosshp-text">100.00%</span></div>
+        <div class="bar-label"><span>魔神</span><span id="bosshp-text">100%</span></div>
         <div class="bar"><div id="bosshp" class="fill"></div></div>
     </div>
     <div class="bar-container">
@@ -126,6 +123,12 @@ const R_ADJ = ["星辰の", "冥府の", "黄金の", "深淵の", "聖天の", 
 const R_CORE = ["竜王", "熾天使", "魔帝", "賢者", "精霊", "狂戦士", "覇道", "極夜", "神光", "奈落"];
 const R_OBJ = ["の秘石", "の紋章", "の聖杯", "の指輪", "の魔冠", "の剣片", "の盾刻", "の首飾り", "の宝珠", "の断罪"];
 
+// ステータス差別化のためのフォーマット関数 (10万を超えたら指数表記)
+function fmt(num) {
+    if (num >= 1e6) return num.toExponential(2).replace("+", "");
+    return Math.floor(num).toLocaleString();
+}
+
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
     p = saved ? JSON.parse(saved) : {
@@ -181,19 +184,21 @@ function battle() {
     }
     dpsPool.push(dmg);
 
-    let enemyDmg = Math.floor(100 + (p.lv * 10));
-    currentHP -= enemyDmg;
+    // 修正：魔神からの攻撃は即死ダメージ
+    currentHP = 0; 
+    
     if (currentHP <= 0) {
         p.deathCount++;
         currentHP = stats.maxHP;
-        addLog(`<span style="color:var(--death)">敗北！死の経験が力に変わる…</span>`);
+        addLog(`<span style="color:var(--death)">敗北！魔神の一撃は魂を砕く…</span>`);
     } else {
-        addLog(`⚔️ ${dmg.toLocaleString()} ダメージ (被弾: ${enemyDmg})`);
+        // 即死設定のためここには来ない
+        addLog(`⚔️ ${fmt(dmg)} ダメージ`);
     }
 
     let gainExp = Math.floor(dmg * 0.01 * stats.fast) + 10;
     p.exp += gainExp; p.jobExp[p.job] += gainExp;
-    addLog(`<span style="color:var(--exp)">+${gainExp} EXP</span>`);
+    addLog(`<span style="color:var(--exp)">+${fmt(gainExp)} EXP</span>`);
 
     if (Math.random() < 0.1) {
         let rId = Math.floor(Math.random() * 250);
@@ -238,11 +243,12 @@ function refresh() {
     const stats = calcStats();
     const hpPer = (currentBossHP / BOSS_MAX_HP * 100);
     document.getElementById("bosshp").style.width = hpPer + "%";
-    document.getElementById("bosshp-text").innerText = hpPer.toFixed(10) + "%";
-    document.getElementById("playerhp-text").innerText = `${currentHP.toLocaleString()} / ${stats.maxHP.toLocaleString()}`;
+    // 修正：無駄な小数点を除去し整数％表示に
+    document.getElementById("bosshp-text").innerText = Math.ceil(hpPer) + "%";
+    
+    document.getElementById("playerhp-text").innerText = `${fmt(currentHP)} / ${fmt(stats.maxHP)}`;
     document.getElementById("playerhp").style.width = (currentHP / stats.maxHP * 100) + "%";
     
-    /* 修正箇所：経験値%の計算バグ修正 */
     const nextExp = Math.pow(p.lv, 3) * 1000;
     const expPer = (p.exp / nextExp * 100);
     document.getElementById("exp-bar").style.width = expPer + "%";
@@ -253,11 +259,11 @@ function refresh() {
     document.getElementById("job-exp-bar").style.width = jobExpPer + "%";
     document.getElementById("job-exp-text").innerText = jobExpPer.toFixed(1) + "%";
     
-    /* 修正箇所：主人公テキストの削除 */
     document.getElementById("p-lv-text").innerText = `Lv.${p.lv}`;
     document.getElementById("p-job-text").innerText = `Lv.${p.jobLevels[p.job]} ${p.job}`;
     
-    document.getElementById("sum-atk").innerText = Math.floor(stats.atk * stats.deathM).toLocaleString();
+    // 修正：ステータスも差別化（フォーマット適用）
+    document.getElementById("sum-atk").innerText = fmt(stats.atk * stats.deathM);
     document.getElementById("sum-death").innerText = p.deathCount.toLocaleString();
     document.getElementById("sum-crit").innerText = stats.crit + "%";
     document.getElementById("sum-dmg").innerText = Math.floor(stats.deathM * 100) + "%";
@@ -275,7 +281,7 @@ function addLog(m) {
 }
 
 function renderStatus(s) {
-    document.getElementById("statusDetails").innerHTML = `<h4>詳細ステータス</h4><p>基礎ATK: ${s.atk.toLocaleString()}</p><p>クリ倍率: ${s.critM.toFixed(2)}x</p><p>敗北ボーナス: x${s.deathM.toFixed(2)}</p>`;
+    document.getElementById("statusDetails").innerHTML = `<h4>詳細ステータス</h4><p>基礎ATK: ${fmt(s.atk)}</p><p>クリ倍率: ${s.critM.toFixed(2)}x</p><p>敗北ボーナス: x${s.deathM.toFixed(2)}</p>`;
 }
 
 function renderJobs() {
