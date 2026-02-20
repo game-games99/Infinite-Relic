@@ -6,8 +6,11 @@
 <title>infiniterelic</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --rare: #ffc107; }
-    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
+    /* 範囲選択とメニューの禁止 */
+    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+    
+    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; cursor: pointer; }
@@ -21,19 +24,18 @@
     .power-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .power-card { background: #f8f9fa; border: 1px solid var(--border); padding: 6px; border-radius: 6px; }
     .power-title { font-weight: bold; font-size: 0.75em; color: var(--primary); border-bottom: 1px solid var(--border); margin-bottom: 4px; }
-    .skill-item { font-size: 0.6em; margin-bottom: 4px; border-left: 3px solid #ddd; padding-left: 4px; }
+    .skill-item { font-size: 0.55em; margin-bottom: 4px; border-left: 3px solid #ddd; padding-left: 4px; line-height: 1.2; }
     .skill-item.active { border-left-color: var(--primary); background: #fff; }
-    .skill-desc { color: #666; font-size: 0.85em; display: block; }
+    .skill-type { font-weight: bold; font-size: 0.8em; margin-right: 3px; }
+    .type-p { color: #28a745; } .type-a { color: #e83e8c; }
 
-    /* 遺物昇順表示 */
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.7em; }
     .relic-card.vow { border: 2px solid gold; background: #fffdf0; grid-column: span 2; }
-    .relic-star { color: var(--rare); font-weight: bold; }
 
     .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: none; margin-bottom: 15px; box-shadow: 0 4px 0 #0056b3; }
     .btn-attack:active { transform: translateY(2px); box-shadow: 0 2px 0 #0056b3; }
-    #log { height: 200px; font-size: 0.75em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    #log { height: 250px; font-size: 0.75em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
 </style>
 </head>
 <body>
@@ -64,27 +66,28 @@
 </div>
 
 <script>
-const MAJIN_DMG = 99999999999999n; // 固定ダメージ
-const BOSS_MAX_HP = 100000000000000000000n; // 1垓
+const MAJIN_DMG = 99999999999999n;
+const BOSS_MAX_HP = 100000000000000000000n;
 
+// 10種×5スキル(P2:A3)
 const SKILL_DATA = [
-    { name: "剣神", skills: [{n:"一の太刀(P)",d:"基礎ATK1.5倍"},{n:"飛燕",d:"25%で2回攻撃"},{n:"心眼",d:"最小ダメを最大化"},{n:"天断",d:"防御無視固定ダメ"},{n:"剣神再臨",d:"剣神倍率強化"}]},
-    { name: "不滅", skills: [{n:"守護者の誇り(P)",d:"HP遺物数でATK増"},{n:"不屈の意志",d:"HP10%分をATK加算"},{n:"再生の楔",d:"攻撃毎にHP微増"},{n:"金剛の魂",d:"死亡時成長2倍"},{n:"不滅の魂",d:"死亡上昇量1.2倍"}]},
-    { name: "魔導王", skills: [{n:"魔力回路(P)",d:"最終ダメ1.2倍"},{n:"詠唱破棄",d:"全発動率アップ"},{n:"深淵の知恵",d:"遺物上昇率1.3倍"},{n:"真理の門",d:"敵HP依存ダメ"},{n:"魔導の極致",d:"合計倍率2倍"}]},
-    { name: "覇王", skills: [{n:"王の軍勢(P)",d:"遺物種数×2%ATK増"},{n:"凱旋",d:"獲得直後ダメ3倍"},{n:"統率力",d:"低レア遺物10倍化"},{n:"覇道",d:"100種時ダメ10倍"},{n:"至高の御座",d:"総数ダメ変換"}]},
-    { name: "絶影", skills: [{n:"影走り(P)",d:"基礎ダメ1.2倍"},{n:"急所穿ち",d:"10%でダメ10倍"},{n:"死の刻印",d:"攻撃毎に被ダメ増"},{n:"絶影の歩法",d:"最小乱数2倍変換"},{n:"絶影",d:"全倍率を再乗算"}]},
-    { name: "修羅", skills: [{n:"狂戦士(P)",d:"再起数×1%ATK増"},{n:"血の契り",d:"HP1固定/ATK2倍"},{n:"復讐の牙",d:"直前成長分100倍"},{n:"闘神の血潮",d:"再起100毎に永続強化"},{n:"修羅道",d:"死亡毎にドロップ増"}]},
-    { name: "真理", skills: [{n:"根源理解(P)",d:"全遺物レア度+1"},{n:"等価交換",d:"HP加算をATK転換"},{n:"因果律",d:"乱数減少を無効化"},{n:"世界の記憶",d:"重複時ステUP"},{n:"理改変",d:"全回復を1回阻止"}]},
-    { name: "神託", skills: [{n:"天の加護(P)",d:"★4以上追加ドロップ"},{n:"神の恩寵",d:"ドロップレア上昇"},{n:"聖域",d:"遺物10種毎に確率UP"},{n:"福音",d:"再起直後1000倍ダメ"},{n:"奇跡の具現",d:"再起回数の2乗倍"}]},
-    { name: "虚無", skills: [{n:"忘却の彼方(P)",d:"ダメ10%を次回加算"},{n:"空虚の残滓",d:"非発動時ダメ5倍"},{n:"存在否定",d:"敵HP桁数で乗算"},{n:"終焉の残響",d:"複利ダメージ上昇"},{n:"虚無の深淵",d:"ATKを再起の3乗に"}]},
-    { name: "機工", skills: [{n:"自動修復(P)",d:"攻撃毎にステUP"},{n:"オーバーヒート",d:"2種同時発動5倍"},{n:"精密演算",d:"7の数で倍加"},{n:"次元歯車",d:"遺物2重複取得"},{n:"究極機構",d:"全倍率次回基礎加算"}]}
+    { name: "剣神", skills: [{t:"P",n:"一の太刀",d:"基礎ATK1.5倍"},{t:"P",n:"心眼",d:"最小打点を固定"},{t:"A",n:"飛燕",d:"25%で2回攻撃"},{t:"A",n:"天断",d:"防御無視の衝撃"},{t:"A",n:"剣神再臨",d:"全倍率の極大化"}]},
+    { name: "不滅", skills: [{t:"P",n:"守護の誓い",d:"遺物数でATK増"},{t:"P",n:"金剛の魂",d:"死亡時成長2倍"},{t:"A",n:"不屈の意志",d:"HP10%分をATKへ"},{t:"A",n:"再生の楔",d:"攻撃毎にHP回復"},{t:"A",n:"不滅の波動",d:"致死ダメ時ATK増"}]},
+    { name: "魔導", skills: [{t:"P",n:"魔力回路",d:"最終ダメ1.2倍"},{t:"P",n:"深淵の知恵",d:"遺物上昇率1.3倍"},{t:"A",n:"詠唱破棄",d:"全発動率アップ"},{t:"A",n:"真理の門",d:"敵HP依存ダメ"},{t:"A",n:"極大魔法",d:"合計倍率2倍化"}]},
+    { name: "覇王", skills: [{t:"P",n:"王の軍勢",d:"種類数×2%強化"},{t:"P",n:"統率力",d:"低レア遺物10倍"},{t:"A",n:"凱旋",d:"獲得直後ダメ3倍"},{t:"A",n:"覇道",d:"100種時ダメ10倍"},{t:"A",n:"至高の御座",d:"総数ダメ変換"}]},
+    { name: "絶影", skills: [{t:"P",n:"影走り",d:"基礎ダメ1.2倍"},{t:"P",n:"絶影歩法",d:"乱数底上げ"},{t:"A",n:"急所穿ち",d:"10%でダメ10倍"},{t:"A",n:"死の刻印",d:"攻撃毎に被ダメ増"},{t:"A",n:"絶影連斬",d:"倍率の再乗算"}]},
+    { name: "修羅", skills: [{t:"P",n:"狂戦士",d:"再起数×1%強化"},{t:"P",n:"闘神の血",d:"再起100毎に加算"},{t:"A",n:"血の契り",d:"HP1固定/ATK2倍"},{t:"A",n:"復讐の牙",d:"直前成長分100倍"},{t:"A",n:"修羅覚醒",d:"死亡毎ドロップ増"}]},
+    { name: "真理", skills: [{t:"P",n:"根源理解",d:"全レア度+1"},{t:"P",n:"世界の記憶",d:"重複時ステUP"},{t:"A",n:"等価交換",d:"HP加算をATKへ"},{t:"A",n:"因果律",d:"乱数減少を無効"},{t:"A",n:"理改変",d:"全回復を阻止"}]},
+    { name: "神託", skills: [{t:"P",n:"天の加護",d:"高レア泥率UP"},{t:"P",n:"聖域",d:"10種毎に確率UP"},{t:"A",n:"神の恩寵",d:"レアリティ昇格"},{t:"A",n:"福音",d:"再起直後1000倍"},{t:"A",n:"奇跡具現",d:"再起回数の2乗倍"}]},
+    { name: "虚無", skills: [{t:"P",n:"忘却彼方",d:"ダメ10%次回加算"},{t:"P",n:"終焉残響",d:"複利ダメ上昇"},{t:"A",n:"空虚残滓",d:"非発動時ダメ5倍"},{t:"A",n:"存在否定",d:"敵HP桁数で乗算"},{t:"A",n:"虚無深淵",d:"ATKを再起の3乗"}]},
+    { name: "機工", skills: [{t:"P",n:"自動修復",d:"攻撃毎にステUP"},{t:"P",n:"次元歯車",d:"遺物2重複取得"},{t:"A",n:"過熱処理",d:"同時発動5倍"},{t:"A",n:"精密演算",d:"特定条件で倍加"},{t:"A",n:"究極機構",d:"倍率次回基礎加算"}]}
 ];
 
 const RELIC_MASTER = [{ id: 100, star: 11, name: "再起の誓い", type: "VOW", desc: "死を経験に変え、新たなる力を得る" }];
 for(let p=0; p<10; p++) {
     for(let s=1; s<=10; s++) {
         let val = (s >= 6) ? (s * 30) : (s * 100);
-        RELIC_MASTER.push({ id: (p * 10) + (s - 1), pIdx: p, star: s, type: (p % 2 === 0 ? "ATK" : "HP"), val: val, isPercent: (s >= 6), name: SKILL_DATA[p].name + "の遺物★" + s });
+        RELIC_MASTER.push({ id: (p * 5) + (s - 1), pIdx: p, star: s, type: (p % 2 === 0 ? "ATK" : "HP"), val: val, isPercent: (s >= 6), name: SKILL_DATA[p].name + "の遺物★" + s });
     }
 }
 
@@ -101,8 +104,8 @@ function renderRelic() {
 function renderPower() {
     const list = document.getElementById("power-list");
     list.innerHTML = SKILL_DATA.map((p, pi) => `<div class="power-card"> <div class="power-title">${p.name}の権能</div> ${p.skills.map((s, si) => {
-        const has = player.inventory[pi * 10 + si];
-        return `<div class="skill-item ${has?'active':''}" style="opacity:${has?1:0.3}"><b>${s.n}</b><br><span class="skill-desc">${s.d}</span></div>`;
+        const has = player.inventory[pi * 5 + si];
+        return `<div class="skill-item ${has?'active':''}" style="opacity:${has?1:0.3}"> <span class="skill-type ${s.t=='P'?'type-p':'type-a'}">[${s.t}]</span><b>${s.n}</b><br><span style="color:#666">${s.d}</span></div>`;
     }).join("")} </div>`).join("");
 }
 
@@ -116,40 +119,42 @@ function showTab(id) {
 }
 
 function attack() {
-    // 魔神の攻撃
+    // 魔神の攻撃描写
+    addLog(`<span style="color:var(--hp);">魔神の劫火が魂を焼く… ${MAJIN_DMG.toLocaleString()} ダメージ！</span>`);
+    
     if (BigInt(player.baseHP) <= MAJIN_DMG) {
         player.deathCount++;
-        let growth = 10;
-        player.baseAtk += growth;
-        player.baseHP += (growth * 10);
-        addLog(`<span style="color:var(--hp);">魔神：${MAJIN_DMG.toLocaleString()} ダメージ！(再起)</span>`);
-    } else {
-        addLog(`<span style="color:green;">魔神の攻撃を耐え抜いた！</span>`);
+        // 成長ロジック：単調な加算を廃止し、種類数と再起数による複利成長へ
+        const relicCount = Object.keys(player.inventory).length;
+        const growthMult = 1.0 + (relicCount * 0.05); // 1種につき5%成長率UP
+        const baseGrowth = 10 + Math.floor(player.deathCount * 0.2); 
+        
+        player.baseAtk += Math.floor(baseGrowth * growthMult);
+        player.baseHP += Math.floor(baseGrowth * 10 * growthMult);
+        
+        addLog(`<span style="color:var(--primary); font-weight:bold;">再起の誓いが発動。死を経験に変え、新たなる力を得る</span>`);
     }
 
-    // プレイヤーの攻撃
-    let dmg = BigInt(player.baseAtk);
-    boss.hp = BOSS_MAX_HP; // 常に全快から計算（一撃必殺のみ有効）
-    if (dmg >= boss.hp) {
-        addLog(`<b>魔神を討伐！</b>`);
-    } else {
-        addLog(`攻撃したが、魔神は即座に再生した。`);
+    // プレイヤーの攻撃描写とダメージ
+    let currentDmg = BigInt(player.baseAtk);
+    addLog(`魔神に ${currentDmg.toLocaleString()} ダメージを与えた！`);
+    
+    boss.hp = BOSS_MAX_HP; // 再生仕様
+    if (currentDmg >= boss.hp) {
+        addLog(`<b><span style="color:orange;">一撃で魔神を討伐！</span></b>`);
     }
 
-    // ドロップ率の極限調整
+    // ドロップ判定
     if(Math.random() < 0.15) {
         const rVal = Math.random();
         let star = 1;
-        if(rVal < 0.000000001) star = 10; // 神話級
-        else if(rVal < 0.00001) star = 9;
-        else if(rVal < 0.0001) star = 8;
-        else if(rVal < 0.001) star = 7;
-        else if(rVal < 0.01) star = 6;
-        else if(rVal < 0.05) star = 5;
-        else if(rVal < 0.1) star = 4;
-        else if(rVal < 0.3) star = 3;
-        else if(rVal < 0.6) star = 2;
-
+        if(rVal < 0.000000001) star = 10;
+        else if(rVal < 0.0001) star = 9;
+        else if(rVal < 0.001) star = 8;
+        else if(rVal < 0.01) star = 7;
+        else if(rVal < 0.05) star = 6;
+        else if(rVal < 0.5) star = 1; // 基本は低レア
+        
         const candidates = RELIC_MASTER.filter(r => r.star === star);
         if(candidates.length > 0) {
             const r = candidates[Math.floor(Math.random() * candidates.length)];
@@ -174,10 +179,9 @@ function refreshUI() {
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 15) l.removeChild(l.lastChild);
+    l.prepend(d); if(l.childNodes.length > 20) l.removeChild(l.lastChild);
 }
 
-// 攻撃ボタンのバグ修正：pointerイベントでPC/スマホ両対応
 const btn = document.getElementById("attackBtn");
 const startAttack = (e) => {
     e.preventDefault();
