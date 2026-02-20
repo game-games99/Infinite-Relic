@@ -13,14 +13,14 @@
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     
     /* UI固定エリア */
-    #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; z-index: 100; }
-    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100; overflow-x: auto; }
-    .nav button { flex: 1; min-width: 70px; padding: 12px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.7em; cursor: pointer; white-space: nowrap; }
+    #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
+    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
+    .nav button { flex: 1; min-width: 80px; padding: 12px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.75em; cursor: pointer; white-space: nowrap; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
 
     /* コンテンツエリア */
     #content { flex-grow: 1; overflow: hidden; position: relative; background: #fff; }
-    .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; overflow-y: auto; }
     .tab.active { display: block; }
 
     /* バー表示 */
@@ -36,21 +36,19 @@
     .stat-row { display: flex; justify-content: space-between; font-weight: bold; }
 
     /* カード・リスト表示 */
-    .grid-1col { display: grid; grid-template-columns: 1fr; gap: 10px; padding-bottom: 100px; }
-    .card-cell { background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .grid-1col { display: grid; grid-template-columns: 1fr; gap: 10px; padding-bottom: 120px; }
+    .card-cell { background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     
     .skill-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
-    .skill-item { font-size: 0.55em; padding: 4px; border-radius: 4px; background: #f1f3f5; border-left: 2px solid var(--border); color: #888; line-height: 1.2; }
+    .skill-item { font-size: 0.6em; padding: 4px; border-radius: 4px; background: #f1f3f5; border-left: 2px solid var(--border); color: #888; }
     .skill-unlocked { border-left-color: var(--primary); background: #e7f5ff; color: #000; font-weight: bold; }
 
-    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; user-select: none; box-shadow: 0 4px 0 #0056b3; margin-bottom: 10px; }
-    .btn-attack:active { transform: translateY(2px); box-shadow: 0 2px 0 #0056b3; }
-    
+    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; user-select: none; margin-bottom: 10px; }
     #log { font-size: 0.75em; background: #fdfdfd; padding: 8px; border: 1px solid var(--border); border-radius: 6px; height: 150px; overflow-y: auto; }
     
     .status-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9em; }
     .relic-effect { font-size: 0.75em; color: var(--hp); font-weight: bold; margin-top: 4px; }
-    .unique-tag { background: var(--accent); color: #fff; font-size: 0.6em; padding: 2px 4px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+    .unique-tag { background: var(--accent); color: #fff; font-size: 0.6em; padding: 2px 4px; border-radius: 3px; margin-left: 5px; }
 </style>
 </head>
 <body>
@@ -90,16 +88,9 @@ const POWER_DATA = {};
 POWER_NAMES.forEach((name, idx) => {
     POWER_DATA[name] = {
         sIdx: idx,
-        skills: Array.from({length:10}, (_,i)=>({req:STEPS[i], n:`神技-${i+1}`, e:`強力な加護-${i+1}`}))
+        skills: Array.from({length:10}, (_,i)=>({req:STEPS[i], n:`神技-${i+1}`, e:`権能解放-${i+1}`}))
     };
 });
-
-// スキル内容の一部具体化
-POWER_DATA["剣神の残火"].skills = [
-    {req:STEPS[0], n:"一の太刀", e:"ATK 5倍"}, {req:STEPS[1], n:"燕返し", e:"追撃率+30%"}, {req:STEPS[2], n:"心眼", e:"クリ率+40%"},
-    {req:STEPS[3], n:"無想", e:"クリ威力10倍"}, {req:STEPS[4], n:"天断", e:"1000倍撃"}, {req:STEPS[5], n:"神速", e:"速度2倍"},
-    {req:STEPS[6], n:"流星", e:"ヒット+5"}, {req:STEPS[7], n:"真空", e:"ATK 20倍"}, {req:STEPS[8], n:"極", e:"クリ100%"}, {req:STEPS[9], n:"剣神", e:"全ダメ1万倍"}
-];
 
 let p, currentBossHP = BOSS_MAX_HP, longPressInterval = null;
 
@@ -108,17 +99,23 @@ function init() {
     p = saved ? JSON.parse(saved) : { lv: 1, exp: 0, inventory: {}, deathCount: 0 };
     if (!p.inventory) p.inventory = {};
     const btn = document.getElementById("attackBtn");
+    
     const start = (e) => { e.preventDefault(); if(!longPressInterval){ battle(); longPressInterval = setInterval(battle, 100); } };
     const stop = () => { if(longPressInterval){ clearInterval(longPressInterval); longPressInterval = null; } };
+    
     btn.addEventListener("touchstart", start); btn.addEventListener("touchend", stop);
     btn.addEventListener("mousedown", start); btn.addEventListener("mouseup", stop); btn.addEventListener("mouseleave", stop);
+    
     refresh();
 }
 
 function getSystemRelicCount(name) {
     const sIdx = POWER_DATA[name].sIdx;
     let count = 0;
-    for(let i=0; i<10; i++) count += (p.inventory[sIdx * 10 + i] || 0);
+    for(let i=0; i<10; i++) {
+        const id = sIdx * 10 + i;
+        count += (p.inventory[id] || 0);
+    }
     return count;
 }
 
@@ -128,8 +125,7 @@ function calcStats() {
     Object.keys(p.inventory).forEach(id => {
         const count = p.inventory[id];
         const grade = id % 10;
-        // ⭐︎6以上は1つ限定だが、万一のバグに備え数値は1つ分で計算
-        const power = (grade < 5) ? (5000 * (grade + 1) * count) : (1000000 * (grade + 1));
+        const power = (grade < 5) ? (5000 * (grade + 1) * count) : (1000000 * (grade + 1) * count);
         relicAtkBonus += power;
     });
 
@@ -140,11 +136,8 @@ function calcStats() {
         multi: 1, crit: 5, critM: 2.0, hits: 1 
     };
     
-    // スキル反映ロジック
-    const swordCount = getSystemRelicCount("剣神の残火");
-    if(swordCount >= STEPS[0]) s.multi *= 5;
-    if(swordCount >= STEPS[2]) s.crit += 40;
-    if(swordCount >= STEPS[4]) s.multi *= 1000;
+    // 剣神スキルの簡易反映
+    if(getSystemRelicCount("剣神の残火") >= STEPS[0]) s.multi *= 5;
 
     s.finalAtk = s.baseAtk * s.deathM * s.multi;
     return s;
@@ -152,32 +145,21 @@ function calcStats() {
 
 function battle() {
     const s = calcStats();
-    let totalDmg = 0;
-    for(let i=0; i<s.hits; i++){
-        let d = s.finalAtk;
-        if(Math.random() < s.crit/100) d *= s.critM;
-        totalDmg += d;
-    }
-    currentBossHP -= totalDmg;
+    currentBossHP -= s.finalAtk;
     if(currentBossHP < 0) currentBossHP = 0;
 
     p.deathCount++;
-    p.exp += 1000;
+    p.exp += (p.lv * 100) + 1000;
 
-    // 遺物ドロップ判定
+    // 遺物ドロップ
     if (Math.random() < 0.3) {
         const rid = Math.floor(Math.random() * 100);
         const grade = rid % 10;
-        if(grade < 5) {
-            // 低レアは累積
+        // ⭐︎6以上は1つ限定
+        if(grade < 5 || !p.inventory[rid]) {
             p.inventory[rid] = (p.inventory[rid] || 0) + 1;
-            addLog(`<span style="color:var(--gold)">💎 ⭐︎${grade+1}遺物 獲得</span>`);
-        } else {
-            // ⭐︎6以上は唯一無二
-            if(!p.inventory[rid] || p.inventory[rid] === 0) {
-                p.inventory[rid] = 1;
-                addLog(`<span style="color:var(--accent)">🔥 超強力 ⭐︎${grade+1}遺物 獲得！</span>`);
-            }
+            const name = POWER_NAMES[Math.floor(rid/10)].split("の")[0];
+            addLog(`<span style="color:var(--gold)">💎 ⭐︎${grade+1} ${name}の${RELIC_GRADES[grade]} 獲得</span>`);
         }
     }
 
@@ -193,14 +175,11 @@ function refresh() {
     const bossPer = (currentBossHP / BOSS_MAX_HP * 100);
     document.getElementById("bosshp").style.width = bossPer + "%";
     document.getElementById("bosshp-text").innerText = (bossPer < 100 && currentBossHP > 0) ? bossPer.toFixed(8) + "%" : Math.ceil(bossPer) + "%";
-    
     document.getElementById("playerhp-text").innerText = `${Math.floor(s.maxHP).toLocaleString()} / ${Math.floor(s.maxHP).toLocaleString()}`;
     document.getElementById("playerhp").style.width = "100%";
-    
     document.getElementById("exp-bar").style.width = (p.exp / nextExp * 100) + "%";
     document.getElementById("exp-text").innerText = Math.floor(p.exp / nextExp * 100) + "%";
     document.getElementById("p-lv-text").innerText = `Lv.${p.lv.toLocaleString()}`;
-    
     document.getElementById("sum-atk").innerText = Math.floor(s.finalAtk).toLocaleString();
 
     if (document.getElementById("status").classList.contains("active")) renderStatus(s);
@@ -215,9 +194,7 @@ function renderStatus(s) {
         <div class="status-item"><span>最大HP</span><span>${Math.floor(s.maxHP).toLocaleString()}</span></div>
         <div class="status-item"><span>基礎ATK</span><span>${Math.floor(s.baseAtk).toLocaleString()}</span></div>
         <div class="status-item"><span>再起の誓い</span><span>${p.deathCount.toLocaleString()} 回</span></div>
-        <div class="status-item"><span>再起倍率</span><span>×${s.deathM.toFixed(2)}</span></div>
         <div class="status-item"><span>最終実効ATK</span><span>${Math.floor(s.finalAtk).toLocaleString()}</span></div>
-        <div class="status-item"><span>会心率</span><span>${s.crit}%</span></div>
         <div class="status-item"><span>連撃数</span><span>${s.hits} Hit</span></div>
     `;
 }
@@ -225,7 +202,7 @@ function renderStatus(s) {
 function renderPowers() {
     document.getElementById("powerList").innerHTML = Object.keys(POWER_DATA).map(name => {
         const count = getSystemRelicCount(name);
-        return `<div class="card-cell"><b>${name}</b> (遺物:${count})<div class="skill-list">${POWER_DATA[name].skills.map(sk => `<div class="skill-item ${count >= sk.req ? 'skill-unlocked' : ''}">${sk.n}<br><small>${count >= sk.req ? sk.e : sk.req+'個'}</small></div>`).join("")}</div></div>`;
+        return `<div class="card-cell"><b>${name}</b> (遺物:${count})<div class="skill-list">${POWER_DATA[name].skills.map(sk => `<div class="skill-item ${count >= sk.req ? 'skill-unlocked' : ''}">${sk.n}<br><small>${count >= sk.req ? '解放済' : sk.req+'個'}</small></div>`).join("")}</div></div>`;
     }).join("");
 }
 
@@ -235,13 +212,9 @@ function renderRelics() {
         const typeIdx = Math.floor(id / 10);
         const gradeIdx = id % 10;
         const baseName = POWER_NAMES[typeIdx].split("の")[0];
-        const isUnique = gradeIdx >= 5;
-        const effect = isUnique ? (1000000 * (gradeIdx + 1)) : (5000 * (gradeIdx + 1) * p.inventory[id]);
+        const effect = (gradeIdx < 5) ? (5000 * (gradeIdx + 1) * p.inventory[id]) : (1000000 * (gradeIdx + 1));
         return `<div class="card-cell">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <b>⭐︎${gradeIdx + 1} ${baseName}の${RELIC_GRADES[gradeIdx]}${isUnique ? '<span class="unique-tag">唯一無二</span>' : ''}</b>
-                <span>所持: ${p.inventory[id]}</span>
-            </div>
+            <div style="display:flex; justify-content:space-between;"><b>⭐︎${gradeIdx + 1} ${baseName}の${RELIC_GRADES[gradeIdx]}${gradeIdx>=5?'<span class="unique-tag">唯一</span>':''}</b> <span>×${p.inventory[id]}</span></div>
             <div class="relic-effect">効果: 基礎ATK +${effect.toLocaleString()}</div>
         </div>`;
     }).join("") : "<p style='text-align:center;'>遺物は未発見</p>";
