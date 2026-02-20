@@ -9,9 +9,9 @@
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
+    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; cursor: pointer; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-    #content { flex-grow: 1; overflow-y: auto; position: relative; }
+    #content-area { flex-grow: 1; overflow-y: auto; position: relative; }
     .tab { display: none; padding: 10px; min-height: 100%; box-sizing: border-box; }
     .tab.active { display: block; padding-bottom: 100px; }
     .bar-container { margin-bottom: 4px; }
@@ -24,7 +24,8 @@
     .p-skill { background: #f1f3f5; border-left-color: #adb5bd; }
     .a-skill { background: #e7f5ff; border-left-color: var(--primary); font-weight: bold; }
     .s-skill { background: #fff0f6; border-left-color: #e83e8c; border-style: double; }
-    .btn-attack { width: 100%; padding: 18px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; margin-bottom: 10px; }
+    .btn-attack { width: 100%; padding: 18px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+    .btn-attack:active { opacity: 0.8; }
     #log { font-size: 0.75em; background: #fafafa; padding: 8px; border: 1px solid var(--border); border-radius: 6px; height: 180px; overflow-y: auto; }
 </style>
 </head>
@@ -32,9 +33,9 @@
 <div id="header">
     <div class="bar-label"><span>魔神 HP</span><span id="bosshp-text">100%</span></div>
     <div class="bar" style="margin-bottom:8px;"><div id="bosshp" class="fill" style="background:linear-gradient(90deg,#ffc107,#dc3545);"></div></div>
-    <div class="bar-container"><div class="bar-label"><span>HP</span><span id="playerhp-text">100/100</span></div><div class="bar"><div id="playerhp" class="fill" style="width:100%"></div></div></div>
-    <div class="bar-container"><div class="bar-label"><span>体力</span><span id="playerstamina-text">50/50</span></div><div class="bar"><div id="playerstamina" class="fill" style="width:100%"></div></div></div>
-    <div style="font-size:0.7em; margin-top:4px;">Lv: <span id="p-lv">0</span> | ATK: <span id="p-atk">0</span> | 再起: <span id="p-death">0</span></div>
+    <div class="bar-container"><div class="bar-label"><span>HP</span><span id="playerhp-text">100/100</span></div><div class="bar"><div id="playerhp" class="fill"></div></div></div>
+    <div class="bar-container"><div class="bar-label"><span>体力</span><span id="playerstamina-text">50/50</span></div><div class="bar"><div id="playerstamina" class="fill"></div></div></div>
+    <div style="font-size:0.7em; margin-top:4px;">Lv: <span id="p-lv">1</span> | ATK: <span id="p-atk">0</span> | 再起: <span id="p-death">0</span></div>
 </div>
 <div class="nav">
     <button onclick="showTab('battle', this)" class="active">討伐</button>
@@ -42,127 +43,147 @@
     <button onclick="showTab('power', this)">権能</button>
     <button onclick="showTab('relic', this)">遺物</button>
 </div>
-<div id="content">
+<div id="content-area">
     <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">魔神に攻撃</button><div id="log"></div></div>
-    <div id="status" class="tab" id="statusList"></div>
-    <div id="power" class="tab" id="powerList"></div>
-    <div id="relic" class="tab" id="relicList"></div>
+    <div id="status" class="tab"></div>
+    <div id="power" class="tab"></div>
+    <div id="relic" class="tab"></div>
 </div>
+
 <script>
 const BOSS_MAX_HP = 1e20;
 const POWER_NAMES = ["剣神の残火","不滅の守護者","魔導王の遺志","覇王の残光","絶影の残影","修羅の咆哮","真理の残滓","神託の残響","虚無の深淵","機工の心臓"];
 const SKILL_DATA = [
     ["一の太刀:ATK5倍","燕返し:追撃30%","心眼:会心+40%","無想:威力10倍","天断:1000倍","神速:2倍速","流星:H+5","真空:ATK20倍","極・一文字:会心1000倍","剣神降臨:1万倍"],
     ["不屈:再起+5000","再生の楔:回復10%","逆境:HP減で倍","不死魂:即死耐性","守護誇:HP増","金剛体:HP100倍","鉄壁:被ダメ減","報復棘:反射100倍","絶望抗:全補正2倍","不滅域:速度10倍"],
-    ["魔力線:遺物+10%","術展開:ATK3倍","詠唱棄:25%連撃","多構築:H+2","深淵知:EXP2倍","魔極致:ATK30倍","元爆発:追撃500%","真理門:スキ強化","賢者石:遺物数ATK","魔導王再臨:全2倍"]
-    // ...各権能10個。⭐︎1-5はパッシブ、⭐︎6-10はアクティブとして処理
+    ["魔力線:遺物+10%","術展開:ATK3倍","詠唱棄:25%連撃","多構築:H+2","深淵知:EXP2倍","魔極致:ATK30倍","元爆発:追撃500%","真理門:スキ強化","賢者石:遺物数ATK","魔導王再臨:全2倍"],
+    ["威圧:敵弱体","王進軍:ATK8倍","凱旋鬨:EXP5倍","統率才:遺物+50%","覇王盾:HP10倍","黄金暁:50倍撃","天統べ:H+10","不抜城:完全防御","絶対王政:ATK500倍","至高御座:Lv毎5000"],
+    ["急所穿:会心5倍","影走り:回避20%","死刻印:10H毎2倍","虚像舞:速度5倍","暗殺誇:回避後1000倍","刹那閃:確率+10%","闇溶ける:10%生存","絶影連:H+20","魂収穫:1%全快","虚無終焉:100H固定"],
+    ["狂乱:ATK12倍","血戦契:死亡数ATK","屠殺牙:会心+20%","闘神血:再起ATK増","修羅道:速度3倍","飽くなき:長押し10倍","憤怒波:追撃200%","鬼神連:H+15","命喰らう:HP永続増","冥府王:最終10倍"],
+    ["等価交換:EXP→ATK","因果糸:4倍撃","世界記憶:遺物2倍","理改変:会心確定","根源理解:ATK100倍","虚構崩壊:割合削り","天秤:均一化","知識激流:速度10倍","運命断罪:1万倍","神数式:最大ダメ"],
+    ["祈り:再起後100倍","聖光:敗北10万倍","天加護:ダメ減","奇跡予:遺物+1","天啓調:遺物総数増","聖域盾:即死1%化","神審判:追撃1000%","福音響:死亡数加算","至福時:EXP10倍","主御手:自動攻撃"],
+    ["忘却:HP0.1%削","影浸食:ATK7倍","暗黒底:1%削り","空虚夢:被弾ATK増","存在否定:HP1000倍","無還元:乗算化","深淵眼:会心20倍","終焉予:加速","滅び歌:ATK666倍","絶対零:敵停止"],
+    ["歯車回転:1.2倍速","過負荷熱:全快100倍","精密演算:会心100%","鋼鉄意志:HP5倍","自動修復:H毎回復","蒸気噴進:H+8","機工連鎖:連撃増","次元歯車:1.5倍速","神設計図:遺物10倍","究極機構:確100%"]
 ];
 
-let p, currentBossHP = BOSS_MAX_HP, isPressing = false;
+let p, currentBossHP = BOSS_MAX_HP, isPressing = false, maxDmgDealt = 0;
 
 function init() {
     let debugInv = {};
-    for(let i=0; i<100; i++) debugInv[i] = (i%10 < 5) ? 500 : 1;
-    p = { lv: 100, hp: 10000, maxHP: 10000, stamina: 500, maxStamina: 500, inventory: debugInv, deathCount: 0 };
+    for(let i=0; i<100; i++) debugInv[i] = (i%10 < 5) ? 100 : 0;
+    p = { lv: 1, hp: 1000, maxHP: 1000, stamina: 100, maxStamina: 100, inventory: debugInv, deathCount: 0 };
+    
     const btn = document.getElementById("attackBtn");
-    btn.addEventListener("mousedown", () => isPressing = true);
-    btn.addEventListener("mouseup", () => isPressing = false);
+    btn.addEventListener("mousedown", () => { isPressing = true; });
+    window.addEventListener("mouseup", () => { isPressing = false; });
     btn.addEventListener("touchstart", (e) => { e.preventDefault(); isPressing = true; });
-    btn.addEventListener("touchend", () => isPressing = false);
+    window.addEventListener("touchend", () => { isPressing = false; });
+    
     setInterval(() => { if(isPressing) battle(false); }, 100);
-    setInterval(() => { battle(true); }, 25);
+    setInterval(() => { battle(true); }, 500); // 自動攻撃
     refresh();
 }
 
-function calcStats() {
-    let bonus = { atk: 1, hp: 1, speed: 1 };
-    // パッシブ効果の集計
-    for(let i=0; i<100; i++) {
-        if(p.inventory[i] > 0 && i%10 < 5) bonus.atk += 0.1 * p.inventory[i];
-    }
-    return bonus;
+function calcAtk() {
+    let base = 10 + p.lv * 5;
+    let mult = 1;
+    for(let i=0; i<100; i++) { if(p.inventory[i] > 0 && i%10 < 5) mult += 0.2 * p.inventory[i]; }
+    return base * mult * (isPressing ? 2 : 1);
 }
 
 function battle(isAuto) {
-    const stats = calcStats();
-    let dmg = (10 + p.lv * 1000) * stats.atk * (isPressing ? 5 : 1);
+    if (!isAuto && p.stamina <= 0) {
+        if (Math.random() < 0.1) addLog("体力がありません！");
+        return;
+    }
+
+    let dmg = calcAtk();
     let logMsg = "";
+    if (!isAuto) p.stamina -= 1;
 
-    // アクティブスキル（⭐︎6-10）の発動と遺物シナジー
-    const randPower = Math.floor(Math.random() * 10);
-    const hasSpecialRelic = p.inventory[randPower * 10 + 9] > 0; // ⭐︎10所持
-    if(!isAuto && Math.random() < 0.15) {
-        let mult = hasSpecialRelic ? 50000 : 5000;
-        dmg *= mult;
-        logMsg = `<span style="color:#e83e8c">【${POWER_NAMES[randPower]}：神域発動】</span> `;
+    // スキル発動演出
+    if (Math.random() < 0.1) {
+        let r = Math.floor(Math.random() * 10);
+        dmg *= 100;
+        logMsg = `<span style="color:#e83e8c">【${POWER_NAMES[r]}発動】</span> `;
     }
 
-    currentBossHP -= (dmg + BOSS_MAX_HP * 0.00000001);
-    if(currentBossHP < 0) currentBossHP = 0;
+    if (dmg > maxDmgDealt) maxDmgDealt = dmg;
+    currentBossHP -= dmg;
 
-    if(!isAuto || Math.random() < 0.05) {
-        addLog(`${isAuto?'[自動] ':logMsg}魔神に <span style="color:#dc3545;font-weight:bold;">${Math.floor(dmg).toLocaleString()}</span> ダメージ！`);
+    if (currentBossHP <= 0) {
+        addLog("魔神を撃破！レベルアップ！");
+        p.lv += 1;
+        currentBossHP = BOSS_MAX_HP;
     }
-    if(!isAuto) { p.deathCount++; addLog(`<span style="color:#666;font-size:0.9em;">即死攻撃を「聖域」で受け流し再起した。</span>`); }
+
+    if (!isAuto || Math.random() < 0.1) {
+        addLog(`${isAuto ? '[自動] ' : logMsg}魔神に ${Math.floor(dmg).toLocaleString()} ダメージ！`);
+    }
+
+    if (!isAuto && Math.random() < 0.1) {
+        p.deathCount++;
+        p.stamina = p.maxStamina;
+        addLog("<span style="color:red">即死攻撃を受けた！再起！</span>");
+    }
     refresh();
 }
 
 function refresh() {
     document.getElementById("bosshp").style.width = (currentBossHP / BOSS_MAX_HP * 100) + "%";
     document.getElementById("bosshp-text").innerText = (currentBossHP / BOSS_MAX_HP * 100).toFixed(6) + "%";
+    document.getElementById("playerhp").style.width = (p.hp / p.maxHP * 100) + "%";
+    document.getElementById("playerhp-text").innerText = `${p.hp}/${p.maxHP}`;
+    document.getElementById("playerstamina").style.width = (p.stamina / p.maxStamina * 100) + "%";
+    document.getElementById("playerstamina-text").innerText = `${p.stamina}/${p.maxStamina}`;
     document.getElementById("p-lv").innerText = p.lv;
     document.getElementById("p-death").innerText = p.deathCount;
-    document.getElementById("p-atk").innerText = Math.floor((10 + p.lv * 1000) * calcStats().atk).toLocaleString();
+    document.getElementById("p-atk").innerText = Math.floor(calcAtk()).toLocaleString();
     
-    if(document.activeTab === 'power') renderPower();
-    if(document.activeTab === 'relic') renderRelic();
-    if(document.activeTab === 'status') renderStatus();
+    if (document.activeTab === 'status') renderStatus();
+    if (document.activeTab === 'power') renderPower();
+    if (document.activeTab === 'relic') renderRelic();
 }
 
 function renderStatus() {
-    const s = calcStats();
-    document.getElementById("content").querySelector("#status").innerHTML = `
-        <div class="card-cell"><h3>基本能力</h3>Lv: ${p.lv}<br>HP: ${p.hp}/${p.maxHP}<br>再起回数: ${p.deathCount}</div>
-        <div class="card-cell"><h3>パッシブ補正</h3>ATK倍率: x${s.atk.toFixed(2)}<br>遺物シナジー: 発動中</div>`;
+    document.getElementById("status").innerHTML = `
+        <div class="card-cell"><h3>基本ステータス</h3>Lv: ${p.lv}<br>再起回数: ${p.deathCount}</div>
+        <div class="card-cell"><h3>記録</h3>最大ダメージ: <span style="color:#dc3545;font-weight:bold;">${Math.floor(maxDmgDealt).toLocaleString()}</span></div>`;
 }
 
 function renderPower() {
     let html = "";
-    POWER_NAMES.forEach((name, pIdx) => {
+    POWER_NAMES.forEach((name, idx) => {
         html += `<div class="card-cell"><b>${name}</b><div class="skill-list">`;
-        for(let i=0; i<10; i++) {
-            const isA = i >= 5; const isS = i === 9;
-            const detail = SKILL_DATA[pIdx] ? SKILL_DATA[pIdx][i] : "未設定スキル";
-            html += `<div class="skill-item ${isS?'s-skill':isA?'a-skill':'p-skill'}">
-                <b>⭐︎${i+1} ${detail.split(':')[0]}</b>: ${detail.split(':')[1]} [${isA?'発動':'常時'}]
-            </div>`;
-        }
+        SKILL_DATA[idx].forEach((d, i) => {
+            html += `<div class="skill-item ${i>=5?'a-skill':'p-skill'}">⭐︎${i+1} ${d}</div>`;
+        });
         html += `</div></div>`;
     });
-    document.getElementById("content").querySelector("#power").innerHTML = html;
+    document.getElementById("power").innerHTML = html;
 }
 
 function renderRelic() {
     let html = "";
     for(let i=0; i<100; i++) {
-        if(p.inventory[i] > 0) {
-            const grade = i % 10;
-            html += `<div class="card-cell" style="font-size:0.8em; border-left: 5px solid ${grade>=5?'#e83e8c':'#ddd'}">
-                <b>⭐︎${grade+1} ${POWER_NAMES[Math.floor(i/10)]}の遺物</b><br>
-                所持数: ${p.inventory[i]} ${grade>=5?'(最大1：神域補正発動中)':''}
-            </div>`;
-        }
+        if(p.inventory[i] > 0) html += `<div class="card-cell">⭐︎${(i%10)+1} ${POWER_NAMES[Math.floor(i/10)]}の遺物: ${p.inventory[i]}個</div>`;
     }
-    document.getElementById("content").querySelector("#relic").innerHTML = html;
+    document.getElementById("relic").innerHTML = html || "<div class='card-cell'>所持遺物なし</div>";
 }
 
 function showTab(id, btn) {
     document.activeTab = id;
-    document.querySelectorAll(".tab").forEach(t => t.style.display = "none");
-    document.getElementById("content").querySelector("#" + id).style.display = "block";
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
     document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     refresh();
+}
+
+function addLog(m) {
+    const l = document.getElementById("log");
+    const d = document.createElement("div"); d.innerHTML = m;
+    l.prepend(d); if(l.childNodes.length > 20) l.removeChild(l.lastChild);
 }
 init();
 </script>
