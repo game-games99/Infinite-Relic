@@ -8,54 +8,51 @@
     :root {
         --bg: #050507; --card: #0f0f12; --primary: #00f2ff; 
         --accent: #ff0044; --gold: #ffcc00; --text: #e2e2e7; --sub: #71717a;
-        --death: #7c3aed; /* 敗北に関連する色 */
+        --death: #7c3aed;
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Sawsans', 'Hiragino Mincho ProN', serif; margin: 0; user-select: none; touch-action: manipulation; }
+    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; user-select: none; touch-action: manipulation; overflow: hidden; }
     
-    #top { background: var(--card); padding: 15px; border-bottom: 2px solid #1f1f23; position: sticky; top: 0; z-index: 100; text-align: center; }
-    #boss-name { font-size: 1.2em; font-weight: 900; color: var(--accent); letter-spacing: 0.4em; }
+    #top { background: var(--card); padding: 15px; border-bottom: 2px solid #1f1f23; text-align: center; }
+    #boss-name { font-size: 1.1em; font-weight: 900; color: var(--accent); letter-spacing: 0.3em; }
     
     .bar-container { margin: 8px 0; }
     .bar-label { font-size: 0.6em; color: var(--sub); display: flex; justify-content: space-between; margin-bottom: 2px; }
-    .bar { height: 8px; background: #1a1a1f; border-radius: 4px; overflow: hidden; border: 1px solid #222; }
-    .fill { height: 100%; transition: width 0.1s; }
+    .bar { height: 10px; background: #1a1a1f; border-radius: 5px; overflow: hidden; border: 1px solid #222; }
+    .fill { height: 100%; transition: width 0.1s ease-out; }
     #bosshp { background: linear-gradient(90deg, #600, var(--accent)); width: 100%; }
     #playerhp { background: linear-gradient(90deg, #004400, #00ff00); width: 100%; }
     
-    .main-stats { display: grid; grid-template-columns: repeat(2, 2fr) 1fr; gap: 8px; margin-top: 10px; }
+    .main-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
     .stat-box { background: #000; padding: 8px; border-radius: 4px; border: 1px solid #222; }
     .stat-label { font-size: 0.55em; color: var(--sub); display: block; }
-    .stat-val { font-size: 0.85em; font-weight: bold; color: var(--primary); font-family: 'Courier New', monospace; }
-    .stat-death { color: var(--death) !important; }
+    .stat-val { font-size: 0.8em; font-weight: bold; color: var(--primary); }
 
     .nav { display: flex; background: #0a0a0c; border-bottom: 1px solid #222; }
-    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: var(--sub); font-size: 0.75em; font-weight: bold; cursor: pointer; }
-    .nav button.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #ffffff05; }
+    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: var(--sub); font-size: 0.75em; font-weight: bold; }
+    .nav button.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
 
-    .tab { display: none; padding: 15px; height: calc(100vh - 320px); overflow-y: auto; }
+    .tab { display: none; padding: 15px; height: calc(100vh - 340px); overflow-y: auto; }
     .tab.active { display: block; }
 
     .btn-attack { 
-        width: 100%; padding: 25px; background: #000; color: var(--accent); 
-        font-size: 1.3em; font-weight: 900; border: 2px solid var(--accent); border-radius: 0; 
-        cursor: pointer; box-shadow: inset 0 0 15px #ff004422; transition: 0.1s;
+        width: 100%; padding: 30px; background: #000; color: var(--accent); 
+        font-size: 1.4em; font-weight: 900; border: 2px solid var(--accent);
+        cursor: pointer; outline: none; transition: 0.1s;
     }
     .btn-attack:active:not(:disabled) { background: var(--accent); color: #000; }
     .btn-attack:disabled { border-color: #333; color: #333; cursor: not-allowed; }
 
     #log { margin-top: 10px; height: 180px; overflow-y: auto; font-size: 0.75em; line-height: 1.6; background: #000; padding: 10px; border: 1px solid #111; display: flex; flex-direction: column-reverse; }
-    .log-entry { border-bottom: 1px solid #0a0a0c; padding: 2px 0; }
-    .l-dmg { color: #ccc; }
-    .l-skill { color: var(--primary); font-weight: bold; }
-    .l-drop { color: var(--gold); }
+    .log-entry { border-bottom: 1px solid #111; padding: 4px 0; }
+    .l-dmg { color: #fff; }
     .l-boss { color: var(--accent); }
-    .l-death-log { color: #fff; background: var(--death); padding: 0 4px; }
+    .l-drop { color: var(--gold); font-weight: bold; }
+    .l-death-log { color: #fff; background: var(--death); padding: 2px 5px; margin: 2px 0; display: inline-block; }
 
-    .relic-card { background: #0a0a0c; border: 1px solid #1a1a1f; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .relic-card { background: #0a0a0c; border: 1px solid #1a1a1f; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8em; }
     .relic-card.gold { border: 1px solid var(--gold); }
     .relic-card.death-relic { border-left: 4px solid var(--death); }
-    .relic-name { font-size: 0.85em; font-weight: bold; }
-    .relic-effect { font-size: 0.65em; color: var(--sub); }
+    .relic-effect { font-size: 0.8em; color: var(--sub); }
 </style>
 </head>
 <body>
@@ -67,20 +64,19 @@
         <div class="bar"><div id="bosshp" class="fill"></div></div>
     </div>
     <div class="bar-container">
-        <div class="bar-label"><span>自身の生命力</span><span id="playerhp-text">1000 / 1000</span></div>
+        <div class="bar-label"><span>自身の生命力</span><span id="playerhp-text">--- / ---</span></div>
         <div class="bar"><div id="playerhp" class="fill"></div></div>
     </div>
     
     <div class="main-stats">
-        <div class="stat-box"><span class="stat-label">総攻撃力</span><span id="p-atk" class="stat-val">0</span></div>
-        <div class="stat-box"><span class="stat-label">最大体力</span><span id="p-hp-max" class="stat-val">0</span></div>
-        <div class="stat-box"><span class="stat-label">敗北数</span><span id="p-death-count" class="stat-val stat-death">0</span></div>
+        <div class="stat-box"><span class="stat-label">攻撃力</span><span id="p-atk">0</span></div>
+        <div class="stat-box"><span class="stat-label">最大体力</span><span id="p-hp-max">0</span></div>
+        <div class="stat-box"><span class="stat-label">敗北数</span><span id="p-death-count" style="color:var(--death)">0</span></div>
     </div>
 </div>
 
 <div class="nav">
     <button onclick="showTab('battle', this)" class="active">討伐</button>
-    <button onclick="showTab('job', this)">深淵</button>
     <button onclick="showTab('skills', this)">奥義</button>
     <button onclick="showTab('equip', this)">遺物</button>
 </div>
@@ -90,7 +86,6 @@
     <div id="log"></div>
 </div>
 
-<div id="job" class="tab"><div id="jobList"></div></div>
 <div id="skills" class="tab"><div id="ownedSkills"></div></div>
 <div id="equip" class="tab"><div id="inventory"></div></div>
 
@@ -101,54 +96,57 @@ const R_NAME = ["首飾り", "指輪", "魔石", "刻印", "聖杯", "腕輪", "
 const R_SUFFIX = ["の断片", "の残滓", "の記憶", "の渇望", "の輝き"];
 
 let p, longPressIdx, isDead = false;
-const SAVE_KEY = "MAJIN_REBIRTH_V3";
+const SAVE_KEY = "MAJIN_REBIRTH_V4";
 
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
     p = saved ? JSON.parse(saved) : {
-        lv:1, exp:0, job:"剣聖", 
-        inventory: {}, unlockedSkills: [], 
+        lv:1, exp:0, inventory: {}, unlockedSkills: [], 
         jobLevels: {"剣聖":1}, jobExp: {"剣聖":0}, 
         bossTotalDmg: 0, playerHP: 1000, deathCount: 0
     };
-    refresh();
-
+    
+    calcStats();
+    p.playerHP = p.maxHP; // 起動時に全回復
+    
     const btn = document.getElementById("attackBtn");
-    const start = (e) => { 
+    const start = (e) => {
         if(isDead) return;
-        e.preventDefault(); battle(); clearInterval(longPressIdx); 
-        longPressIdx = setInterval(battle, 100); 
+        e.preventDefault();
+        battle();
+        clearInterval(longPressIdx);
+        longPressIdx = setInterval(battle, 100);
     };
     const stop = () => clearInterval(longPressIdx);
-    btn.addEventListener("mousedown", start); btn.addEventListener("mouseup", stop);
-    btn.addEventListener("touchstart", start); btn.addEventListener("touchend", stop);
+    
+    btn.addEventListener("mousedown", start);
+    btn.addEventListener("mouseup", stop);
+    btn.addEventListener("mouseleave", stop);
+    btn.addEventListener("touchstart", start, {passive: false});
+    btn.addEventListener("touchend", stop);
+
+    refresh();
 }
 
 function getRelicData(id) {
     const seed = parseInt(id);
-    // 500種のうち、特定のID（例：13の倍数）を「死の遺物」にする
     const isDeathType = (seed % 13 === 0);
     const typeIdx = seed % 4;
     const types = ["ATK", "HP", "DMG", "DROP"];
     const type = types[typeIdx];
-    
     const isGold = (seed % 100 === 0);
     const baseVal = isGold ? (seed % 10 + 1) * 20 : (seed % 10 + 1);
-
     const name = (isDeathType ? "死を喰らう" : R_PREFIX[seed % 10]) + R_NAME[(seed >> 2) % 10] + R_SUFFIX[(seed >> 4) % 5];
     
-    let desc = "";
-    if(isDeathType) {
-        desc = `敗北数に応じて${type==="ATK"?"攻撃力":type==="HP"?"最大体力":"威力"}が上昇(現在:+${(p.deathCount * baseVal * 0.1).toFixed(1)}%)`;
-    } else {
-        desc = `${type==="ATK"?"攻撃力":type==="HP"?"体力":"威力"}を ${baseVal}${type==="DMG"||type==="DROP"?"%":""} 上昇`;
-    }
+    let desc = isDeathType ? 
+        `敗北数で${type}が上昇 (+${(p.deathCount * baseVal * 0.1).toFixed(1)}%)` : 
+        `${type}を ${baseVal}${type==="DMG"||type==="DROP"?"%":""} 上昇`;
 
     return { id, name, type, val: baseVal, desc, isGold, isDeathType };
 }
 
 function calcStats() {
-    let atk = 10 + (p.lv * 20);
+    let atk = 100 + (p.lv * 20);
     let hp = 1000 + (p.lv * 100);
     let dmgM = 1.0;
     let dropM = 1.0;
@@ -156,19 +154,16 @@ function calcStats() {
     Object.keys(p.inventory).forEach(id => {
         const d = getRelicData(id);
         const count = p.inventory[id];
-        let boost = d.val * count;
-        
-        // 死の遺物の計算 (敗北数 × 基礎値の10%)
         if(d.isDeathType) {
             let deathBoost = 1 + (p.deathCount * d.val * 0.001 * count);
             if(d.type === "ATK") atk *= deathBoost;
             if(d.type === "HP") hp *= deathBoost;
             if(d.type === "DMG") dmgM *= deathBoost;
         } else {
-            if(d.type === "ATK") atk += boost;
-            if(d.type === "HP") hp += boost;
-            if(d.type === "DMG") dmgM += (boost * 0.01);
-            if(d.type === "DROP") dropM += (boost * 0.01);
+            if(d.type === "ATK") atk += (d.val * count);
+            if(d.type === "HP") hp += (d.val * count);
+            if(d.type === "DMG") dmgM += (d.val * 0.01 * count);
+            if(d.type === "DROP") dropM += (d.val * 0.01 * count);
         }
     });
 
@@ -182,12 +177,13 @@ function battle() {
     if(isDead) return;
     calcStats();
     
-    let dmg = Math.floor(p.totalAtk * (0.8 + Math.random() * 0.4) * p.totalDmgMult);
+    // 攻撃
+    let dmg = Math.floor(p.totalAtk * (0.9 + Math.random() * 0.2) * p.totalDmgMult);
     p.bossTotalDmg += dmg;
-    addLog(`<span class="l-dmg">【斬撃】 魔神へ ${dmg.toLocaleString()} のダメージ</span>`);
+    addLog(`<span class="l-dmg">⚔️ ${dmg.toLocaleString()} のダメージ</span>`);
 
-    // 反撃ダメージ
-    let counterAtk = Math.floor(p.maxHP * 0.08); 
+    // 反撃（現在のHPの15% + 固定値50）※初期でも数回耐えられる設定
+    let counterAtk = Math.floor(p.maxHP * 0.12) + 50; 
     p.playerHP -= counterAtk;
 
     if(p.playerHP <= 0) {
@@ -196,15 +192,14 @@ function battle() {
         return;
     }
 
+    // 遺物ドロップ
     if(Math.random() < p.dropRate / 100) {
         let rId = Math.floor(Math.random() * 500);
         let data = getRelicData(rId);
         p.inventory[rId] = (p.inventory[rId] || 0) + 1;
-        addLog(`<span class="l-drop" style="color:${data.isGold?'var(--gold)':'var(--primary)'}">★ 遺物獲得：${data.name}</span>`);
+        addLog(`<span class="l-drop">★ 遺物獲得：${data.name}</span>`);
     }
 
-    p.exp += Math.floor(dmg * 0.5);
-    checkLevelUp();
     refresh();
 }
 
@@ -212,22 +207,15 @@ function playerDeath() {
     isDead = true;
     clearInterval(longPressIdx);
     p.playerHP = 0;
-    addLog(`<span class="l-death-log">◆ 敗北：死が力に変換される...（敗北数:${p.deathCount}）</span>`);
+    addLog(`<span class="l-death-log">☠️ 敗北...死の記憶が刻まれた（敗北数:${p.deathCount}）</span>`);
     refresh();
     setTimeout(() => {
+        calcStats();
         p.playerHP = p.maxHP;
         isDead = false;
+        addLog(`<span style="color:var(--primary)">✨ 復活：魂が再構成された</span>`);
         refresh();
-    }, 1000); // 復活を1秒に短縮
-}
-
-function checkLevelUp() {
-    const next = Math.pow(p.lv, 3) * 500;
-    while(p.exp >= next) {
-        p.exp -= next;
-        p.lv++;
-        addLog(`<span class="l-skill">≫ 階位上昇：第 ${p.lv} 階位</span>`);
-    }
+    }, 1000);
 }
 
 function refresh() {
@@ -235,7 +223,7 @@ function refresh() {
     document.getElementById("bosshp").style.width = hpPer + "%";
     document.getElementById("bosshp-text").innerText = hpPer.toFixed(8) + "%";
     
-    let pIpPer = (p.playerHP / p.maxHP * 100);
+    let pIpPer = Math.max(0, (p.playerHP / p.maxHP * 100));
     document.getElementById("playerhp").style.width = pIpPer + "%";
     document.getElementById("playerhp-text").innerText = `${Math.floor(p.playerHP).toLocaleString()} / ${p.maxHP.toLocaleString()}`;
 
@@ -248,7 +236,7 @@ function refresh() {
         return `
             <div class="relic-card ${d.isGold?'gold':''} ${d.isDeathType?'death-relic':''}">
                 <div>
-                    <div class="relic-name" style="color:${d.isDeathType?'var(--death)':(d.isGold?'var(--gold)':'var(--primary)')}">${d.name}</div>
+                    <div style="color:${d.isDeathType?'var(--death)':(d.isGold?'var(--gold)':'var(--primary)')}">${d.name}</div>
                     <div class="relic-effect">${d.desc}</div>
                 </div>
                 <div style="font-weight:bold">×${p.inventory[id]}</div>
@@ -257,7 +245,7 @@ function refresh() {
     }).join("");
 
     document.getElementById("attackBtn").disabled = isDead;
-    save();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(p));
 }
 
 function addLog(m) {
@@ -276,7 +264,6 @@ function showTab(id, btn) {
     btn.classList.add("active");
 }
 
-function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(p)); }
 init();
 </script>
 </body>
