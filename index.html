@@ -20,7 +20,6 @@
     .bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 4px 0 6px; }
     .fill { height: 100%; transition: width 0.1s ease; }
     
-    /* クリア画面 */
     #clear-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; color: gold; text-align: center; justify-content: center; align-items: center; flex-direction: column; }
     #clear-overlay h1 { font-size: 3em; margin: 0; text-shadow: 0 0 20px orange; }
     .clear-time { font-size: 1.5em; margin: 20px 0; color: #fff; }
@@ -68,6 +67,7 @@
 </div>
 
 <script>
+// 以前設定した権能・遺物ロジックを保持
 const POWER_DATA = [
     { name: "剣神の残火", base: "ATK加算特化", skills: ["一の太刀","燕返し","心眼","無想","天断","神速","流星","真空","極・一文字","剣神降臨"] },
     { name: "不滅の守護者", base: "HP比例ATK", skills: ["不屈","再生の楔","逆境","不死魂","守護誇","金剛体","鉄壁","報復棘","絶望抗","不滅域"] },
@@ -93,7 +93,8 @@ for(let p=0; p<10; p++) {
 }
 
 let player = { lv: 1, exp: 0, inventory: Array(100).fill(0), deathCount: 0, baseAtk: 10, baseHP: 100, startTime: null };
-let boss = { hp: 100000, maxHP: 100000 };
+// 魔神のHPを本来のスケールへ復旧
+let boss = { hp: 10000000, maxHP: 10000000 }; 
 let isPressing = false, isCleared = false;
 
 function formatTime(ms) {
@@ -103,9 +104,9 @@ function formatTime(ms) {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${l.toString().padStart(2, '0')}`;
 }
 
-function save() { localStorage.setItem("IR_Save_V15", JSON.stringify({player, boss})); }
+function save() { localStorage.setItem("IR_Save_Final", JSON.stringify({player, boss})); }
 function load() { 
-    const s = localStorage.getItem("IR_Save_V15"); 
+    const s = localStorage.getItem("IR_Save_Final"); 
     if(s) { const d = JSON.parse(s); player = d.player; boss = d.boss; }
 }
 
