@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>infiniterelic</title>
+<title>infiniterelic_debug</title>
 <style>
     :root {
         --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6;
@@ -52,29 +52,32 @@
     <div id="relic" class="tab"><div id="relicList"></div></div>
 </div>
 <script>
-const SAVE_KEY = "MAJIN_REPAIR_V1";
+const SAVE_KEY = "MAJIN_DEBUG_FULL_UNLOCK";
 const POWER_NAMES = ["剣神の残火","不滅の守護者","魔導王の遺志","覇王の残光","絶影の残影","修羅の咆哮","真理の残滓","神託の残響","虚無の深淵","機工の心臓"];
 const RELIC_GRADES = ["欠片", "心得", "記憶", "極意", "魂", "神域", "深淵", "虚無", "真理", "超越"];
 const STEPS = [10, 50, 150, 300, 500, 800, 1200, 2000, 3500, 5000];
 
-// 指示通りの最新スキル効果
 const SKILL_MASTER = {
-    "剣神の残火": [{n:"極・一文字", idx:8, e:"会心ダメ1,000倍"}],
-    "不滅の守護者": [{n:"守護神の誇り", idx:4, e:"HP1万毎ATK+100%"}, {n:"不滅の聖域", idx:9, e:"耐時速度10倍"}],
-    "魔導王の遺志": [{n:"詠唱破棄", idx:2, e:"25%でスキル連撃"}, {n:"元素爆発", idx:6, e:"追撃500%"}, {n:"魔導王の再臨", idx:9, e:"全権能効果2倍"}],
-    "覇王の残光": [{n:"至高の御座", idx:9, e:"Lv毎ATK+5,000"}],
-    "絶影の残影": [{n:"暗殺者の誇り", idx:4, e:"回避時次撃1000倍"}],
-    "修羅の咆哮": [{n:"飽くなき闘争", idx:5, e:"長押し中ATK10倍"}, {n:"命を喰らう", idx:8, e:"最大HP永続増"}],
-    "真理の残滓": [{n:"虚構の崩壊", idx:5, e:"最大HP0.0001%削"}, {n:"運命の断罪", idx:8, e:"10%で1万倍"}],
-    "神託の残響": [{n:"奇跡の予兆", idx:3, e:"20%で遺物+1"}, {n:"聖域の盾", idx:5, e:"即死をHP1%化"}, {n:"主の御手", idx:9, e:"自動高速攻撃"}],
-    "機工の心臓": [{n:"過負荷の熱", idx:1, e:"HP全快時100倍"}, {n:"自動修復", idx:4, e:"ヒット毎HP+100"}]
+    "剣神の残火": ["一の太刀(ATK 5倍)","燕返し","心眼","無想","天断","神速","流星","真空","極・一文字(会心1000倍)","剣神降臨"],
+    "不滅の守護者": ["不屈","再生の楔","逆境の理","不死の魂","守護神の誇り(HP1万毎100%)","金剛の体","鉄壁の構え","報復の棘","絶望への抗い","不滅の聖域(耐時速度10倍)"],
+    "魔導王の遺志": ["魔力導線","術式展開","詠唱破棄(25%連撃)","多重構築","深淵の知恵","魔導の極致","元素爆発(追撃500%)","真理の門","賢者の石","魔導王の再臨(全権能2倍)"],
+    "覇王の残光": ["威圧","王の進軍","凱旋の鬨","統率の才","覇王の盾","黄金の夜明け","天をも統べる","不抜の城塞","絶対王政","至高の御座(Lv毎5000)"],
+    "絶影の残影": ["急所穿ち","影走り","死の刻印","虚像の舞","暗殺者の誇り(1000倍)","刹那の閃き","闇に溶ける","絶影の連撃","魂の収穫","虚無の終焉"],
+    "修羅の咆哮": ["狂乱","血戦の契り","屠殺の牙","闘神の血","修羅の道","飽くなき闘争(長押し10倍)","憤怒の波動","鬼神の連撃","命を喰らう(最大HP増)","冥府の王"],
+    "真理の残滓": ["等価交換","因果の糸","世界の記憶","理の改変","根源の理解","虚構の崩壊(割合削)","天の秤","知識の激流","運命の断罪(10%で1万倍)","神の数式"],
+    "神託の残響": ["祈り(再起後100倍)","聖なる光(断末魔)","天使の加護","奇跡の予兆(20%でもう1つ)","天啓の調べ","聖域の盾(即死回避)","神の審判","福音の響き","至福の時","主の御手(神速自動)"],
+    "虚無の深淵": ["忘却","影の浸食","暗黒の底(散り際1%)","空虚な夢","存在の否定(HP1000倍)","無への還元(乗算化)","深淵の眼","終焉の予言","滅びの歌","絶対零"],
+    "機工の心臓": ["歯車の回転","過負荷の熱(全快100倍)","精密演算","鋼鉄の意志","自動修復(ヒットHP+100)","蒸気の噴進","機工の連鎖","次元の歯車","神の設計図","究極の機構"]
 };
 
 let p, currentBossHP = 1e20, longPressInterval = null, isPressing = false;
 
 function init() {
-    const saved = localStorage.getItem(SAVE_KEY);
-    p = saved ? JSON.parse(saved) : { lv: 1, exp: 0, inventory: {}, deathCount: 0 };
+    // デバッグ用：全遺物を各5000個所持した状態を生成
+    let debugInv = {};
+    for(let i=0; i<100; i++) { debugInv[i] = 5000; }
+    p = { lv: 100, exp: 0, inventory: debugInv, deathCount: 0 };
+    
     document.getElementById("attackBtn").addEventListener("mousedown", startAtk);
     document.getElementById("attackBtn").addEventListener("mouseup", stopAtk);
     document.getElementById("attackBtn").addEventListener("touchstart", startAtk);
@@ -91,12 +94,18 @@ function calcStats() {
         const grade = id % 10;
         relicAtk += (grade + 1) * 100 * p.inventory[id];
     });
+    
+    // 魔導王の再臨(全権能2倍)の効果を想定した計算
+    const mageMult = 2; 
     let s = { maxHP: p.lv * 100 + 10, baseAtk: 10 + (p.lv * 5) + relicAtk, multi: 1 };
     
-    // 修正スキルのロジック反映
-    if(isPressing && getCount(5) >= STEPS[5]) s.multi *= 10; // 飽くなき闘争
-    if(getCount(3) >= STEPS[9]) s.baseAtk += p.lv * 5000; // 至高の御座
-    
+    // スキル反映：飽くなき闘争(10倍 * 再臨2倍 = 20倍)
+    if(isPressing) s.multi *= (10 * mageMult);
+    // スキル反映：至高の御座
+    s.baseAtk += (p.lv * 5000 * mageMult);
+    // スキル反映：存在の否定(HP1000倍)
+    s.maxHP *= (1000 * mageMult);
+
     s.finalAtk = s.baseAtk * (1 + p.deathCount * 0.001) * s.multi;
     return s;
 }
@@ -104,25 +113,16 @@ function calcStats() {
 function battle() {
     const s = calcStats();
     let dmg = s.finalAtk;
-    // 虚構の崩壊
-    if(getCount(6) >= STEPS[5]) dmg += (1e20 * 0.00000001);
     
+    // 虚構の崩壊(最大HP削り)
+    dmg += (1e20 * 0.00000001);
+
     currentBossHP -= dmg;
-    addLog(`魔神に ${Math.floor(dmg).toLocaleString()} のダメージ！`);
+    addLog(`魔神に ${Math.floor(dmg).toLocaleString()} ダメージ！`);
     
-    // 即死ダメージ描写
-    addLog(`<span style="color:red">魔神の反撃！即死ダメージを受けた！</span>`);
+    // 死亡描写
+    addLog(`<span style="color:red">即死攻撃を受けた！(再起)</span>`);
     p.deathCount++;
-    p.exp += 10;
-    
-    // 遺物ドロップ
-    if(Math.random() < 0.2) {
-        let rid = Math.floor(Math.random() * 50); // ⭐︎1~5限定
-        p.inventory[rid] = (p.inventory[rid] || 0) + 1;
-        addLog(`<span style="color:var(--gold)">💎 ⭐︎${(rid%10)+1} ${POWER_NAMES[Math.floor(rid/10)].split("の")[0]}の${RELIC_GRADES[rid%10]} 獲得</span>`);
-    }
-    
-    if(p.exp >= p.lv * 50) { p.exp = 0; p.lv++; }
     refresh();
 }
 
@@ -134,36 +134,39 @@ function refresh() {
     const s = calcStats();
     document.getElementById("bosshp").style.width = (currentBossHP / 1e20 * 100) + "%";
     document.getElementById("bosshp-text").innerText = (currentBossHP / 1e20 * 100).toFixed(6) + "%";
-    document.getElementById("playerhp-text").innerText = `1 / ${s.maxHP}`;
+    document.getElementById("playerhp-text").innerText = `${s.maxHP} / ${s.maxHP}`;
     document.getElementById("p-lv").innerText = p.lv;
     document.getElementById("sum-atk").innerText = Math.floor(s.finalAtk).toLocaleString();
     
     if(document.activeTab === 'status') renderStatus(s);
     if(document.activeTab === 'power') renderPower();
     if(document.activeTab === 'relic') renderRelic();
-    localStorage.setItem(SAVE_KEY, JSON.stringify(p));
 }
 
 function renderStatus(s) {
-    document.getElementById("statusList").innerHTML = `<div class="status-item"><span>最大HP</span><span>${s.maxHP}</span></div><div class="status-item"><span>最終ATK</span><span>${Math.floor(s.finalAtk).toLocaleString()}</span></div><div class="status-item"><span>再起回数</span><span>${p.deathCount}</span></div>`;
+    document.getElementById("statusList").innerHTML = `
+        <div class="status-item"><span>最大HP</span><span>${s.maxHP.toLocaleString()}</span></div>
+        <div class="status-item"><span>最終ATK</span><span>${Math.floor(s.finalAtk).toLocaleString()}</span></div>
+        <div class="status-item"><span>再起回数</span><span>${p.deathCount}</span></div>
+    `;
 }
 
 function renderPower() {
     document.getElementById("powerList").innerHTML = POWER_NAMES.map((name, idx) => {
         const c = getCount(idx);
-        return `<div class="card-cell"><b>${name}</b> (所持:${c})<div class="skill-list">
-            ${[1,2,3,4,5].map(lv => `<div class="skill-item ${c >= STEPS[lv-1] ? 'skill-unlocked' : ''}">スキル${lv}</div>`).join("")}
+        return `<div class="card-cell"><b>${name}</b> (遺物:${c})<div class="skill-list">
+            ${SKILL_MASTER[name].map((skName, i) => `<div class="skill-item ${c >= STEPS[i] ? 'skill-unlocked' : ''}">${skName}</div>`).join("")}
         </div></div>`;
     }).join("");
 }
 
 function renderRelic() {
     const ids = Object.keys(p.inventory).filter(id => p.inventory[id] > 0);
-    document.getElementById("relicList").innerHTML = ids.length ? ids.map(id => {
+    document.getElementById("relicList").innerHTML = ids.map(id => {
         const grade = id % 10;
         const effect = (grade + 1) * 100 * p.inventory[id];
         return `<div class="card-cell">⭐︎${grade+1} ${POWER_NAMES[Math.floor(id/10)].split("の")[0]}の${RELIC_GRADES[grade]} ×${p.inventory[id]}<br><small style="color:var(--hp)">効果: ATK +${effect}</small></div>`;
-    }).join("") : "未所持";
+    }).join("");
 }
 
 function showTab(id, btn) {
@@ -178,7 +181,7 @@ function showTab(id, btn) {
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 30) l.removeChild(l.lastChild);
+    l.prepend(d); if(l.childNodes.length > 20) l.removeChild(l.lastChild);
 }
 
 init();
