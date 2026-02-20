@@ -3,291 +3,279 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Divine Slayer: Relic of the End</title>
+<title>神殺しの遺物 - 死を喰らう者 -</title>
 <style>
     :root {
-        --bg: #0a0a0c; --card: #15151a; --primary: #00f2ff; 
-        --accent: #ff0055; --text: #e2e2e7; --sub: #71717a;
-        --atk-color: #fca5a5; --dmg-color: #f97316; --skill-color: #a855f7;
+        --bg: #050507; --card: #0f0f12; --primary: #00f2ff; 
+        --accent: #ff0044; --gold: #ffcc00; --text: #e2e2e7; --sub: #71717a;
+        --death: #7c3aed; /* 敗北に関連する色 */
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; user-select: none; touch-action: manipulation; }
+    body { background: var(--bg); color: var(--text); font-family: 'Sawsans', 'Hiragino Mincho ProN', serif; margin: 0; user-select: none; touch-action: manipulation; }
     
-    #top { background: var(--card); padding: 20px; border-bottom: 1px solid #27272a; position: sticky; top: 0; z-index: 100; text-align: center; }
-    #boss-name { font-size: 1.1em; font-weight: 800; color: var(--accent); letter-spacing: 0.3em; text-transform: uppercase; }
-    .bar { height: 6px; background: #27272a; border-radius: 3px; overflow: hidden; margin: 10px 0; }
+    #top { background: var(--card); padding: 15px; border-bottom: 2px solid #1f1f23; position: sticky; top: 0; z-index: 100; text-align: center; }
+    #boss-name { font-size: 1.2em; font-weight: 900; color: var(--accent); letter-spacing: 0.4em; }
+    
+    .bar-container { margin: 8px 0; }
+    .bar-label { font-size: 0.6em; color: var(--sub); display: flex; justify-content: space-between; margin-bottom: 2px; }
+    .bar { height: 8px; background: #1a1a1f; border-radius: 4px; overflow: hidden; border: 1px solid #222; }
     .fill { height: 100%; transition: width 0.1s; }
-    #bosshp { background: linear-gradient(90deg, #450a0a, #ff0055); width: 100%; }
+    #bosshp { background: linear-gradient(90deg, #600, var(--accent)); width: 100%; }
+    #playerhp { background: linear-gradient(90deg, #004400, #00ff00); width: 100%; }
     
-    .main-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
-    .stat-box { background: #00000044; padding: 10px; border-radius: 8px; border: 1px solid #27272a; }
-    .stat-label { font-size: 0.6em; color: var(--sub); text-transform: uppercase; display: block; margin-bottom: 2px; }
-    .stat-val { font-size: 1em; font-weight: 700; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+    .main-stats { display: grid; grid-template-columns: repeat(2, 2fr) 1fr; gap: 8px; margin-top: 10px; }
+    .stat-box { background: #000; padding: 8px; border-radius: 4px; border: 1px solid #222; }
+    .stat-label { font-size: 0.55em; color: var(--sub); display: block; }
+    .stat-val { font-size: 0.85em; font-weight: bold; color: var(--primary); font-family: 'Courier New', monospace; }
+    .stat-death { color: var(--death) !important; }
 
-    .nav { display: flex; background: #15151a; border-bottom: 1px solid #27272a; }
-    .nav button { flex: 1; padding: 15px 5px; border: none; background: none; color: var(--sub); font-size: 0.7em; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .nav button.active { color: var(--primary); background: #00f2ff0a; border-bottom: 2px solid var(--primary); }
+    .nav { display: flex; background: #0a0a0c; border-bottom: 1px solid #222; }
+    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: var(--sub); font-size: 0.75em; font-weight: bold; cursor: pointer; }
+    .nav button.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #ffffff05; }
 
-    .tab { display: none; padding: 15px; height: calc(100vh - 300px); overflow-y: auto; }
+    .tab { display: none; padding: 15px; height: calc(100vh - 320px); overflow-y: auto; }
     .tab.active { display: block; }
 
     .btn-attack { 
-        width: 100%; padding: 35px; background: #000; color: var(--accent); 
-        font-size: 1.2em; font-weight: 900; border: 1px solid var(--accent); border-radius: 4px; 
-        cursor: pointer; box-shadow: inset 0 0 20px #ff005522; transition: 0.1s;
+        width: 100%; padding: 25px; background: #000; color: var(--accent); 
+        font-size: 1.3em; font-weight: 900; border: 2px solid var(--accent); border-radius: 0; 
+        cursor: pointer; box-shadow: inset 0 0 15px #ff004422; transition: 0.1s;
     }
-    .btn-attack:active { background: var(--accent); color: #000; transform: translateY(2px); }
-    #log { margin-top: 15px; height: 160px; overflow-y: auto; font-size: 0.7em; line-height: 1.8; color: #a1a1aa; display: flex; flex-direction: column-reverse; }
+    .btn-attack:active:not(:disabled) { background: var(--accent); color: #000; }
+    .btn-attack:disabled { border-color: #333; color: #333; cursor: not-allowed; }
 
-    .relic-card { background: #1c1c21; border: 1px solid #27272a; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .relic-info { display: flex; flex-direction: column; }
-    .relic-name { font-weight: 700; font-size: 0.9em; }
-    .relic-effect { font-size: 0.7em; margin-top: 2px; }
-    .relic-count { font-family: 'JetBrains Mono', monospace; color: var(--primary); font-weight: bold; }
+    #log { margin-top: 10px; height: 180px; overflow-y: auto; font-size: 0.75em; line-height: 1.6; background: #000; padding: 10px; border: 1px solid #111; display: flex; flex-direction: column-reverse; }
+    .log-entry { border-bottom: 1px solid #0a0a0c; padding: 2px 0; }
+    .l-dmg { color: #ccc; }
+    .l-skill { color: var(--primary); font-weight: bold; }
+    .l-drop { color: var(--gold); }
+    .l-boss { color: var(--accent); }
+    .l-death-log { color: #fff; background: var(--death); padding: 0 4px; }
 
-    .skill-card { background: #1c1c21; border-left: 3px solid var(--primary); padding: 10px; margin-bottom: 6px; }
-    .skill-name { font-weight: 700; font-size: 0.85em; display: flex; justify-content: space-between; }
-    .skill-desc { font-size: 0.7em; color: var(--sub); margin-top: 4px; }
-    
-    .job-item { background: #1c1c21; padding: 12px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #27272a; }
+    .relic-card { background: #0a0a0c; border: 1px solid #1a1a1f; padding: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .relic-card.gold { border: 1px solid var(--gold); }
+    .relic-card.death-relic { border-left: 4px solid var(--death); }
+    .relic-name { font-size: 0.85em; font-weight: bold; }
+    .relic-effect { font-size: 0.65em; color: var(--sub); }
 </style>
 </head>
 <body>
 
 <div id="top">
-    <div id="boss-name">魔神・アザトース</div>
-    <div class="bar"><div id="bosshp" class="fill"></div></div>
-    <div id="bosshp-text" style="font-size:0.6em; font-family:monospace; color:var(--sub);">CALCULATING...</div>
+    <div id="boss-name">終焉の魔神アザトース</div>
+    <div class="bar-container">
+        <div class="bar-label"><span>魔神の権能</span><span id="bosshp-text">100.00%</span></div>
+        <div class="bar"><div id="bosshp" class="fill"></div></div>
+    </div>
+    <div class="bar-container">
+        <div class="bar-label"><span>自身の生命力</span><span id="playerhp-text">1000 / 1000</span></div>
+        <div class="bar"><div id="playerhp" class="fill"></div></div>
+    </div>
     
     <div class="main-stats">
-        <div class="stat-box"><span class="stat-label">Hero Level</span><span id="p-lv" class="stat-val">1</span></div>
-        <div class="stat-box"><span class="stat-label">Attack Power</span><span id="p-atk" class="stat-val">0</span></div>
+        <div class="stat-box"><span class="stat-label">総攻撃力</span><span id="p-atk" class="stat-val">0</span></div>
+        <div class="stat-box"><span class="stat-label">最大体力</span><span id="p-hp-max" class="stat-val">0</span></div>
+        <div class="stat-box"><span class="stat-label">敗北数</span><span id="p-death-count" class="stat-val stat-death">0</span></div>
     </div>
 </div>
 
 <div class="nav">
-    <button onclick="showTab('battle', this)" class="active">BATTLE</button>
-    <button onclick="showTab('job', this)">JOB</button>
-    <button onclick="showTab('skills', this)">SKILLS</button>
-    <button onclick="showTab('equip', this)">RELICS</button>
+    <button onclick="showTab('battle', this)" class="active">討伐</button>
+    <button onclick="showTab('job', this)">深淵</button>
+    <button onclick="showTab('skills', this)">奥義</button>
+    <button onclick="showTab('equip', this)">遺物</button>
 </div>
 
 <div id="battle" class="tab active">
-    <button class="btn-attack" id="attackBtn">STRIKE</button>
+    <button class="btn-attack" id="attackBtn">斬撃を放つ</button>
     <div id="log"></div>
 </div>
 
-<div id="job" class="tab">
-    <div id="jobList"></div>
-</div>
-
-<div id="skills" class="tab">
-    <div id="ownedSkills"></div>
-</div>
-
-<div id="equip" class="tab">
-    <div id="inventory"></div>
-</div>
+<div id="job" class="tab"><div id="jobList"></div></div>
+<div id="skills" class="tab"><div id="ownedSkills"></div></div>
+<div id="equip" class="tab"><div id="inventory"></div></div>
 
 <script>
-// --- 定数・データ ---
-const BOSS_MAX_HP = 1e24; // 1叙
-const JOBS_DATA = {
-    "剣士": ["烈火一閃", "虚空十文字", "獄門割り", "天裂斬", "神殺しの極意"],
-    "魔導師": ["コメット弾", "極夜の氷槍", "焦土の爆焔", "零式魔砲", "宇宙の深淵"],
-    "武闘家": ["瞬刻連撃", "六道輪廻脚", "破岩衝撃", "万物砕き", "羅刹の鼓動"],
-    "狂戦士": ["暴虐の斧", "血の祝祭", "魂の咆哮", "滅殺の構え", "終焉の狂気"],
-    "狩人": ["流星の矢", "影縫いの弦", "零距離射撃", "天空を穿つ光", "神罰の矢雨"],
-    "忍者": ["裏隠の術", "不知火", "幻影分身", "黒蓮華", "微塵の裁き"],
-    "侍": ["月下美人", "一ノ型・凪", "散り椿", "残心", "秘剣・昇龍"],
-    "竜騎士": ["ドラグーンダイブ", "竜帝の咆哮", "逆鱗の一撃", "飛天", "龍神降臨"],
-    "錬金術師": ["賢者の秘薬", "重力崩壊液", "金剛変化", "万物生成", "真理の瞳"],
-    "死霊使い": ["亡者の嘆き", "幽冥の霧", "魂の略奪", "死霊の軍勢", "死の口づけ"],
-    "暗殺者": ["断末魔", "静寂の刃", "急所崩し", "影の支配者", "無音の終焉"],
-    "拳闘士": ["ライジング", "マッハ拳", "衝撃波", "覇王の拳", "最終決戦"],
-    "聖騎士": ["神聖なる防壁", "裁きの光", "天界の福音", "不退転の志", "最後の審判"],
-    "槍術士": ["紫電一閃", "百烈突き", "螺旋の牙", "嵐を呼ぶ槍", "天空の支配者"],
-    "賢者": ["因果の歪み", "解析完了", "星の導き", "時空魔法", "全知全能"],
-    "風術師": ["真空の鎌", "翡翠の嵐", "天翔ける風", "神風の加護", "真空地獄"],
-    "錬士": ["練気", "集中", "内功", "限界突破", "究極解放"],
-    "覇王": ["王の威圧", "万物の服従", "次元の支配", "覇道の極み", "新世界の創造"],
-    "冒険者": ["ラッキーダイス", "起死回生", "秘められた力", "奇跡の風", "英雄の証"],
-    "重騎士": ["鉄壁の城塞", "破城槌", "大地の怒り", "不倒の魂", "重力崩壊"]
-};
+const BOSS_MAX_HP = 1e24;
+const R_PREFIX = ["古の", "呪われし", "神聖なる", "深淵の", "血塗られた", "無名の", "星々の", "魔神の", "禁忌の", "至高の"];
+const R_NAME = ["首飾り", "指輪", "魔石", "刻印", "聖杯", "腕輪", "冠", "鏡", "鱗", "羽"];
+const R_SUFFIX = ["の断片", "の残滓", "の記憶", "の渇望", "の輝き"];
 
-// 遺物データ（3種類）
-const RELICS_DATA = [
-    { id:1, type:"ATK", name:"魔神の心臓", desc:"基礎攻撃力を1%上昇させる", color:"var(--atk-color)" },
-    { id:2, type:"DMG", name:"異界の石版", desc:"与える最終ダメージを2%上昇させる", color:"var(--dmg-color)" },
-    { id:3, type:"SKILL", name:"預言者の眼", desc:"スキルの追加倍率を5%上昇させる", color:"var(--skill-color)" },
-    { id:4, type:"ATK", name:"星屑の残滓", desc:"宇宙の力で攻撃力を100加算する", color:"var(--atk-color)" },
-    { id:5, type:"DMG", name:"刻印の聖杯", desc:"ダメージ効率を5%上昇させる", color:"var(--dmg-color)" }
-];
-
-let p, longPressIdx;
-const SAVE_KEY = "DIVINE_REPLIC_FINAL";
+let p, longPressIdx, isDead = false;
+const SAVE_KEY = "MAJIN_REBIRTH_V3";
 
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
     p = saved ? JSON.parse(saved) : {
-        lv:1, exp:0, job:"剣士", 
+        lv:1, exp:0, job:"剣聖", 
         inventory: {}, unlockedSkills: [], 
-        jobLevels: {}, jobExp: {}, bossTotalDmg: 0
+        jobLevels: {"剣聖":1}, jobExp: {"剣聖":0}, 
+        bossTotalDmg: 0, playerHP: 1000, deathCount: 0
     };
-    Object.keys(JOBS_DATA).forEach(j => {
-        if(!p.jobLevels[j]) p.jobLevels[j] = 1;
-        if(!p.jobExp[j]) p.jobExp[j] = 0;
-    });
+    refresh();
+
     const btn = document.getElementById("attackBtn");
-    const start = (e) => { e.preventDefault(); battle(); clearInterval(longPressIdx); longPressIdx = setInterval(battle, 100); };
+    const start = (e) => { 
+        if(isDead) return;
+        e.preventDefault(); battle(); clearInterval(longPressIdx); 
+        longPressIdx = setInterval(battle, 100); 
+    };
     const stop = () => clearInterval(longPressIdx);
     btn.addEventListener("mousedown", start); btn.addEventListener("mouseup", stop);
     btn.addEventListener("touchstart", start); btn.addEventListener("touchend", stop);
-    refresh();
+}
+
+function getRelicData(id) {
+    const seed = parseInt(id);
+    // 500種のうち、特定のID（例：13の倍数）を「死の遺物」にする
+    const isDeathType = (seed % 13 === 0);
+    const typeIdx = seed % 4;
+    const types = ["ATK", "HP", "DMG", "DROP"];
+    const type = types[typeIdx];
+    
+    const isGold = (seed % 100 === 0);
+    const baseVal = isGold ? (seed % 10 + 1) * 20 : (seed % 10 + 1);
+
+    const name = (isDeathType ? "死を喰らう" : R_PREFIX[seed % 10]) + R_NAME[(seed >> 2) % 10] + R_SUFFIX[(seed >> 4) % 5];
+    
+    let desc = "";
+    if(isDeathType) {
+        desc = `敗北数に応じて${type==="ATK"?"攻撃力":type==="HP"?"最大体力":"威力"}が上昇(現在:+${(p.deathCount * baseVal * 0.1).toFixed(1)}%)`;
+    } else {
+        desc = `${type==="ATK"?"攻撃力":type==="HP"?"体力":"威力"}を ${baseVal}${type==="DMG"||type==="DROP"?"%":""} 上昇`;
+    }
+
+    return { id, name, type, val: baseVal, desc, isGold, isDeathType };
 }
 
 function calcStats() {
-    // 基礎攻撃力
-    let baseAtk = (10 + p.lv * 15);
-    let totalDmgMult = 1.0;
-    let skillEfficacyMult = 1.0;
+    let atk = 10 + (p.lv * 20);
+    let hp = 1000 + (p.lv * 100);
+    let dmgM = 1.0;
+    let dropM = 1.0;
 
     Object.keys(p.inventory).forEach(id => {
+        const d = getRelicData(id);
         const count = p.inventory[id];
-        if(id == 1) baseAtk *= (1 + 0.01 * count);
-        if(id == 2) totalDmgMult += (0.02 * count);
-        if(id == 3) skillEfficacyMult += (0.05 * count);
-        if(id == 4) baseAtk += (100 * count);
-        if(id == 5) totalDmgMult += (0.05 * count);
-    });
-
-    p.totalAtk = Math.floor(baseAtk);
-    p.totalDmgMult = totalDmgMult;
-    p.skillEfficacyMult = skillEfficacyMult;
-}
-
-function battle() {
-    calcStats();
-    const variance = 0.7 + (Math.random() * 0.3);
-    let currentDmg = p.totalAtk * variance;
-    
-    // スキル判定
-    let skillChain = 0;
-    let skillPower = 0;
-    p.unlockedSkills.forEach(s => {
-        if(Math.random() < 0.04) { // 4%発動
-            skillChain++;
-            skillPower += (0.5 * p.skillEfficacyMult); // 遺物でスキル効果が増強
+        let boost = d.val * count;
+        
+        // 死の遺物の計算 (敗北数 × 基礎値の10%)
+        if(d.isDeathType) {
+            let deathBoost = 1 + (p.deathCount * d.val * 0.001 * count);
+            if(d.type === "ATK") atk *= deathBoost;
+            if(d.type === "HP") hp *= deathBoost;
+            if(d.type === "DMG") dmgM *= deathBoost;
+        } else {
+            if(d.type === "ATK") atk += boost;
+            if(d.type === "HP") hp += boost;
+            if(d.type === "DMG") dmgM += (boost * 0.01);
+            if(d.type === "DROP") dropM += (boost * 0.01);
         }
     });
 
-    let finalDmg = Math.floor(currentDmg * (1 + skillPower) * p.totalDmgMult);
-    p.bossTotalDmg += finalDmg;
+    p.totalAtk = Math.floor(atk);
+    p.maxHP = Math.floor(hp);
+    p.totalDmgMult = dmgM;
+    p.dropRate = 5.0 * dropM;
+}
 
-    // ログ
-    if(skillChain > 0) addLog(`<span style="color:var(--skill-color)">◆ ${skillChain} SKILLS RESONATED!</span>`);
-    addLog(`<span style="color:var(--text)">${finalDmg.toLocaleString()} DAMAGE</span>`);
+function battle() {
+    if(isDead) return;
+    calcStats();
     
-    if(Math.random() < 0.15) addLog(`<span style="color:var(--accent)">× ANNIHILATED BY AZATHOTH.</span>`);
+    let dmg = Math.floor(p.totalAtk * (0.8 + Math.random() * 0.4) * p.totalDmgMult);
+    p.bossTotalDmg += dmg;
+    addLog(`<span class="l-dmg">【斬撃】 魔神へ ${dmg.toLocaleString()} のダメージ</span>`);
 
-    // 報酬
-    let gain = Math.floor(finalDmg * 0.2);
-    p.exp += gain;
-    p.jobExp[p.job] += gain;
+    // 反撃ダメージ
+    let counterAtk = Math.floor(p.maxHP * 0.08); 
+    p.playerHP -= counterAtk;
 
-    // 遺物ドロップ
-    if(Math.random() < 0.08) {
-        let r = RELICS_DATA[Math.floor(Math.random() * RELICS_DATA.length)];
-        p.inventory[r.id] = (p.inventory[r.id] || 0) + 1;
-        addLog(`<span style="color:var(--primary)">★ RELIC FOUND: ${r.name}</span>`);
+    if(p.playerHP <= 0) {
+        p.deathCount++;
+        playerDeath();
+        return;
     }
 
+    if(Math.random() < p.dropRate / 100) {
+        let rId = Math.floor(Math.random() * 500);
+        let data = getRelicData(rId);
+        p.inventory[rId] = (p.inventory[rId] || 0) + 1;
+        addLog(`<span class="l-drop" style="color:${data.isGold?'var(--gold)':'var(--primary)'}">★ 遺物獲得：${data.name}</span>`);
+    }
+
+    p.exp += Math.floor(dmg * 0.5);
     checkLevelUp();
     refresh();
 }
 
+function playerDeath() {
+    isDead = true;
+    clearInterval(longPressIdx);
+    p.playerHP = 0;
+    addLog(`<span class="l-death-log">◆ 敗北：死が力に変換される...（敗北数:${p.deathCount}）</span>`);
+    refresh();
+    setTimeout(() => {
+        p.playerHP = p.maxHP;
+        isDead = false;
+        refresh();
+    }, 1000); // 復活を1秒に短縮
+}
+
 function checkLevelUp() {
-    // 数十時間もたせる指数関数テーブル (Lv^3.5)
-    const getNextExp = (lv) => Math.pow(lv, 3.5) * 600;
-    while (p.exp >= getNextExp(p.lv)) {
-        p.exp -= getNextExp(p.lv);
+    const next = Math.pow(p.lv, 3) * 500;
+    while(p.exp >= next) {
+        p.exp -= next;
         p.lv++;
-        addLog(`<span style="color:var(--primary)">≫ LEVEL UP: ${p.lv}</span>`);
-    }
-    
-    let j = p.job;
-    const getNextJExp = (lv) => Math.pow(lv, 3.2) * 800;
-    while (p.jobExp[j] >= getNextJExp(p.jobLevels[j])) {
-        p.jobExp[j] -= getNextJExp(p.jobLevels[j]);
-        p.jobLevels[j]++;
-        
-        const lv = p.jobLevels[j];
-        const thresholds = [10, 25, 50, 75, 100];
-        if(thresholds.includes(lv)) {
-            let sName = JOBS_DATA[j][thresholds.indexOf(lv)];
-            if(!p.unlockedSkills.includes(sName)) {
-                p.unlockedSkills.push(sName);
-                addLog(`<span style="color:var(--skill-color)">🔥 NEW SKILL: 【${sName}】</span>`);
-            }
-        }
+        addLog(`<span class="l-skill">≫ 階位上昇：第 ${p.lv} 階位</span>`);
     }
 }
 
 function refresh() {
-    calcStats();
-    let hpPercent = Math.max(0, 100 - (p.bossTotalDmg / BOSS_MAX_HP * 100));
-    document.getElementById("bosshp").style.width = hpPercent + "%";
-    document.getElementById("bosshp-text").innerText = `HP: ${hpPercent.toFixed(10)}%`;
-    document.getElementById("p-lv").innerText = p.lv;
-    document.getElementById("p-atk").innerText = p.totalAtk.toLocaleString();
+    let hpPer = Math.max(0, 100 - (p.bossTotalDmg / BOSS_MAX_HP * 100));
+    document.getElementById("bosshp").style.width = hpPer + "%";
+    document.getElementById("bosshp-text").innerText = hpPer.toFixed(8) + "%";
     
-    // JOB
-    document.getElementById("jobList").innerHTML = Object.keys(JOBS_DATA).map(j => {
-        const lv = p.jobLevels[j];
-        return `<div class="job-item">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <b>${j} <small>Lv.${lv}</small></b>
-                <button class="btn-small" onclick="p.job='${j}';refresh();" ${p.job===j?'disabled':''} style="background:${p.job===j?'#333':'var(--primary)'}; color:#000;">SWITCH</button>
-            </div>
-        </div>`;
-    }).join("");
+    let pIpPer = (p.playerHP / p.maxHP * 100);
+    document.getElementById("playerhp").style.width = pIpPer + "%";
+    document.getElementById("playerhp-text").innerText = `${Math.floor(p.playerHP).toLocaleString()} / ${p.maxHP.toLocaleString()}`;
 
-    // SKILLS
-    document.getElementById("ownedSkills").innerHTML = p.unlockedSkills.length ? p.unlockedSkills.map(s => `
-        <div class="skill-card">
-            <div class="skill-name"><span>${s}</span><span style="color:var(--skill-color)">5.0% CHANCE</span></div>
-            <div class="skill-desc">与ダメージを攻撃力の0.5倍(遺物補正前)加算し、魔神の防御層を貫通する。</div>
-        </div>
-    `).join("") : "<p style='color:var(--sub); font-size:0.8em;'>No skills acquired yet.</p>";
-
-    // RELICS
-    document.getElementById("inventory").innerHTML = RELICS_DATA.map(r => {
-        const count = p.inventory[r.id] || 0;
+    document.getElementById("p-atk").innerText = p.totalAtk.toLocaleString();
+    document.getElementById("p-hp-max").innerText = p.maxHP.toLocaleString();
+    document.getElementById("p-death-count").innerText = p.deathCount;
+    
+    document.getElementById("inventory").innerHTML = Object.keys(p.inventory).map(id => {
+        let d = getRelicData(id);
         return `
-            <div class="relic-card">
-                <div class="relic-info">
-                    <span class="relic-name" style="color:${r.color}">${r.name}</span>
-                    <span class="relic-effect">${r.desc}</span>
+            <div class="relic-card ${d.isGold?'gold':''} ${d.isDeathType?'death-relic':''}">
+                <div>
+                    <div class="relic-name" style="color:${d.isDeathType?'var(--death)':(d.isGold?'var(--gold)':'var(--primary)')}">${d.name}</div>
+                    <div class="relic-effect">${d.desc}</div>
                 </div>
-                <div class="relic-count">×${count.toLocaleString()}</div>
+                <div style="font-weight:bold">×${p.inventory[id]}</div>
             </div>
         `;
     }).join("");
+
+    document.getElementById("attackBtn").disabled = isDead;
     save();
 }
 
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div");
+    d.className = "log-entry";
     d.innerHTML = m;
     l.prepend(d);
     if(l.childNodes.length > 50) l.removeChild(l.lastChild);
 }
+
 function showTab(id, btn) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.getElementById(id).classList.add("active");
     document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 }
+
 function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(p)); }
 init();
 </script>
