@@ -9,6 +9,8 @@
         --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6;
         --primary: #007bff; --text: #212529; --sub: #6c757d;
         --accent: #dc3545; --gold: #d39e00; --death: #6f42c1; --exp: #28a745;
+        /* レアリティカラー */
+        --rarity0: #868e96; --rarity1: #28a745; --rarity2: #007bff; --rarity3: #a335ee; --rarity4: #ff8000;
     }
     body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     
@@ -37,7 +39,14 @@
     
     #log { flex-grow: 1; margin-top: 6px; overflow-y: auto; font-size: 0.7em; background: #fafafa; padding: 6px; border: 1px solid var(--border); border-radius: 4px; }
     .log-entry { margin-bottom: 1px; padding: 1px 0; border-bottom: 1px solid #eee; }
-    .relic-cell { background: #fff; border: 1px solid var(--border); padding: 4px; font-size: 0.65em; display: flex; flex-direction: column; cursor: pointer; }
+
+    /* 修正箇所：遺物グリッドを2列にし、デザインを調整 */
+    #relicGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .relic-cell { background: #fff; border: 1px solid var(--border); padding: 8px; font-size: 0.75em; display: flex; flex-direction: column; cursor: pointer; border-radius: 4px; position: relative; }
+    .relic-name { font-weight: bold; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .relic-effect { font-size: 0.85em; color: var(--sub); }
+    .relic-count { position: absolute; top: 4px; right: 6px; font-size: 0.8em; font-weight: bold; background: rgba(0,0,0,0.05); padding: 0 4px; border-radius: 4px; }
+    
     .detail-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 20; padding: 15px; display: none; }
 </style>
 </head>
@@ -84,7 +93,7 @@
     </div>
     <div id="status" class="tab"><div id="statusDetails"></div></div>
     <div id="job" class="tab"><div id="jobList"></div></div>
-    <div id="equip" class="tab"><div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:4px;" id="relicGrid"></div></div>
+    <div id="equip" class="tab"><div id="relicGrid"></div></div>
     <div id="detailPanel" class="detail-overlay"><button style="width:100%; padding:10px; margin-bottom:10px;" onclick="closeDetail()">戻る</button><div id="detailContent"></div></div>
 </div>
 
@@ -123,7 +132,6 @@ const R_ADJ = ["星辰の", "冥府の", "黄金の", "深淵の", "聖天の", 
 const R_CORE = ["竜王", "熾天使", "魔帝", "賢者", "精霊", "狂戦士", "覇道", "極夜", "神光", "奈落"];
 const R_OBJ = ["の秘石", "の紋章", "の聖杯", "の指輪", "の魔冠", "の剣片", "の盾刻", "の首飾り", "の宝珠", "の断罪"];
 
-// ステータス差別化のためのフォーマット関数 (10万を超えたら指数表記)
 function fmt(num) {
     if (num >= 1e6) return num.toExponential(2).replace("+", "");
     return Math.floor(num).toLocaleString();
@@ -149,19 +157,32 @@ function init() {
     refresh();
 }
 
+// 修正：レアリティと効果表示をサポートする遺物データ取得
 function getRelicData(id) {
     const seed = parseInt(id);
     const adj = R_ADJ[seed % 10];
     const core = R_CORE[Math.floor(seed / 10) % 10];
     const obj = R_OBJ[Math.floor(seed / 25) % 10];
+    
+    // レアリティ判定 (0:一般, 1:上質, 2:希少, 3:伝説, 4:神話)
+    let rarity = 0;
+    if (seed % 50 === 0) rarity = 4;
+    else if (seed % 20 === 0) rarity = 3;
+    else if (seed % 10 === 0) rarity = 2;
+    else if (seed % 5 === 0) rarity = 1;
+    
+    const stars = "★".repeat(rarity + 1);
     const name = adj + core + obj;
     const typeKey = ["ATK", "CRIT", "C_DMG", "FAST"][seed % 4];
     const isDeathType = (seed % 13 === 0);
-    const isGold = (seed % 50 === 0);
-    const baseVal = isGold ? (seed % 5 + 5) * 10 : (seed % 5 + 1);
-    let effectText = typeKey === "ATK" ? `ATK +${baseVal * 10}` : typeKey === "CRIT" ? `Crit率 +${baseVal}%` : typeKey === "C_DMG" ? `Crit倍率 +${baseVal*5}%` : `経験値効率 +${baseVal}%`;
-    if (isDeathType) effectText = "敗北数で全ステータス強化";
-    return { id, name, typeKey, val: baseVal, effectText, isGold, isDeathType };
+    const baseVal = (rarity + 1) * (seed % 5 + 1);
+    
+    let effectText = typeKey === "ATK" ? `ATK +${fmt(baseVal * 100)}` : 
+                     typeKey === "CRIT" ? `Crit率 +${baseVal}%` : 
+                     typeKey === "C_DMG" ? `Crit倍率 +${baseVal*10}%` : `EXP +${baseVal}%`;
+    if (isDeathType) effectText = "敗北数強化";
+
+    return { id, name, typeKey, val: baseVal, effectText, rarity, stars };
 }
 
 function battle() {
@@ -184,16 +205,11 @@ function battle() {
     }
     dpsPool.push(dmg);
 
-    // 修正：魔神からの攻撃は即死ダメージ
     currentHP = 0; 
-    
     if (currentHP <= 0) {
         p.deathCount++;
         currentHP = stats.maxHP;
         addLog(`<span style="color:var(--death)">敗北！魔神の一撃は魂を砕く…</span>`);
-    } else {
-        // 即死設定のためここには来ない
-        addLog(`⚔️ ${fmt(dmg)} ダメージ`);
     }
 
     let gainExp = Math.floor(dmg * 0.01 * stats.fast) + 10;
@@ -203,7 +219,8 @@ function battle() {
     if (Math.random() < 0.1) {
         let rId = Math.floor(Math.random() * 250);
         p.inventory[rId] = (p.inventory[rId] || 0) + 1;
-        addLog(`<span style="color:var(--gold)">★ 遺物獲得: ${getRelicData(rId).name}</span>`);
+        const d = getRelicData(rId);
+        addLog(`<span style="color:var(--rarity${d.rarity})">★ 遺物獲得: ${d.name}</span>`);
     }
     checkLevelUp(); refresh(); isProcessing = false;
 }
@@ -213,11 +230,11 @@ function calcStats() {
     let stats = { atk: baseAtk, crit: 5, critM: 1.5, dmgM: 1.0, deathM: 1.0 + (p.deathCount * 0.01), fast: 1.0, maxHP: 1000 + (p.lv * 100) };
     Object.keys(p.inventory).forEach(id => {
         const d = getRelicData(id); const count = p.inventory[id];
-        if (d.isDeathType) stats.deathM *= (1 + (p.deathCount * d.val * 0.0001 * count));
+        if (d.effectText === "敗北数強化") stats.deathM *= (1 + (p.deathCount * d.val * 0.0001 * count));
         else {
-            if (d.typeKey === "ATK") stats.atk += d.val * 10 * count;
+            if (d.typeKey === "ATK") stats.atk += d.val * 100 * count;
             if (d.typeKey === "CRIT") stats.crit += d.val * count;
-            if (d.typeKey === "C_DMG") stats.critM += (d.val * 0.05 * count);
+            if (d.typeKey === "C_DMG") stats.critM += (d.val * 0.1 * count);
             if (d.typeKey === "FAST") stats.fast += (d.val * 0.01 * count);
         }
     });
@@ -243,9 +260,7 @@ function refresh() {
     const stats = calcStats();
     const hpPer = (currentBossHP / BOSS_MAX_HP * 100);
     document.getElementById("bosshp").style.width = hpPer + "%";
-    // 修正：無駄な小数点を除去し整数％表示に
     document.getElementById("bosshp-text").innerText = Math.ceil(hpPer) + "%";
-    
     document.getElementById("playerhp-text").innerText = `${fmt(currentHP)} / ${fmt(stats.maxHP)}`;
     document.getElementById("playerhp").style.width = (currentHP / stats.maxHP * 100) + "%";
     
@@ -262,7 +277,6 @@ function refresh() {
     document.getElementById("p-lv-text").innerText = `Lv.${p.lv}`;
     document.getElementById("p-job-text").innerText = `Lv.${p.jobLevels[p.job]} ${p.job}`;
     
-    // 修正：ステータスも差別化（フォーマット適用）
     document.getElementById("sum-atk").innerText = fmt(stats.atk * stats.deathM);
     document.getElementById("sum-death").innerText = p.deathCount.toLocaleString();
     document.getElementById("sum-crit").innerText = stats.crit + "%";
@@ -293,16 +307,22 @@ function renderJobs() {
     `).join("");
 }
 
+// 修正：2列表示かつ効果を常時表示する遺物レンダリング
 function renderEquip() {
     document.getElementById("relicGrid").innerHTML = Object.keys(p.inventory).map(id => {
         const d = getRelicData(id);
-        return `<div class="relic-cell" onclick="openRelicDetail(${id})"><span style="${d.isGold?'color:var(--gold)':''}">${d.name}</span><span>×${p.inventory[id]}</span></div>`;
+        return `
+            <div class="relic-cell" onclick="openRelicDetail(${id})" style="border-left: 4px solid var(--rarity${d.rarity})">
+                <span class="relic-count">×${p.inventory[id]}</span>
+                <span class="relic-name" style="color: var(--rarity${d.rarity})">${d.stars} ${d.name}</span>
+                <span class="relic-effect">${d.effectText}</span>
+            </div>`;
     }).join("");
 }
 
 function openRelicDetail(id) {
     const d = getRelicData(id);
-    showDetail(`<h3>${d.name}</h3><hr><p>${d.effectText}</p><p>所持: ${p.inventory[id]}</p>`);
+    showDetail(`<h3 style="color:var(--rarity${d.rarity})">${d.stars} ${d.name}</h3><hr><p>${d.effectText}</p><p>所持数: ${p.inventory[id]}</p>`);
 }
 
 function showTab(id, btn) {
