@@ -27,7 +27,8 @@
     
     .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
     #log { font-size: 0.8em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 8px; height: 220px; overflow-y: auto; margin-top: 15px; }
-    .relic-rare { border: 2px solid var(--rare); background: #fffdf5; }
+    .relic-rare { border: 2px solid var(--rare); background: #fffdf5; box-shadow: 0 0 10px rgba(255,193,7,0.2); }
+    .relic-effect { font-size: 0.8em; color: #d63384; font-weight: bold; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #ddd; }
 </style>
 </head>
 <body>
@@ -78,13 +79,11 @@ const SKILL_DATA = [
     ["歯車回転:1.2倍速","過負荷熱:全快100倍","精密演算:会心100%","鋼鉄意志:HP5倍","自動修復:H毎回復","蒸気噴進:H+8","機工連鎖:連撃増","次元歯車:1.5倍速","神設計図:遺物10倍","究極機構:確100%"]
 ];
 
-let player = { lv: 1, exp: 0, hp: 100, maxHP: 100, inventory: {}, deathCount: 0 };
+let player = { lv: 1, exp: 0, hp: 100, maxHP: 100, inventory: Array(100).fill(0), deathCount: 0 };
 let boss = { hp: 1e15, maxHP: 1e15 };
 let maxDmgDealt = 0, isPressing = false;
 
 function init() {
-    // 遺物インベントリの初期化 (i:0-99)
-    for(let i=0; i<100; i++) { player.inventory[i] = 0; }
     const btn = document.getElementById("attackBtn");
     btn.addEventListener("mousedown", () => isPressing = true);
     window.addEventListener("mouseup", () => isPressing = false);
@@ -94,68 +93,51 @@ function init() {
     refreshUI();
 }
 
-function dropRelic() {
-    // 攻撃時の遺物ドロップ判定 (1%の確率)
-    if (Math.random() > 0.01) return;
-
-    let relicId = Math.floor(Math.random() * 100);
-    let star = (relicId % 10) + 1; // ⭐︎1〜10
-    let powerIdx = Math.floor(relicId / 10);
-    let relicName = `⭐︎${star} ${POWER_NAMES[powerIdx]}の遺物`;
-
-    if (star >= 6) {
-        // ⭐︎6〜10は各ランク1つしか持てない
-        // 同じランク（star）の既存遺物を探して削除
-        for (let i = 0; i < 100; i++) {
-            if ((i % 10) + 1 === star && player.inventory[i] > 0) {
-                player.inventory[i] = 0;
-            }
-        }
-        player.inventory[relicId] = 1;
-        addLog(`<b style="color:var(--rare)">強力な遺物獲得：${relicName}</b>`);
-    } else {
-        // ⭐︎1〜5は累積可能
-        player.inventory[relicId]++;
-        addLog(`<span style="color:var(--primary)">遺物獲得：${relicName}</span>`);
-    }
-}
-
 function attack() {
+    // 魔神の即死攻撃判定（常に現在HPを上回るダメージ）
+    if (Math.random() < 0.08) {
+        player.deathCount++;
+        addLog(`<span style="color:red">魔神の反撃！魂が砕け再起した。</span>`);
+        player.hp = player.maxHP; // 即死して再起
+    }
+
     let atk = 10 + (player.lv * 10);
     let dmg = Math.floor(atk * (0.8 + Math.random() * 0.7));
     boss.hp = Math.max(0, boss.hp - dmg);
     if(dmg > maxDmgDealt) maxDmgDealt = dmg;
     
     player.exp += (dmg / (player.lv * 5));
-    if(player.exp >= 100) { 
-        player.lv++; player.exp = 0; 
-        addLog(`<b>Lv UP! Lv ${player.lv}</b>`); 
-    }
-    
+    if(player.exp >= 100) { player.lv++; player.exp = 0; addLog(`<b>Lv UP! Lv ${player.lv}</b>`); }
     if(boss.hp <= 0) boss.hp = boss.maxHP;
-    
-    // ドロップ判定呼び出し
-    dropRelic();
 
-    if(Math.random() < 0.05) { 
-        player.deathCount++; 
-        addLog(`<span style="color:red">即死攻撃！再起。</span>`); 
+    // 遺物ドロップ判定
+    if (Math.random() < 0.03) {
+        let rId = Math.floor(Math.random() * 100);
+        let star = (rId % 10) + 1;
+        if (star >= 6) {
+            // 指示通り、⭐︎6〜10は各ランク1つのみ。他を排除して上書き
+            for (let i=0; i<100; i++) if ((i%10)+1 === star) player.inventory[i] = 0;
+            player.inventory[rId] = 1;
+        } else {
+            player.inventory[rId]++;
+        }
+        addLog(`<span style="color:var(--rare)">遺物【⭐︎${star} ${POWER_NAMES[Math.floor(rId/10)]}】を入手</span>`);
     }
-    
+
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
     refreshUI();
 }
 
 function refreshUI() {
-    document.getElementById("bosshp").style.width = (boss.hp / boss.maxHP * 100) + "%";
     document.getElementById("bosshp-text").innerText = (boss.hp / boss.maxHP * 100).toFixed(4) + "%";
+    document.getElementById("bosshp").style.width = (boss.hp / boss.maxHP * 100) + "%";
     document.getElementById("exp-bar").style.width = player.exp + "%";
     document.getElementById("exp-text").innerText = Math.floor(player.exp) + "%";
+    document.getElementById("playerhp-text").innerText = `${player.hp}/${player.maxHP}`;
+    document.getElementById("playerhp").style.width = (player.hp / player.maxHP * 100) + "%";
     document.getElementById("p-lv").innerText = player.lv;
     document.getElementById("p-atk").innerText = (10 + player.lv * 10).toLocaleString();
     document.getElementById("p-death").innerText = player.deathCount;
-    if(document.activeTab === 'status') renderStatus();
-    if(document.activeTab === 'power') renderPower();
     if(document.activeTab === 'relic') renderRelic();
 }
 
@@ -173,29 +155,29 @@ function showTab(id) {
 function renderPower() {
     let h = "";
     POWER_NAMES.forEach((n, i) => {
-        h += `<div class="card-cell"><b>${n}</b><div class="skill-grid">`;
+        h += `<div class="card-cell"><b>【権能】${n}</b><div class="skill-grid">`;
         SKILL_DATA[i].forEach((s, si) => { h += `<div class="skill-item ${si<5?'p-skill':'a-skill'}">⭐︎${si+1} ${s}</div>`; });
         h += `</div></div>`;
     });
     document.getElementById("power").innerHTML = h;
 }
 
-function renderStatus() {
-    document.getElementById("status").innerHTML = `<div class="card-cell">最大ダメージ: ${maxDmgDealt.toLocaleString()}<br>再起数: ${player.deathCount}</div>`;
-}
-
 function renderRelic() {
     let h = "";
-    let count = 0;
     for(let i=0; i<100; i++) {
         if(player.inventory[i] > 0) {
-            count++;
-            let star = (i % 10) + 1;
-            let rareClass = star >= 6 ? "relic-rare" : "";
-            h += `<div class="card-cell ${rareClass}">⭐︎${star} ${POWER_NAMES[Math.floor(i/10)]}の遺物: ${player.inventory[i]}個${star >= 6 ? ' <small>(ランク限定)</small>' : ''}</div>`;
+            let s = (i % 10);
+            h += `<div class="card-cell ${s >= 5 ? 'relic-rare' : ''}">
+                <b>⭐︎${s+1} ${POWER_NAMES[Math.floor(i/10)]}の遺物</b>: ${player.inventory[i]}個
+                <div class="relic-effect">強化権能: ${SKILL_DATA[Math.floor(i/10)][s]}</div>
+            </div>`;
         }
     }
-    document.getElementById("relic").innerHTML = h || "遺物なし";
+    document.getElementById("relic").innerHTML = h || "遺物未所持";
+}
+
+function renderStatus() {
+    document.getElementById("status").innerHTML = `<div class="card-cell"><h3>討伐記録</h3>最大ダメージ: ${maxDmgDealt.toLocaleString()}<br>再起数: ${player.deathCount}</div>`;
 }
 
 function addLog(m) {
