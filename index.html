@@ -34,21 +34,23 @@
     #log { flex-grow: 1; margin-top: 6px; overflow-y: auto; font-size: 0.7em; background: #fafafa; padding: 6px; border: 1px solid var(--border); border-radius: 4px; height: 200px; }
     .log-entry { margin-bottom: 1px; padding: 1px 0; border-bottom: 1px solid #eee; }
     
-    /* 職業スライドショー(カルーセル)スタイル */
-    #jobSliderContainer { position: relative; width: 100%; height: 180px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    #jobTrack { display: flex; transition: transform 0.3s ease-out; cursor: grab; }
-    .job-card { min-width: 220px; height: 140px; margin: 0 10px; background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
-    .job-name-label { font-weight: bold; font-size: 1.1em; margin-bottom: 6px; color: var(--primary); }
-    .job-desc-label { font-size: 0.8em; color: var(--sub); line-height: 1.3; }
-    .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.2); color: #fff; border: none; padding: 10px; border-radius: 50%; z-index: 5; cursor: pointer; }
-    .btn-prev { left: 5px; }
-    .btn-next { right: 5px; }
+    /* 職業一覧（2列グリッド） */
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 40px; }
+    .card-cell { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; position: relative; }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .job-name-label { font-weight: bold; font-size: 0.85em; color: var(--text); flex-grow: 1; }
+    .job-desc-label { font-size: 0.7em; color: var(--sub); line-height: 1.2; pointer-events: none; }
+    .mini-btn { padding: 4px 6px; font-size: 0.7em; background: var(--primary); color: #fff; border: none; border-radius: 4px; cursor: pointer; z-index: 5; }
 
-    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 20px; }
-    .card-cell { background: #fff; border: 1px solid var(--border); padding: 8px; font-size: 0.75em; border-radius: 4px; cursor: pointer; min-height: 80px; display: flex; flex-direction: column; justify-content: flex-start; }
-    .detail-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 20; padding: 15px; display: none; overflow-y: auto; }
-    .skill-box { background: #f1f3f5; padding: 8px; border-radius: 4px; margin-bottom: 6px; font-size: 0.9em; }
+    /* 詳細画面（スライド機能付き） */
+    .detail-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 20; display: none; flex-direction: column; }
+    .detail-header { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); background: var(--panel); }
+    .detail-body { flex-grow: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px; /* 転職ボタン用の余白 */ position: relative; }
+    .detail-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; background: rgba(255,255,255,0.9); border-top: 1px solid var(--border); }
+    .skill-box { background: #f1f3f5; padding: 8px; border-radius: 4px; margin-bottom: 8px; font-size: 0.9em; }
     .skill-name { font-weight: bold; color: var(--primary); }
+    .slide-ctrl { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px; }
+    .slide-btn { background: var(--border); border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -93,16 +95,25 @@
         </div>
     </div>
     <div id="status" class="tab"><div id="statusList"></div></div>
-    <div id="job" class="tab">
-        <div id="jobSliderContainer">
-            <button class="slider-btn btn-prev" onclick="moveSlider(-1)">◀</button>
-            <div id="jobTrack"></div>
-            <button class="slider-btn btn-next" onclick="moveSlider(1)">▶</button>
-        </div>
-        <p style="text-align:center; font-size:0.7em; color:var(--sub);">カードをタップで詳細確認</p>
-    </div>
+    <div id="job" class="tab"><div id="jobList" class="grid-2col"></div></div>
     <div id="equip" class="tab"><div id="relicGrid" class="grid-2col"></div></div>
-    <div id="detailPanel" class="detail-overlay"><button style="width:100%; padding:12px; margin-bottom:12px; font-weight:bold; background:var(--panel); border:1px solid var(--border); border-radius:8px;" onclick="closeDetail()">閉じて一覧に戻る</button><div id="detailContent"></div></div>
+    
+    <div id="detailPanel" class="detail-overlay">
+        <div class="detail-header">
+            <button onclick="closeDetail()" style="padding:8px 15px;">戻る</button>
+            <div style="flex-grow:1; text-align:center; font-weight:bold;">職業詳細</div>
+        </div>
+        <div id="detailBody" class="detail-body">
+            <div class="slide-ctrl">
+                <button class="slide-btn" onclick="slideJob(-1)">◀ 前の職</button>
+                <button class="slide-btn" onclick="slideJob(1)">次の職 ▶</button>
+            </div>
+            <div id="detailContent"></div>
+        </div>
+        <div class="detail-footer">
+            <button id="jobChangeBtnFooter" class="btn-attack">この職業に転職する</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -189,10 +200,11 @@ function getRelicData(id) {
     return { id, name: adj + core + "の" + obj, effectText, rarity, stars: "★".repeat(rarity + 1) };
 }
 
-let p, longPressIdx, isProcessing = false;
+let p, currentDetailJobIdx = 0;
 let currentBossHP = BOSS_MAX_HP;
 let currentPlayerHP = 0;
-let sliderIdx = 0;
+let isProcessing = false;
+let longPressIdx = null;
 
 function fmt(num) { return Math.floor(num).toLocaleString(); }
 const nextLv = (l) => Math.pow(l, 3) * 1000;
@@ -202,14 +214,14 @@ function init() {
     const saved = localStorage.getItem(SAVE_KEY);
     p = saved ? JSON.parse(saved) : { lv: 1, exp: 0, job: "剣聖", inventory: {}, jobLevels: {}, jobExp: {}, deathCount: 0, extraAtk: 0 };
     Object.keys(JOBS_DATA).forEach(j => { if (!p.jobLevels[j]) p.jobLevels[j] = 1; if (p.jobExp[j] === undefined) p.jobExp[j] = 0; });
-    const stats = calcStats();
-    currentPlayerHP = stats.maxHP;
+    currentPlayerHP = calcStats().maxHP;
+    
     const btn = document.getElementById("attackBtn");
     const handleStart = (e) => { e.preventDefault(); if(!longPressIdx) { battle(); longPressIdx = setInterval(battle, 100); } };
     const handleStop = () => { clearInterval(longPressIdx); longPressIdx = null; };
-    btn.addEventListener("mousedown", handleStart); btn.addEventListener("mouseup", handleStop);
     btn.addEventListener("touchstart", handleStart, {passive: false}); btn.addEventListener("touchend", handleStop);
-    renderJobs();
+    btn.addEventListener("mousedown", handleStart); btn.addEventListener("mouseup", handleStop);
+    
     refresh();
 }
 
@@ -252,8 +264,9 @@ function battle() {
     let dmg = Math.floor(stats.totalAtk * (0.9 + Math.random() * 0.2));
     if (Math.random() < (stats.crit / 100)) dmg = Math.floor(dmg * stats.critM);
     if (p.job === "博徒") dmg = Math.random() < 0.1 ? dmg * 10 : 1;
-    if (dmg >= BOSS_MAX_HP) { addLog(`<span style="color:var(--gold)">【完全討伐】魔神を消滅させた！</span>`); currentBossHP = BOSS_MAX_HP; }
-    else { currentBossHP -= dmg; addLog(`⚔️ ${fmt(dmg)} ダメージ`); if (currentBossHP <= 0) { addLog(`<span style="color:var(--accent)">魔神「無駄だ」 [全回復]</span>`); currentBossHP = BOSS_MAX_HP; } }
+    currentBossHP -= dmg;
+    addLog(`⚔️ ${fmt(dmg)} ダメージ`);
+    if (currentBossHP <= 0) { addLog(`<span style="color:var(--accent)">魔神「無駄だ」 [全回復]</span>`); currentBossHP = BOSS_MAX_HP; }
     currentPlayerHP = 0; 
     refresh();
     p.deathCount++;
@@ -268,64 +281,72 @@ function battle() {
 }
 
 function refresh() {
-    const stats = calcStats();
+    const s = calcStats();
     const hpPer = (currentBossHP / BOSS_MAX_HP * 100);
-    const pHPPer = (currentPlayerHP / stats.maxHP * 100);
-    const expPer = (p.exp / nextLv(p.lv) * 100);
-    const jExpPer = (p.jobExp[p.job] / nextJobLv(p.jobLevels[p.job]) * 100);
+    const pHPPer = (currentPlayerHP / s.maxHP * 100);
     document.getElementById("bosshp").style.width = hpPer + "%";
     document.getElementById("bosshp-text").innerText = hpPer.toFixed(4) + "%";
-    document.getElementById("playerhp-text").innerText = `${fmt(currentPlayerHP)} / ${fmt(stats.maxHP)}`;
     document.getElementById("playerhp").style.width = pHPPer + "%";
-    document.getElementById("exp-bar").style.width = expPer + "%";
-    document.getElementById("exp-text").innerText = expPer.toFixed(1) + "%";
-    document.getElementById("job-exp-bar").style.width = jExpPer + "%";
-    document.getElementById("job-exp-text").innerText = jExpPer.toFixed(1) + "%";
-    document.getElementById("sum-atk").innerText = fmt(stats.totalAtk);
+    document.getElementById("playerhp-text").innerText = `${fmt(currentPlayerHP)} / ${fmt(s.maxHP)}`;
+    document.getElementById("exp-bar").style.width = (p.exp / nextLv(p.lv) * 100) + "%";
+    document.getElementById("job-exp-bar").style.width = (p.jobExp[p.job] / nextJobLv(p.jobLevels[p.job]) * 100) + "%";
+    document.getElementById("sum-atk").innerText = fmt(s.totalAtk);
     document.getElementById("sum-death").innerText = fmt(p.deathCount);
-    document.getElementById("sum-crit").innerText = stats.crit + "%";
-    document.getElementById("sum-dmg").innerText = Math.floor(stats.deathM * 100) + "%";
+    document.getElementById("sum-crit").innerText = s.crit + "%";
+    document.getElementById("sum-dmg").innerText = Math.floor(s.deathM * 100) + "%";
     document.getElementById("p-lv-text").innerText = `Lv.${p.lv} 主人公`;
     document.getElementById("p-job-text").innerText = `Lv.${p.jobLevels[p.job]} ${p.job}`;
     if (document.getElementById("job").classList.contains("active")) renderJobs();
     if (document.getElementById("equip").classList.contains("active")) renderEquip();
-    if (document.getElementById("status").classList.contains("active")) renderStatusList(stats);
+    if (document.getElementById("status").classList.contains("active")) renderStatusList(s);
     localStorage.setItem(SAVE_KEY, JSON.stringify(p));
 }
 
 function renderStatusList(s) {
-    document.getElementById("statusList").innerHTML = `<div class="status-large">最終ATK: <span style="color:var(--accent)">${fmt(s.totalAtk)}</span><br>基礎ATK: ${fmt(s.baseAtk)}<br>遺物加算: ${fmt(s.atkRelic)}<br>増幅倍率: <span style="color:var(--primary)">x${s.deathM.toFixed(2)}</span><br>クリ倍率: x${s.critM.toFixed(2)}<br>経験値倍率: x${s.fast.toFixed(2)}</div>`;
+    document.getElementById("statusList").innerHTML = `<div class="status-large">最終ATK: <span style="color:var(--accent)">${fmt(s.totalAtk)}</span><br>増幅倍率: x${s.deathM.toFixed(2)}<br>クリ倍率: x${s.critM.toFixed(2)}</div>`;
 }
 
-// 職業スライドショーの描画と制御
+// 職業一覧（2列表示）
 function renderJobs() {
-    const track = document.getElementById("jobTrack");
+    const list = document.getElementById("jobList");
     const jobs = Object.keys(JOBS_DATA);
-    track.innerHTML = jobs.map(j => `
-        <div class="job-card" onclick="openJobDetail('${j}')">
-            <div class="job-name-label">${j} (Lv.${p.jobLevels[j]})</div>
+    list.innerHTML = jobs.map((j, idx) => `
+        <div class="card-cell" onclick="openJobDetailByIdx(${idx})">
+            <div class="card-header">
+                <span class="job-name-label">${j} (Lv.${p.jobLevels[j]})</span>
+                <button class="mini-btn" onclick="event.stopPropagation(); changeJob('${j}')">転職</button>
+            </div>
             <div class="job-desc-label">${JOBS_DATA[j].desc}</div>
         </div>`).join("");
-    updateSlider();
 }
 
-function moveSlider(dir) {
+function openJobDetailByIdx(idx) {
+    currentDetailJobIdx = idx;
     const jobs = Object.keys(JOBS_DATA);
-    sliderIdx = (sliderIdx + dir + jobs.length) % jobs.length;
-    updateSlider();
+    const jName = jobs[currentDetailJobIdx];
+    const d = JOBS_DATA[jName];
+    
+    document.getElementById("detailContent").innerHTML = `
+        <h2 style="margin-top:0;">${jName} <span style="font-size:0.6em; color:var(--sub);">Lv.${p.jobLevels[jName]}</span></h2>
+        <p style="font-size:0.9em; border-left:3px solid var(--primary); padding-left:10px;">${d.desc}</p>
+        <div style="margin:15px 0 5px 0; font-weight:bold; font-size:0.9em;">習得スキル</div>
+        ${d.skills.map(s=>`<div class="skill-box"><span class="skill-name">${s.n}</span><br>${s.e}</div>`).join("")}`;
+    
+    document.getElementById("jobChangeBtnFooter").onclick = () => changeJob(jName);
+    document.getElementById("detailPanel").style.display = "flex";
 }
 
-function updateSlider() {
-    const track = document.getElementById("jobTrack");
-    const offset = -sliderIdx * 240; // min-width(220) + margin(20)
-    track.style.transform = `translateX(${offset}px)`;
+function slideJob(dir) {
+    const jobs = Object.keys(JOBS_DATA);
+    currentDetailJobIdx = (currentDetailJobIdx + dir + jobs.length) % jobs.length;
+    openJobDetailByIdx(currentDetailJobIdx);
 }
 
-function openJobDetail(j) {
-    const d = JOBS_DATA[j]; 
-    showDetail(`<h3>${j}</h3><p>${d.desc}</p><b>習得スキル:</b><br><br>
-        ${d.skills.map(s=>`<div class="skill-box"><span class="skill-name">${s.n}</span><br>${s.e}</div>`).join("")}
-        <button class="btn-attack" onclick="p.job='${j}'; closeDetail(); refresh();">この職業に転職する</button>`);
+function changeJob(jName) {
+    p.job = jName;
+    addLog(`<span style="color:var(--primary)">${jName}に転職しました。</span>`);
+    closeDetail();
+    refresh();
 }
 
 function renderEquip() {
@@ -335,13 +356,16 @@ function renderEquip() {
 }
 
 function openRelicDetail(id) {
-    const d = getRelicData(id); showDetail(`<h3>${d.name}</h3><p>${d.effectText}</p><p>所持数: ${p.inventory[id]}</p>`);
+    const d = getRelicData(id);
+    document.getElementById("detailContent").innerHTML = `<h3>${d.name}</h3><p>${d.effectText}</p><p>所持数: ${p.inventory[id]}</p>`;
+    document.getElementById("jobChangeBtnFooter").style.display = "none";
+    document.getElementById("detailPanel").style.display = "flex";
 }
 
 function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className = "log-entry"; d.innerHTML = m; l.prepend(d); if (l.childNodes.length > 30) l.removeChild(l.lastChild); }
 function showTab(id, btn) { document.querySelectorAll(".tab").forEach(t => t.classList.remove("active")); document.getElementById(id).classList.add("active"); document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active")); btn.classList.add("active"); refresh(); }
-function showDetail(c) { document.getElementById("detailContent").innerHTML = c; document.getElementById("detailPanel").style.display = "block"; }
-function closeDetail() { document.getElementById("detailPanel").style.display = "none"; }
+function closeDetail() { document.getElementById("detailPanel").style.display = "none"; document.getElementById("jobChangeBtnFooter").style.display = "block"; }
+
 init();
 </script>
 </body>
