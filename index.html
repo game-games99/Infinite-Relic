@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>魔神討伐伝 - DPS究極進化 -</title>
+<title>infiniterelic</title>
 <style>
     :root {
         --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6;
         --primary: #007bff; --text: #212529; --sub: #6c757d;
-        --accent: #dc3545; --gold: #d39e00; --death: #6f42c1; --exp: #28a745;
+        --accent: #dc3545; --death: #6f42c1; --exp: #28a745;
         --rarity0: #868e96; --rarity1: #28a745; --rarity2: #007bff; --rarity3: #a335ee; --rarity4: #ff8000;
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     #header { background: var(--panel); padding: 8px 12px; border-bottom: 2px solid var(--border); flex-shrink: 0; font-size: 0.9em; }
     .bar-container { margin-bottom: 6px; }
     .bar-label { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 2px; font-weight: bold; }
     .bar { height: 10px; background: #e9ecef; border-radius: 5px; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); }
     .fill { height: 100%; transition: width 0.1s ease; }
-    #bosshp { background: linear-gradient(90deg, #ffc107, #dc3545); }
-    #playerhp { background: linear-gradient(90deg, #28a745, #20c997); }
+    #target-hp-bar { background: linear-gradient(90deg, #ffc107, #dc3545); }
+    #player-hp-bar { background: linear-gradient(90deg, #28a745, #20c997); }
     #exp-bar { background: var(--primary); }
     #job-exp-bar { background: var(--death); }
     .stats-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 6px; background: rgba(0,0,0,0.05); padding: 6px; border-radius: 6px; }
@@ -29,114 +29,126 @@
     #content { flex-grow: 1; overflow-y: auto; position: relative; }
     .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; }
     .tab.active { display: block; }
-    .btn-attack { width: 100%; padding: 12px; background: var(--primary); color: #fff; font-size: 1.0em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 2px; }
+    .btn-action { width: 100%; padding: 12px; background: var(--primary); color: #fff; font-size: 1.0em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 2px; }
     #log { flex-grow: 1; margin-top: 6px; overflow-y: auto; font-size: 0.7em; background: #fafafa; padding: 6px; border: 1px solid var(--border); border-radius: 4px; }
     .log-entry { margin-bottom: 1px; padding: 1px 0; border-bottom: 1px solid #eee; }
     .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .card-cell { background: #fff; border: 1px solid var(--border); padding: 8px; font-size: 0.75em; border-radius: 4px; cursor: pointer; position: relative; height: 50px; display: flex; flex-direction: column; justify-content: center; }
-    .card-name { font-weight: bold; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-cell { background: #fff; border: 1px solid var(--border); padding: 8px; font-size: 0.75em; border-radius: 4px; cursor: pointer; }
     .detail-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 20; padding: 15px; display: none; overflow-y: auto; }
-    .stat-detail-box { background: #f1f3f5; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 0.85em; border-left: 4px solid var(--primary); }
 </style>
 </head>
 <body>
 
 <div id="header">
     <div class="bar-container">
-        <div class="bar-label"><span>魔神</span><span id="bosshp-text">100%</span></div>
-        <div class="bar"><div id="bosshp" class="fill"></div></div>
+        <div class="bar-label"><span>Target</span><span id="target-hp-text">100%</span></div>
+        <div class="bar"><div id="target-hp-bar" class="fill"></div></div>
     </div>
     <div class="bar-container">
-        <div class="bar-label"><span>HP</span><span id="playerhp-text">0/0</span></div>
-        <div class="bar"><div id="playerhp" class="fill"></div></div>
+        <div class="bar-label"><span>Player HP</span><span id="player-hp-text">0/0</span></div>
+        <div class="bar"><div id="player-hp-bar" class="fill"></div></div>
     </div>
     <div class="bar-container">
         <div class="bar-label"><span id="p-lv-text">Lv.1</span><span id="exp-text">0%</span></div>
         <div class="bar"><div id="exp-bar" class="fill"></div></div>
     </div>
     <div class="bar-container">
-        <div class="bar-label"><span id="p-job-text">Lv.1 剣聖</span><span id="job-exp-text">0%</span></div>
+        <div class="bar-label"><span id="p-job-text">Lv.1 Job</span><span id="job-exp-text">0%</span></div>
         <div class="bar"><div id="job-exp-bar" class="fill"></div></div>
     </div>
     <div class="stats-summary">
         <div class="stat-item"><span>ATK:</span><span id="sum-atk">0</span></div>
-        <div class="stat-item"><span>敗北数:</span><span id="sum-death" style="color:var(--death)">0</span></div>
-        <div class="stat-item"><span>クリ率:</span><span id="sum-crit">5%</span></div>
-        <div class="stat-item"><span>増幅:</span><span id="sum-dmg">100%</span></div>
+        <div class="stat-item"><span>Total Deaths:</span><span id="sum-death" style="color:var(--death)">0</span></div>
+        <div class="stat-item"><span>Crit Rate:</span><span id="sum-crit">5%</span></div>
+        <div class="stat-item"><span>Multiplier:</span><span id="sum-dmg">100%</span></div>
     </div>
 </div>
 
 <div class="nav">
-    <button onclick="showTab('battle', this)" class="active">討伐</button>
-    <button onclick="showTab('status', this)">ステータス</button>
-    <button onclick="showTab('job', this)">職業</button>
-    <button onclick="showTab('equip', this)">遺物</button>
+    <button onclick="showTab('battle', this)" class="active">Battle</button>
+    <button onclick="showTab('status', this)">Status</button>
+    <button onclick="showTab('job', this)">Job</button>
+    <button onclick="showTab('equip', this)">Relic</button>
 </div>
 
 <div id="content">
     <div id="battle" class="tab active">
         <div style="display:flex; flex-direction:column; height:100%;">
-            <button class="btn-attack" id="attackBtn">魔神に攻撃</button>
+            <button class="btn-action" id="attackBtn">Execute Attack</button>
             <div id="log"></div>
         </div>
     </div>
     <div id="status" class="tab"><div id="statusList"></div></div>
     <div id="job" class="tab"><div id="jobList" class="grid-2col"></div></div>
     <div id="equip" class="tab"><div id="relicGrid" class="grid-2col"></div></div>
-    <div id="detailPanel" class="detail-overlay"><button style="width:100%; padding:10px; margin-bottom:10px;" onclick="closeDetail()">戻る</button><div id="detailContent"></div></div>
+    <div id="detailPanel" class="detail-overlay"><button style="width:100%; padding:10px; margin-bottom:10px;" onclick="closeDetail()">Back</button><div id="detailContent"></div></div>
 </div>
 
 <script>
 const BOSS_MAX_HP = 1e24;
-const SAVE_KEY = "MAJIN_DPS_V8_FIX"; // 前回のセーブキーに戻してデータを復旧
+const SAVE_KEY = "MAJIN_DPS_V8_FIX"; // データの連続性を守るため以前のキーを維持
 
+// Job Skills (各職5つ、重複なし)
 const JOBS_DATA = {
-    "剣聖": { skills: ["烈風斬", "雷鳴一閃", "空破斬", "奥義・天断", "神殺しの刃"], desc: "クリティカル倍率が大幅に上昇する。" },
-    "神官": { skills: ["癒しの光", "守護の結界", "天罰の光", "奇跡の風", "聖域の守り"], desc: "被弾時の敗北経験値を徳としてATKに変換する。" },
-    "魔導師": { skills: ["火炎球", "氷結槍", "落雷", "崩壊の魔印", "宇宙の真理"], desc: "全ステータスへの遺物倍率を1.2倍にする。" },
-    "覇王": { skills: ["覇気", "支配の眼光", "次元の蹂虙", "覇道一撃", "天地開闢"], desc: "基礎ATKが常に2倍として計算される。" },
-    "賢者": { skills: ["知恵の閃き", "魔力収束", "時空魔法", "因果逆転", "全知全能"], desc: "ジョブ経験値の獲得量が3倍になる。" },
-    "暗殺者": { skills: ["毒刃乱舞", "隠影の術", "急所穿ち", "影縫い", "絶命の極意"], desc: "クリティカル率が常に+50%される。" },
-    "竜騎士": { skills: ["竜の跳躍", "火竜の吐息", "旋回昇龍", "雷竜の激昂", "滅竜奥義"], desc: "現在レベルに応じてATKが爆発的に伸びる。" },
-    "修羅": { skills: ["闘気爆発", "無双連撃", "剛力破砕", "血戦の誓い", "真・阿修羅"], desc: "敗北数によるATK倍率が2倍強化される。" },
-    "錬金術師": { skills: ["混合薬液", "等価交換", "物質変質", "賢者の石", "黄金律"], desc: "遺物ドロップ率が大幅に上昇する。" },
-    "吟遊詩人": { skills: ["鎮魂歌", "勇気の賛歌", "希望の旋律", "神々の絶唱", "終焉の歌"], desc: "全てのステータスにLvの100倍を加算する。" },
-    "死霊使い": { skills: ["亡者召喚", "腐食の呪い", "魂の捕食", "冥府の門", "不死者の王"], desc: "敗北するたびに永続的にATKが+1000される。" },
-    "聖騎士": { skills: ["献身の盾", "聖なる審判", "福音の光", "神威の波動", "究極の加護"], desc: "HPが尽きても30%の確率で耐える。" },
-    "風来坊": { skills: ["疾風自在", "木の葉隠れ", "一服の涼", "旅路の果て", "雲外蒼天"], desc: "攻撃速度（長押し間隔）が体感加速する。" },
-    "狂戦士": { skills: ["激昂の咆哮", "不屈の精神", "血塗れの粉砕", "暴走する力", "終焉の戦"], desc: "HPが減っているほど（常に即死なので最大時）ATKが3倍。" },
-    "機工士": { skills: ["照準固定", "自動砲台", "過負荷稼働", "展開型兵装", "最終兵器"], desc: "クリティカル時にさらに追加ダメージを発生させる。" },
-    "時魔道師": { skills: ["加速の刻", "遅延の砂", "停止の呪文", "回帰の刻印", "ビッグバン"], desc: "全経験値効率が+200%される。" },
-    "格闘家": { skills: ["正拳突き", "連弾", "発勁", "鉄山靠", "真・神拳"], desc: "遺物によるATK上昇値を1.5倍にする。" },
-    "弓聖": { skills: ["早撃ち", "狙撃", "魔矢貫通", "天雨の矢", "極星の導き"], desc: "常に安定した最大ダメージを出す。" },
-    "召喚師": { skills: ["契約の徴", "異界現界", "共鳴する魂", "融合変身", "真・召喚"], desc: "所持している遺物の種類数に応じてATKアップ。" },
-    "博徒": { skills: ["賽の目", "一か八か", "強奪の一手", "大逆転劇", "ジャックポット"], desc: "10%の確率でダメージが10倍、90%で1になる。" }
+    "SwordMaster": { skills: ["Slash", "Dual Strike", "Blade Wave", "Vertical Cut", "Excalibur"], desc: "Increases Critical Damage significantly." },
+    "Cleric": { skills: ["Heal", "Barrier", "Holy Light", "Blessing", "Sanctuary"], desc: "Converts death experience into ATK." },
+    "Mage": { skills: ["Fireball", "Ice Spear", "Thunderbolt", "Arcane Seal", "Cosmos"], desc: "Boosts all Relic multipliers." },
+    "Overlord": { skills: ["Intimidation", "Dominance", "Rupture", "Absolute Strike", "Genesis"], desc: "Base ATK is doubled." },
+    "Sage": { skills: ["Insight", "Mana Focus", "Space-Time", "Causality", "Omniscience"], desc: "Job EXP gain is tripled." },
+    "Assassin": { skills: ["Poison Blade", "Stealth", "Vital Strike", "Shadow Bind", "Assassination"], desc: "Crit Rate +50%." },
+    "Dragoon": { skills: ["Jump", "Dragon Breath", "Rising Dragon", "Dragon Rage", "Abyssal Dive"], desc: "ATK scales with Level." },
+    "Asura": { skills: ["Burst", "Multi-hit", "Crush", "Blood Oath", "True Asura"], desc: "Death bonus for ATK is doubled." },
+    "Alchemist": { skills: ["Transmute", "Exchange", "Mutation", "Philosopher Stone", "Golden Law"], desc: "Relic drop rate increased." },
+    "Bard": { skills: ["Requiem", "Anthem", "Melody", "Chorus", "Final Song"], desc: "Adds Lv*100 to all stats." },
+    "Necromancer": { skills: ["Summon", "Curse", "Soul Eat", "Underworld Gate", "Lich King"], desc: "Permanent ATK +1000 per death." },
+    "Paladin": { skills: ["Shield", "Judgment", "Gospel", "Divine Wave", "Ultimate Guard"], desc: "30% chance to survive a hit." },
+    "Wanderer": { skills: ["Gale", "Leaf Hide", "Rest", "Endless Path", "Zenith"], desc: "Attack speed feels faster." },
+    "Berserker": { skills: ["Roar", "Fortitude", "Gore", "Frenzy", "Ragnarok"], desc: "Triple ATK while at low HP (Always active)." },
+    "Engineer": { skills: ["Targeting", "Turret", "Overload", "Deployment", "Last Cannon"], desc: "Deals extra damage on Crit." },
+    "Chronos": { skills: ["Haste", "Slow", "Stop", "Rewind", "Big Bang"], desc: "All EXP gain +200%." },
+    "Fighter": { skills: ["Straight", "Combo", "Energy Blast", "Iron Strike", "God Hand"], desc: "ATK Relic values x1.5." },
+    "Archer": { skills: ["Quick Shot", "Snipe", "Piercing Arrow", "Rain of Arrows", "Star Guide"], desc: "Maximum damage stability." },
+    "Summoner": { skills: ["Contract", "Manifest", "Resonance", "Fusion", "Ancient One"], desc: "ATK scales with Relic variety." },
+    "Gambler": { skills: ["Dice", "All-in", "Steal", "Jackpot", "Royal Flush"], desc: "10% chance for 10x DMG, 90% for 1." }
 };
 
-const R_PREFIX = ["朽ちた", "古の", "魔導", "神話の", "奈落の", "星天の", "血塗られた", "幻想の", "聖別の", "虚空の"];
-const R_NAME = ["短剣", "大盾", "法典", "首飾り", "水晶", "牙", "残滓", "紋章", "杯", "羽", "心臓", "鎖", "指輪", "魔眼", "冠"];
+// 遺物250種類の差別化（固有IDに基づき生成）
+const R_TYPES = ["Artifact", "Core", "Device", "Shard", "Relic", "Module", "Fragment", "Sphere", "Unit", "Sign"];
+const R_ATTRS = ["Void", "Ancient", "Cyber", "Relic", "Spectral", "Divine", "Abyssal", "Stellar", "Chaos", "Order"];
 
 function getRelicData(id) {
     const seed = parseInt(id);
-    const prefix = R_PREFIX[seed % 10];
-    const name = R_NAME[Math.floor(seed / 10) % 15];
+    const attr = R_ATTRS[seed % 10];
+    const type = R_TYPES[Math.floor(seed / 10) % 10];
     const rarity = seed % 50 === 0 ? 4 : seed % 20 === 0 ? 3 : seed % 10 === 0 ? 2 : seed % 5 === 0 ? 1 : 0;
-    const typeKey = ["ATK", "CRIT", "C_DMG", "FAST"][seed % 4];
+    const effectId = seed % 4;
     const baseVal = (rarity + 1) * (seed % 5 + 1);
-    const fullName = `${prefix}${name}`;
-    let effectText = typeKey === "ATK" ? `ATK +${(baseVal * 100).toLocaleString()}` : typeKey === "CRIT" ? `Crit率 +${baseVal}%` : typeKey === "C_DMG" ? `Crit倍率 +${baseVal*10}%` : `EXP +${baseVal}%`;
-    if (seed % 13 === 0) effectText = "敗北数強化";
-    return { id, name: fullName, effectText, rarity, stars: "★".repeat(rarity + 1) };
+    
+    let effectText = "";
+    if (effectId === 0) effectText = `ATK +${(baseVal * 100).toLocaleString()}`;
+    else if (effectId === 1) effectText = `Crit Rate +${baseVal}%`;
+    else if (effectId === 2) effectText = `Crit Multiplier +${baseVal*10}%`;
+    else effectText = `EXP Gain +${baseVal}%`;
+    
+    if (seed % 13 === 0) effectText = "Death Boost";
+
+    return { 
+        id, 
+        name: `${attr} ${type} #${id}`, 
+        effectText, 
+        rarity, 
+        stars: "★".repeat(rarity + 1) 
+    };
 }
 
 let p, longPressIdx, isProcessing = false;
-let currentBossHP = BOSS_MAX_HP;
+let currentTargetHP = BOSS_MAX_HP;
 
 function fmt(num) { return Math.floor(num).toLocaleString(); }
 
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
-    p = saved ? JSON.parse(saved) : { lv: 1, exp: 0, job: "剣聖", inventory: {}, jobLevels: {}, jobExp: {}, deathCount: 0, extraAtk: 0 };
+    p = saved ? JSON.parse(saved) : { lv: 1, exp: 0, job: "SwordMaster", inventory: {}, jobLevels: {}, jobExp: {}, deathCount: 0, extraAtk: 0 };
     Object.keys(JOBS_DATA).forEach(j => { if (!p.jobLevels[j]) p.jobLevels[j] = 1; if (p.jobExp[j] === undefined) p.jobExp[j] = 0; });
     
     const btn = document.getElementById("attackBtn");
@@ -149,27 +161,28 @@ function init() {
 
 function calcStats() {
     let baseAtk = 5000 + (p.lv * 500) + (p.jobLevels[p.job] * 200) + (p.extraAtk || 0);
-    if (p.job === "覇王") baseAtk *= 2;
-    if (p.job === "吟遊詩人") baseAtk += p.lv * 100;
-    let stats = { baseAtk: baseAtk, atkRelic: 0, crit: 5, critM: 1.5, deathM: 1.0 + (p.deathCount * 0.01), fast: 1.0, maxHP: 1000 + (p.lv * 100) };
-    if (p.job === "暗殺者") stats.crit += 50;
-    if (p.job === "剣聖") stats.critM += 2.0;
-    if (p.job === "修羅") stats.deathM = 1.0 + (p.deathCount * 0.02);
+    if (p.job === "Overlord") baseAtk *= 2;
+    if (p.job === "Bard") baseAtk += p.lv * 100;
+    let stats = { baseAtk, atkRelic: 0, crit: 5, critM: 1.5, deathM: 1.0 + (p.deathCount * 0.01), fast: 1.0, maxHP: 1000 + (p.lv * 100) };
+    if (p.job === "Assassin") stats.crit += 50;
+    if (p.job === "SwordMaster") stats.critM += 2.0;
+    if (p.job === "Asura") stats.deathM = 1.0 + (p.deathCount * 0.02);
+    
     Object.keys(p.inventory).forEach(id => {
         const d = getRelicData(id); const count = p.inventory[id];
-        let m = (p.job === "魔導師") ? 1.2 : 1.0;
-        if (d.effectText === "敗北数強化") stats.deathM *= (1 + (p.deathCount * (parseInt(id)%5+1) * 0.0001 * count * m));
+        let m = (p.job === "Mage") ? 1.2 : 1.0;
+        if (d.effectText === "Death Boost") stats.deathM *= (1 + (p.deathCount * (parseInt(id)%5+1) * 0.0001 * count * m));
         else {
             const rawVal = (d.rarity + 1) * (parseInt(id) % 5 + 1);
-            if (d.effectText.includes("ATK")) stats.atkRelic += rawVal * 100 * count * m * (p.job === "格闘家" ? 1.5 : 1.0);
-            if (d.effectText.includes("Crit率")) stats.crit += rawVal * count * m;
-            if (d.effectText.includes("Crit倍率")) stats.critM += (rawVal * 0.1 * count * m);
+            if (d.effectText.includes("ATK")) stats.atkRelic += rawVal * 100 * count * m * (p.job === "Fighter" ? 1.5 : 1.0);
+            if (d.effectText.includes("Crit Rate")) stats.crit += rawVal * count * m;
+            if (d.effectText.includes("Crit Multiplier")) stats.critM += (rawVal * 0.1 * count * m);
             if (d.effectText.includes("EXP")) stats.fast += (rawVal * 0.01 * count * m);
         }
     });
-    if (p.job === "召喚師") stats.deathM *= (1 + (Object.keys(p.inventory).length * 0.05));
+    if (p.job === "Summoner") stats.deathM *= (1 + (Object.keys(p.inventory).length * 0.05));
     let totalAtk = (stats.baseAtk + stats.atkRelic) * stats.deathM;
-    if (p.job === "狂戦士") totalAtk *= 3;
+    if (p.job === "Berserker") totalAtk *= 3;
     return { ...stats, totalAtk };
 }
 
@@ -179,18 +192,18 @@ function battle() {
     const stats = calcStats();
     let dmg = Math.floor(stats.totalAtk * (0.9 + Math.random() * 0.2));
     if (Math.random() < (stats.crit / 100)) dmg = Math.floor(dmg * stats.critM);
-    if (p.job === "博徒") dmg = Math.random() < 0.1 ? dmg * 10 : 1;
+    if (p.job === "Gambler") dmg = Math.random() < 0.1 ? dmg * 10 : 1;
 
-    if (dmg >= BOSS_MAX_HP) { addLog(`<span style="color:var(--gold)">【完全討伐】魔神を消滅させた！</span>`); currentBossHP = BOSS_MAX_HP; }
-    else { currentBossHP -= dmg; addLog(`⚔️ ${fmt(dmg)} ダメージ`); if (currentBossHP <= 0) { addLog(`<span style="color:var(--accent)">魔神「無駄だ」 [全回復]</span>`); currentBossHP = BOSS_MAX_HP; } }
+    if (dmg >= BOSS_MAX_HP) { addLog(`<span style="color:var(--gold)">SUCCESS: Target destroyed in one hit.</span>`); currentTargetHP = BOSS_MAX_HP; }
+    else { currentTargetHP -= dmg; addLog(`Hit: ${fmt(dmg)}`); if (currentTargetHP <= 0) { addLog(`<span style="color:var(--accent)">NOTICE: Insufficient damage. Resetting Target.</span>`); currentTargetHP = BOSS_MAX_HP; } }
     
     p.deathCount++;
-    if (p.job === "死霊使い") p.extraAtk = (p.extraAtk || 0) + 1000;
-    addLog(`<span style="color:var(--death)">敗北！ [被弾: 即死]</span>`);
+    if (p.job === "Necromancer") p.extraAtk = (p.extraAtk || 0) + 1000;
+    addLog(`<span style="color:var(--death)">DEATH: Received fatal damage.</span>`);
     
-    const gainExp = Math.floor(dmg * 0.01 * stats.fast * (p.job === "時魔道師" ? 3 : 1)) + 10;
-    p.exp += gainExp; p.jobExp[p.job] += gainExp * (p.job === "賢者" ? 3 : 1);
-    if (Math.random() < (p.job === "錬金術師" ? 0.3 : 0.1)) { let rId = Math.floor(Math.random() * 250); p.inventory[rId] = (p.inventory[rId] || 0) + 1; }
+    const gainExp = Math.floor(dmg * 0.01 * stats.fast * (p.job === "Chronos" ? 3 : 1)) + 10;
+    p.exp += gainExp; p.jobExp[p.job] += gainExp * (p.job === "Sage" ? 3 : 1);
+    if (Math.random() < (p.job === "Alchemist" ? 0.3 : 0.1)) { let rId = Math.floor(Math.random() * 250); p.inventory[rId] = (p.inventory[rId] || 0) + 1; }
     
     checkLevelUp(); refresh(); isProcessing = false;
 }
@@ -202,9 +215,9 @@ function checkLevelUp() {
 
 function refresh() {
     const stats = calcStats();
-    const hpPer = (currentBossHP / BOSS_MAX_HP * 100);
-    document.getElementById("bosshp").style.width = hpPer + "%";
-    document.getElementById("bosshp-text").innerText = hpPer.toFixed(4) + "%";
+    const hpPer = (currentTargetHP / BOSS_MAX_HP * 100);
+    document.getElementById("target-hp-bar").style.width = hpPer + "%";
+    document.getElementById("target-hp-text").innerText = hpPer.toFixed(4) + "%";
     document.getElementById("sum-atk").innerText = fmt(stats.totalAtk);
     document.getElementById("sum-death").innerText = fmt(p.deathCount);
     document.getElementById("sum-crit").innerText = stats.crit + "%";
@@ -213,13 +226,13 @@ function refresh() {
     document.getElementById("p-job-text").innerText = `Lv.${p.jobLevels[p.job]} ${p.job}`;
     
     if (document.getElementById("job").classList.contains("active")) renderJobs();
-    if (document.getElementById("equip").classList.contains("active")) renderEquip();
+    if (document.getElementById("equip").classList.contains("active")) renderRelics();
     if (document.getElementById("status").classList.contains("active")) renderStatusList(stats);
     localStorage.setItem(SAVE_KEY, JSON.stringify(p));
 }
 
 function renderStatusList(s) {
-    document.getElementById("statusList").innerHTML = `<div class="stat-detail-box"><strong>最終ATK: ${fmt(s.totalAtk)}</strong></div><div class="stat-detail-box">基礎ATK: ${fmt(s.baseAtk)}</div><div class="stat-detail-box">遺物ATK: ${fmt(s.atkRelic)}</div><div class="stat-detail-box">増幅倍率: x${s.deathM.toFixed(2)}</div>`;
+    document.getElementById("statusList").innerHTML = `<div class="stat-detail-box"><strong>Final ATK: ${fmt(s.totalAtk)}</strong></div><div class="stat-detail-box">Base ATK: ${fmt(s.baseAtk)}</div><div class="stat-detail-box">Relic ATK: ${fmt(s.atkRelic)}</div><div class="stat-detail-box">Multiplier: x${s.deathM.toFixed(2)}</div>`;
 }
 
 function renderJobs() {
@@ -227,17 +240,17 @@ function renderJobs() {
 }
 
 function openJobDetail(j) {
-    const d = JOBS_DATA[j]; showDetail(`<h3>${j}</h3><p>${d.desc}</p><button class="btn-attack" onclick="p.job='${j}'; closeDetail(); refresh();">転職</button>`);
+    const d = JOBS_DATA[j]; showDetail(`<h3>${j}</h3><p>${d.desc}</p><ul>${d.skills.map(s=>`<li>${s}</li>`).join("")}</ul><button class="btn-action" onclick="p.job='${j}'; closeDetail(); refresh();">Switch Job</button>`);
 }
 
-function renderEquip() {
+function renderRelics() {
     document.getElementById("relicGrid").innerHTML = Object.keys(p.inventory).map(id => {
-        const d = getRelicData(id); return `<div class="card-cell" onclick="openRelicDetail(${id})" style="border-left: 4px solid var(--rarity${d.rarity})"><span class="card-name" style="color: var(--rarity${d.rarity})">${d.stars} ${d.name}</span><small>×${p.inventory[id]}</small></div>`;
+        const d = getRelicData(id); return `<div class="card-cell" onclick="openRelicDetail(${id})" style="border-left: 4px solid var(--rarity${d.rarity})"><span class="card-name" style="color: var(--rarity${d.rarity})">${d.stars} ${d.name}</span><small>x${p.inventory[id]}</small></div>`;
     }).join("");
 }
 
 function openRelicDetail(id) {
-    const d = getRelicData(id); showDetail(`<h3>${d.name}</h3><p>${d.effectText}</p><p>所持: ${p.inventory[id]}</p>`);
+    const d = getRelicData(id); showDetail(`<h3>${d.name}</h3><p>${d.effectText}</p><p>Owned: ${p.inventory[id]}</p>`);
 }
 
 function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className = "log-entry"; d.innerHTML = m; l.prepend(d); if (l.childNodes.length > 20) l.removeChild(l.lastChild); }
