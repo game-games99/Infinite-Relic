@@ -3,20 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>魔神討伐伝 - 安定版 -</title>
+<title>魔神討伐伝 - 闘争の記録 -</title>
 <style>
     :root {
         --bg: #ffffff; --panel: #f1f3f5; --border: #dee2e6;
         --primary: #007bff; --text: #212529; --sub: #6c757d;
         --accent: #dc3545; --gold: #d39e00; --death: #6f42c1;
+        --heal: #28a745;
     }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     
     #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
-    .status-line { display: flex; justify-content: space-between; font-size: 0.85em; font-weight: bold; margin-bottom: 5px; }
+    .status-line { display: flex; justify-content: space-between; font-size: 0.75em; font-weight: bold; margin-bottom: 2px; }
     .bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 5px; }
-    .fill { height: 100%; transition: width 0.1s linear; }
+    .fill { height: 100%; transition: width 0.05s linear; }
     #bosshp { background: linear-gradient(90deg, #ffc107, #dc3545); }
+    #playerhp { background: linear-gradient(90deg, #28a745, #20c997); }
     
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
     .stat-box { background: #fff; padding: 5px; border-radius: 4px; border: 1px solid var(--border); text-align: center; }
@@ -33,25 +35,27 @@
 
     .battle-layout { display: flex; flex-direction: column; height: 100%; }
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 8px; flex-shrink: 0; cursor: pointer; }
-    .btn-attack:active { opacity: 0.8; }
     
     #log { flex-grow: 1; margin-top: 10px; overflow-y: auto; font-size: 0.8em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 5px; line-height: 1.4; }
+    .log-atk { color: var(--text); }
+    .log-def { color: var(--accent); font-weight: bold; }
+    .log-exp { color: var(--primary); font-size: 0.9em; }
 
     .detail-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 10; padding: 15px; display: none; overflow-y: auto; }
     .close-btn { background: var(--sub); color: #fff; border: none; padding: 8px 15px; border-radius: 4px; margin-bottom: 10px; }
-
-    .list-item { background: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
     .relic-cell { background: #fff; border: 1px solid var(--border); padding: 8px; font-size: 0.75em; display: flex; justify-content: space-between; }
-
-    .skill-card { background: #f8f9fa; border-left: 4px solid var(--primary); padding: 10px; margin-bottom: 8px; }
 </style>
 </head>
 <body>
 
 <div id="header">
-    <div class="status-line"><span>魔神</span><span id="bosshp-text">100.00%</span></div>
+    <div class="status-line"><span>魔神：権能</span><span id="bosshp-text">100.00%</span></div>
     <div class="bar"><div id="bosshp" class="fill" style="width: 100%;"></div></div>
+    
+    <div class="status-line"><span>生命力</span><span id="playerhp-text">1000 / 1000</span></div>
+    <div class="bar"><div id="playerhp" class="fill" style="width: 100%;"></div></div>
+
     <div class="stats-grid">
         <div class="stat-box"><span class="stat-label">主人公 Lv</span><span id="p-lv" class="stat-val">1</span></div>
         <div class="stat-box"><span class="stat-label">現在の職業</span><span id="p-job-lv" class="stat-val">---</span></div>
@@ -101,7 +105,7 @@ const JOBS_DATA = {
     "風術師": ["風の刃", "竜巻", "疾風の加護", "真空波", "神風の怒り"],
     "重騎士": ["大盾の構え", "体当たり", "地響き", "不屈の精神", "重力崩壊"],
     "冒険者": ["鑑定", "起死回生", "幸運のダイス", "お宝発見", "英雄の証"],
-    "覇王": ["覇気", "支配の眼光", "次元の蹂躙", "覇道一撃", "天地開闢"],
+    "覇王": ["覇気", "支配の眼光", "次元の蹂虙", "覇道一撃", "天地開闢"],
     "拳闘士": ["ラッシュ", "回避", "カウンター", "KOパンチ", "無双の拳"],
     "槍王": ["一突き", "乱舞", "龍巻", "神の突き", "銀河貫通"],
     "賢者": ["知恵の閃き", "魔力収束", "時空魔法", "因果逆転", "全知全能"]
@@ -111,18 +115,19 @@ const R_NAME = ["指輪", "魔石", "刻印", "聖杯", "冠"];
 const R_SUFFIX = ["の記憶", "の輝き", "の欠片"];
 
 let p, longPressIdx, isProcessing = false;
-const SAVE_KEY = "MAJIN_REBIRTH_STABLE_V1";
+const SAVE_KEY = "MAJIN_REBIRTH_STABLE_V2";
 
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
     p = saved ? JSON.parse(saved) : {
         lv: 1, exp: 0, job: "剣聖", inventory: {}, 
-        jobLevels: {}, jobExp: {}, bossTotalDmg: 0, deathCount: 0
+        jobLevels: {}, jobExp: {}, bossTotalDmg: 0, deathCount: 0, playerHP: 1000
     };
     Object.keys(JOBS_DATA).forEach(j => {
         if (!p.jobLevels[j]) p.jobLevels[j] = 1;
         if (p.jobExp[j] === undefined) p.jobExp[j] = 0;
     });
+    refresh();
     
     const btn = document.getElementById("attackBtn");
     btn.addEventListener("mousedown", (e) => { e.preventDefault(); startBattle(); });
@@ -130,20 +135,10 @@ function init() {
     btn.addEventListener("mouseleave", stopBattle);
     btn.addEventListener("touchstart", (e) => { e.preventDefault(); startBattle(); }, {passive: false});
     btn.addEventListener("touchend", stopBattle);
-    
-    refresh();
 }
 
-function startBattle() {
-    if (longPressIdx) return;
-    battle();
-    longPressIdx = setInterval(battle, 100);
-}
-
-function stopBattle() {
-    clearInterval(longPressIdx);
-    longPressIdx = null;
-}
+function startBattle() { if (!longPressIdx) { battle(); longPressIdx = setInterval(battle, 100); } }
+function stopBattle() { clearInterval(longPressIdx); longPressIdx = null; }
 
 function getRelicData(id) {
     const seed = parseInt(id);
@@ -153,37 +148,51 @@ function getRelicData(id) {
     const isGold = (seed % 100 === 0);
     const baseVal = isGold ? (seed % 10 + 1) * 20 : (seed % 10 + 1);
     const name = (isDeathType ? "死を喰らう" : R_PREFIX[seed % 5]) + R_NAME[(seed >> 2) % 5] + R_SUFFIX[seed % 3];
-    let effectText = isDeathType ? `敗北数に応じて${types[seed%4]}を強化` : `${types[seed%4]}を ${baseVal}${seed%4>=2?'%':''} 上昇`;
-    return { id, name, typeKey, val: baseVal, effectText, isGold, isDeathType };
+    return { id, name, typeKey, val: baseVal, effectText: isDeathType ? `敗北数に応じて強化` : `${types[seed%4]}を強化`, isGold, isDeathType };
 }
 
 function battle() {
     if (isProcessing) return;
     isProcessing = true;
 
+    // ステータス計算
     let atk = 500 + (p.lv * 100) + (p.jobLevels[p.job] * 50);
+    let maxHP = 1000 + (p.lv * 100);
     let dmgM = 1.0;
     Object.keys(p.inventory).forEach(id => {
         const d = getRelicData(id); const count = p.inventory[id];
         if (d.isDeathType) dmgM *= (1 + (p.deathCount * d.val * 0.0001 * count));
         else if (d.typeKey === "ATK") atk += d.val * count;
+        else if (d.typeKey === "HP") maxHP += d.val * count;
         else if (d.typeKey === "DMG") dmgM += d.val * 0.01 * count;
     });
+    p.maxHP = maxHP;
 
+    // プレイヤーの攻撃
     let dmg = Math.floor(atk * (0.9 + Math.random() * 0.2) * dmgM);
     p.bossTotalDmg += dmg;
-    p.deathCount++; // 魔神の一撃による死
-
     let gain = Math.floor(dmg * 0.1) + 50;
     p.exp += gain; p.jobExp[p.job] += gain;
+
+    addLog(`<span class="log-atk">⚔️ 魔神へ ${dmg.toLocaleString()} ダメージ</span>`);
+    addLog(`<span class="log-exp">✨ 経験値 ${gain.toLocaleString()} 獲得</span>`);
+
+    // 魔神の反撃
+    let enemyDmg = Math.floor(p.maxHP * 1.5); // 必ず死ぬダメージ
+    p.playerHP = 0; // 表示上HPを0にする
+    p.deathCount++;
+
+    addLog(`<span class="log-def">💥 魔神の攻撃：${enemyDmg.toLocaleString()} ダメージ受領</span>`);
+
+    // 即座に復活
+    p.playerHP = p.maxHP;
 
     if (Math.random() < 0.1) {
         let rId = Math.floor(Math.random() * 500);
         p.inventory[rId] = (p.inventory[rId] || 0) + 1;
-        addLog(`<span style="color:var(--gold)">遺物：${getRelicData(rId).name} 獲得</span>`);
+        addLog(`<span style="color:var(--gold)">★ 遺物：${getRelicData(rId).name} 獲得</span>`);
     }
 
-    addLog(`魔神に ${dmg.toLocaleString()} ダメージを与えた`);
     checkLevelUp();
     refresh();
     isProcessing = false;
@@ -200,6 +209,10 @@ function refresh() {
     let hpPer = Math.max(0, 100 - (p.bossTotalDmg / BOSS_MAX_HP * 100));
     document.getElementById("bosshp").style.width = hpPer + "%";
     document.getElementById("bosshp-text").innerText = hpPer.toFixed(10) + "%";
+    
+    document.getElementById("playerhp").style.width = "100%";
+    document.getElementById("playerhp-text").innerText = `${p.maxHP.toLocaleString()} / ${p.maxHP.toLocaleString()}`;
+    
     document.getElementById("p-lv").innerText = p.lv;
     document.getElementById("p-job-lv").innerText = `${p.job} Lv.${p.jobLevels[p.job]}`;
     document.getElementById("p-death").innerText = p.deathCount;
@@ -233,16 +246,13 @@ function refresh() {
 function addLog(m) {
     const l = document.getElementById("log");
     l.innerHTML = `<div>${m}</div>` + l.innerHTML;
-    if (l.childNodes.length > 20) l.removeChild(l.lastChild);
+    if (l.childNodes.length > 25) l.removeChild(l.lastChild);
 }
 
 function openJobDetail(jName) {
     const lv = p.jobLevels[jName];
     let html = `<h3>${jName}</h3><p>ジョブレベル: ${lv}</p><hr>`;
-    JOBS_DATA[jName].forEach((s, i) => {
-        const req = (i + 1) * 10;
-        html += `<div style="color:${lv >= req ? 'var(--primary)' : '#ccc'}">Lv.${req}: ${s}</div>`;
-    });
+    JOBS_DATA[jName].forEach((s, i) => { html += `<div style="color:${lv >= (i+1)*10 ? 'var(--primary)' : '#ccc'}">Lv.${(i+1)*10}: ${s}</div>`; });
     showDetail(html);
 }
 
@@ -251,10 +261,7 @@ function openRelicDetail(id) {
     showDetail(`<h3>${d.name}</h3><p>所持数: ${p.inventory[id]}</p><hr><p>${d.effectText}</p>`);
 }
 
-function showDetail(content) {
-    document.getElementById("detailContent").innerHTML = content;
-    document.getElementById("detailPanel").style.display = "block";
-}
+function showDetail(content) { document.getElementById("detailContent").innerHTML = content; document.getElementById("detailPanel").style.display = "block"; }
 function closeDetail() { document.getElementById("detailPanel").style.display = "none"; }
 
 function showTab(id, btn) {
