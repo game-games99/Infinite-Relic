@@ -5,31 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>infiniterelic</title>
 <style>
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --exp: #007bff; --player-hp: #28a745; --rare: #ffc107; --relic-log: #fff9e6; }
+    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --exp: #007bff; --player-hp: #28a745; --rare: #ffc107; }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* ヘッダー・ナビは固定 */
     #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; cursor: pointer; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
 
-    /* コンテンツエリア */
     #content-area { flex-grow: 1; overflow-y: auto; background: #fff; position: relative; }
     .tab { display: none; padding: 15px; box-sizing: border-box; height: 100%; }
     .tab.active { display: flex; flex-direction: column; }
     
-    /* バトル画面のレイアウト固定 */
-    .battle-layout { display: flex; flex-direction: column; height: 100%; }
-    #log { flex: 3; font-size: 0.8em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 8px; overflow-y: auto; margin-bottom: 8px; }
-    #relic-mini-log { flex: 1; min-height: 60px; font-size: 0.75em; background: var(--relic-log); padding: 8px; border: 1px solid #ffeeba; border-radius: 8px; overflow-y: auto; margin-bottom: 8px; border-left: 4px solid var(--rare); }
-    
-    /* 攻撃ボタンを押し出さないように固定 */
-    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; flex-shrink: 0; margin-bottom: 10px; }
+    /* 攻撃ボタンを上部に配置 */
+    .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; flex-shrink: 0; margin-bottom: 15px; box-shadow: 0 4px 0 #0056b3; }
+    .btn-attack:active { transform: translateY(2px); box-shadow: 0 2px 0 #0056b3; }
 
+    #log { flex-grow: 1; font-size: 0.85em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 8px; overflow-y: auto; line-height: 1.4; }
+    
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.75em; }
     .relic-epic { border: 2px solid var(--rare); background: #fffdf5; }
+    
     .bar-label { display: flex; justify-content: space-between; font-size: 0.75em; font-weight: bold; }
     .bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 4px 0 6px; }
     .fill { height: 100%; transition: width 0.1s ease; }
@@ -63,11 +60,8 @@
 
 <div id="content-area">
     <div id="battle" class="tab active">
-        <div class="battle-layout">
-            <div id="log"></div>
-            <div id="relic-mini-log">遺物獲得履歴...</div>
-            <button class="btn-attack" id="attackBtn">こうげき</button>
-        </div>
+        <button class="btn-attack" id="attackBtn">こうげき</button>
+        <div id="log"></div>
     </div>
     <div id="status" class="tab"></div>
     <div id="power" class="tab"></div>
@@ -101,8 +95,8 @@ const RELIC_MASTER = Array.from({length: 100}, (_, i) => {
     return { id: i, star, type, val, isPercent, name: POWER_DATA[pIdx].name + "の遺物", pIdx };
 });
 
-function save() { localStorage.setItem("IR_Save_V8", JSON.stringify(player)); }
-function load() { const s = localStorage.getItem("IR_Save_V8"); if(s) Object.assign(player, JSON.parse(s)); }
+function save() { localStorage.setItem("IR_Save_V9", JSON.stringify(player)); }
+function load() { const s = localStorage.getItem("IR_Save_V9"); if(s) Object.assign(player, JSON.parse(s)); }
 
 function init() {
     load();
@@ -160,11 +154,7 @@ function dropRelic() {
     const r = candidates[Math.floor(Math.random() * candidates.length)];
     if(star >= 6 && player.inventory[r.id] > 0) return;
     player.inventory[r.id]++;
-
-    const mLog = document.getElementById("relic-mini-log");
-    const d = document.createElement("div");
-    d.innerHTML = `<span style="color:${star>=6?'#e67e22':'#666'}">★${star} 【${r.name}】獲得！</span>`;
-    mLog.prepend(d); mLog.scrollTop = 0;
+    addLog(`<span style="color:${star>=6?'var(--rare)':'#666'}; font-weight:bold;">遺物獲得：【${r.name}】(⭐︎${star})</span>`);
 }
 
 function refreshUI() {
@@ -212,7 +202,7 @@ function renderPower() {
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 25) l.removeChild(l.lastChild);
+    l.prepend(d); if(l.childNodes.length > 30) l.removeChild(l.lastChild);
 }
 init();
 </script>
