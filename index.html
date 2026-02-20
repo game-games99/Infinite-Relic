@@ -14,30 +14,40 @@
     #content-area { flex-grow: 1; overflow-y: auto; background: #fff; position: relative; }
     .tab { display: none; padding: 15px; box-sizing: border-box; height: 100%; }
     .tab.active { display: flex; flex-direction: column; }
-    .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; flex-shrink: 0; margin-bottom: 15px; }
+    .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; flex-shrink: 0; margin-bottom: 15px; box-shadow: 0 4px 0 #0056b3; }
     #log { flex-grow: 1; font-size: 0.85em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 8px; overflow-y: auto; }
-    .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .relic-card { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.7em; }
-    .relic-epic { border: 2px solid var(--rare); background: #fffdf5; }
     .bar-label { display: flex; justify-content: space-between; font-size: 0.75em; font-weight: bold; }
     .bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 4px 0 6px; }
     .fill { height: 100%; transition: width 0.1s ease; }
+    
+    /* クリア画面 */
+    #clear-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; color: gold; text-align: center; justify-content: center; align-items: center; flex-direction: column; }
+    #clear-overlay h1 { font-size: 3em; margin: 0; text-shadow: 0 0 20px orange; }
+    .clear-time { font-size: 1.5em; margin: 20px 0; color: #fff; }
+    
+    .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .relic-card { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.7em; }
     .card-cell { background: #f8f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 8px; margin-bottom: 10px; }
     .skill-item { font-size: 0.7em; padding: 6px; border-radius: 4px; border-left: 4px solid #007bff; background: #fff; margin-bottom: 4px; }
-    .skill-desc { color: #666; font-size: 0.9em; display: block; margin-top: 2px; }
 </style>
 </head>
 <body>
 
+<div id="clear-overlay">
+    <h1>GAME CLEAR</h1>
+    <div class="clear-time">討伐記録: <span id="final-time">--:--:---</span></div>
+    <p>魔神を屠り、世界は静寂に包まれた</p>
+    <button onclick="localStorage.clear(); location.reload();" style="padding:15px 30px; font-weight:bold; border-radius:8px; border:none; background:gold; cursor:pointer;">再び挑む</button>
+</div>
+
 <div id="header">
-    <div class="bar-label"><span>魔神 HP (無限)</span><span id="bosshp-text">∞</span></div>
-    <div class="bar"><div id="bosshp" class="fill" style="background:var(--hp); width:100%"></div></div>
-    <div class="bar-label"><span>次Lvまで</span><span id="exp-text">0%</span></div>
+    <div class="bar-label"><span>魔神</span><span id="bosshp-text">--- / ---</span></div>
+    <div class="bar"><div id="bosshp-bar" class="fill" style="background:var(--hp); width:100%"></div></div>
+    <div class="bar-label"><span>Lv: <span id="p-lv">1</span></span><span>経験値</span><span id="exp-text">0%</span></div>
     <div class="bar"><div id="exp-bar" class="fill" style="background:var(--exp); width:0%"></div></div>
-    <div class="bar-label"><span>プレイヤー HP</span><span id="playerhp-text">100/100</span></div>
-    <div class="bar"><div id="playerhp" class="fill" style="background:var(--player-hp); width:100%"></div></div>
+    <div class="bar-label"><span>プレイヤー HP</span><span id="playerhp-text">--- / ---</span></div>
+    <div class="bar"><div id="playerhp-bar" class="fill" style="background:var(--player-hp); width:100%"></div></div>
     <div style="font-size:0.8em; font-weight:bold; display:flex; justify-content:space-between; margin-top:5px;">
-        <span>Lv: <span id="p-lv">1</span></span>
         <span>ATK: <span id="p-atk">10</span></span>
         <span>再起: <span id="p-death">0</span></span>
     </div>
@@ -58,88 +68,98 @@
 </div>
 
 <script>
-// 権能とスキルの詳細定義
 const POWER_DATA = [
-    { name: "剣神の残火", base: "ATK上昇特化", skills: ["一の太刀","燕返し","心眼","無想","天断","神速","流星","真空","極・一文字","剣神降臨"] },
-    { name: "不滅の守護者", base: "HP比例ATK上昇", skills: ["不屈","再生の楔","逆境","不死魂","守護誇","金剛体","鉄壁","報復棘","絶望抗","不滅域"] },
-    { name: "魔導王の遺志", base: "スキル倍率強化", skills: ["魔力線","術展開","詠唱棄","多構築","深淵知","魔極致","元爆発","真理門","賢者石","魔導王再臨"] },
-    { name: "覇王の残光", base: "遺物所持数で強化", skills: ["威圧","王進軍","凱旋鬨","統率才","覇王盾","黄金暁","天統べ","不抜城","絶対王政","至高御座"] },
-    { name: "絶影の残影", base: "クリティカル特化", skills: ["急所穿","影走り","死刻印","虚像舞","暗殺誇","刹那閃","闇溶ける","絶影連","魂収穫","虚無終焉"] },
-    { name: "修羅の咆哮", base: "再起回数で無限成長", skills: ["狂乱","血戦契","屠殺牙","闘神血","修羅道","飽くなき","憤怒波","鬼神連","命喰らう","冥府王"] },
-    { name: "真理の残滓", base: "経験値・効率化", skills: ["等価交換","因果糸","世界記憶","理改変","根源理解","虚構崩壊","天秤","知識激流","運命断罪","神数式"] },
-    { name: "神託の残響", base: "ドロップ率操作", skills: ["祈り","聖光","天加護","奇跡予","天啓調","聖域盾","神審判","福音響","至福時","主御手"] },
-    { name: "虚無の深淵", base: "割合ダメージ演出", skills: ["忘却","影浸食","暗黒底","空虚夢","存在否定","無還元","深淵眼","終焉予","滅び歌","絶対零"] },
-    { name: "機工の心臓", base: "固定ダメージ加算", skills: ["歯車回転","過負荷熱","精密演算","鋼鉄意志","自動修復","蒸気噴進","機工連鎖","次元歯車","神設計図","究極機構"] }
+    { name: "剣神の残火", base: "ATK加算特化", skills: ["一の太刀","燕返し","心眼","無想","天断","神速","流星","真空","極・一文字","剣神降臨"] },
+    { name: "不滅の守護者", base: "HP比例ATK", skills: ["不屈","再生の楔","逆境","不死魂","守護誇","金剛体","鉄壁","報復棘","絶望抗","不滅域"] },
+    { name: "魔導王の遺志", base: "倍率強化", skills: ["魔力線","術展開","詠唱棄","多構築","深淵知","魔極致","元爆発","真理門","賢者石","魔導王再臨"] },
+    { name: "覇王の残光", base: "遺物種数強化", skills: ["威圧","王進軍","凱旋鬨","統率才","覇王盾","黄金暁","天統べ","不抜城","絶対王政","至高御座"] },
+    { name: "絶影の残影", base: "刹那の重撃", skills: ["急所穿","影走り","死刻印","虚像舞","暗殺誇","刹那閃","闇溶ける","絶影連","魂収穫","虚無終焉"] },
+    { name: "修羅の咆哮", base: "再起の猛威", skills: ["狂乱","血戦契","屠殺牙","闘神血","修羅道","飽くなき","憤怒波","鬼神連","命喰らう","冥府王"] },
+    { name: "真理の残滓", base: "知識の効率", skills: ["等価交換","因果糸","世界記憶","理改変","根源理解","虚構崩壊","天秤","知識激流","運命断罪","神数式"] },
+    { name: "神託の残響", base: "幸運の導き", skills: ["祈り","聖光","天加護","奇跡予","天啓調","聖域盾","神審判","福音響","至福時","主御手"] },
+    { name: "虚無の深淵", base: "終焉の浸食", skills: ["忘却","影浸食","暗黒底","空虚夢","存在否定","無還元","深淵眼","終焉予","滅び歌","絶対零"] },
+    { name: "機工の心臓", base: "演算の極致", skills: ["歯車回転","過負荷熱","精密演算","鋼鉄意志","自動修復","蒸気噴進","機工連鎖","次元歯車","神設計図","究極機構"] }
 ];
 
-// 遺物100種の完全差別化生成
 const RELIC_MASTER = [];
 for(let p=0; p<10; p++) {
     for(let s=1; s<=10; s++) {
-        let type = (p % 2 === 0) ? "ATK" : "HP";
-        let val = 0, isPercent = (s >= 6);
-        // 権能ごとの特性を遺物に反映
-        if(p === 0) val = isPercent ? s * 40 : s * 250; // 剣神: 純粋ATK大
-        else if(p === 2) val = isPercent ? s * 60 : s * 100; // 魔導: ％が高い
-        else if(p === 5) val = isPercent ? s * 80 : s * 50;  // 修羅: リスク高倍率
-        else val = isPercent ? s * 30 : s * 150; // その他
-
+        let val = (s >= 6) ? (s * (p === 2 ? 50 : 30)) : (s * (p === 0 ? 200 : 100));
         RELIC_MASTER.push({
-            id: (p * 10) + (s - 1),
-            pIdx: p, star: s, type: type, val: val, isPercent: isPercent,
-            name: POWER_DATA[p].name + (["の欠片","の結晶","の紋章","の眼","の核"][Math.floor((s-1)/2)] || "の真実")
+            id: (p * 10) + (s - 1), pIdx: p, star: s, type: (p % 2 === 0 ? "ATK" : "HP"), val: val, isPercent: (s >= 6),
+            name: POWER_DATA[p].name + (["の欠片","の結晶","の紋章","の眼","の核","の真実"][(Math.floor((s-1)/2))] || "の残滓")
         });
     }
 }
 
-let player = { lv: 1, exp: 0, inventory: Array(100).fill(0), deathCount: 0, baseAtk: 10, baseHP: 100 };
-let maxDmg = 0, isPressing = false;
+let player = { lv: 1, exp: 0, inventory: Array(100).fill(0), deathCount: 0, baseAtk: 10, baseHP: 100, startTime: null };
+let boss = { hp: 100000, maxHP: 100000 };
+let isPressing = false, isCleared = false;
 
-function save() { localStorage.setItem("IR_Save_V10", JSON.stringify(player)); }
-function load() { const s = localStorage.getItem("IR_Save_V10"); if(s) Object.assign(player, JSON.parse(s)); }
+function formatTime(ms) {
+    let m = Math.floor(ms / 60000);
+    let s = Math.floor((ms % 60000) / 1000);
+    let l = Math.floor((ms % 1000) / 10);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${l.toString().padStart(2, '0')}`;
+}
+
+function save() { localStorage.setItem("IR_Save_V15", JSON.stringify({player, boss})); }
+function load() { 
+    const s = localStorage.getItem("IR_Save_V15"); 
+    if(s) { const d = JSON.parse(s); player = d.player; boss = d.boss; }
+}
 
 function attack() {
+    if(isCleared) return;
+    if(!player.startTime) player.startTime = Date.now();
+    
     addLog(`<span style="color:var(--hp); font-weight:bold;">魔神の攻撃：即死！</span>`);
     player.deathCount++;
-    addLog(`<span style="color:var(--player-hp)">再起の誓いにより力を継承した...</span>`);
-
-    // 成長
     const growth = Math.floor(Math.random() * player.lv) + 5;
     player.baseAtk += growth; player.baseHP += growth * 10;
 
-    // 計算
     let rAtkAdd = 0, rAtkMul = 1, skillMul = 1, expBonus = 1;
     let activeSkill = "";
-    
     player.inventory.forEach((count, id) => {
         if(count > 0) {
             const r = RELIC_MASTER[id];
             if(r.type === "ATK") { if(r.isPercent) rAtkMul += (r.val / 100); else rAtkAdd += r.val * count; }
-            
-            // スキル倍率計算
-            let powerMul = (r.star * 2); 
-            if(r.pIdx === 0) powerMul *= 2; // 剣神
-            if(r.pIdx === 5) powerMul *= (1 + player.deathCount * 0.05); // 修羅
-            
-            if(powerMul > skillMul) {
-                skillMul = powerMul;
-                activeSkill = POWER_DATA[r.pIdx].skills[r.star-1];
-            }
-            if(r.pIdx === 6) expBonus += (r.star * 0.1); // 真理
+            let powerMul = (r.star * 2) * (r.pIdx === 0 ? 1.5 : 1) * (r.pIdx === 5 ? (1 + player.deathCount * 0.05) : 1);
+            if(powerMul > skillMul) { skillMul = powerMul; activeSkill = POWER_DATA[r.pIdx].skills[r.star-1]; }
+            if(r.pIdx === 6) expBonus += (r.star * 0.1);
         }
     });
 
     const totalAtk = Math.floor((player.baseAtk + rAtkAdd) * rAtkMul * skillMul);
     const dmg = Math.floor(totalAtk * (0.9 + Math.random() * 0.2));
-    if(dmg > maxDmg) maxDmg = dmg;
 
     if(activeSkill) addLog(`<span style="color:var(--primary); font-weight:bold;">【${activeSkill}】 ${skillMul.toFixed(1)}倍撃！</span>`);
-    addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
+    
+    if (dmg >= boss.hp) {
+        boss.hp = 0;
+        addLog(`<span style="color:var(--rare); font-weight:bold;">魔神を一撃で粉砕した！</span>`);
+        gameClear();
+    } else {
+        boss.hp -= dmg;
+        if (boss.hp <= 1) {
+            boss.hp = boss.maxHP;
+            addLog(`<span style="color:var(--hp); font-weight:bold;">魔神が全回復した...一撃で削りきれ！</span>`);
+        } else {
+            addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
+        }
+    }
 
     player.exp += (dmg / (player.lv * 100)) * expBonus;
     while(player.exp >= 100) { player.lv++; player.exp -= 100; addLog(`<span style="color:orange; font-weight:bold;">Lv UP! Lv${player.lv}</span>`); }
     if(Math.random() < 0.1) dropRelic();
     save(); refreshUI();
+}
+
+function gameClear() {
+    isCleared = true;
+    const finalMs = Date.now() - player.startTime;
+    document.getElementById("final-time").innerText = formatTime(finalMs);
+    document.getElementById("clear-overlay").style.display = "flex";
 }
 
 function dropRelic() {
@@ -148,15 +168,18 @@ function dropRelic() {
     const r = candidates[Math.floor(Math.random() * candidates.length)];
     if(star >= 6 && player.inventory[r.id] > 0) return;
     player.inventory[r.id]++;
-    addLog(`<span style="color:${star>=6?'var(--rare)':'#666'}; font-weight:bold;">遺物獲得：${r.name} (⭐︎${star})</span>`);
+    addLog(`<span style="color:${star>=6?'var(--rare)':'#666'}; font-weight:bold;">遺物：${r.name} (⭐︎${star}) を獲得</span>`);
 }
 
 function refreshUI() {
+    document.getElementById("bosshp-text").innerText = `${Math.max(1, Math.floor(boss.hp)).toLocaleString()} / ${boss.maxHP.toLocaleString()}`;
+    document.getElementById("bosshp-bar").style.width = (boss.hp / boss.maxHP * 100) + "%";
     document.getElementById("exp-bar").style.width = Math.min(100, player.exp) + "%";
+    document.getElementById("exp-text").innerText = Math.floor(player.exp) + "%";
     document.getElementById("p-lv").innerText = player.lv;
     document.getElementById("p-atk").innerText = player.baseAtk.toLocaleString();
     document.getElementById("p-death").innerText = player.deathCount;
-    document.getElementById("playerhp-text").innerText = `${(player.baseHP).toLocaleString()} / ${(player.baseHP).toLocaleString()}`;
+    document.getElementById("playerhp-text").innerText = `${player.baseHP.toLocaleString()} / ${player.baseHP.toLocaleString()}`;
 }
 
 function showTab(id) {
@@ -176,7 +199,6 @@ function renderRelic() {
             h += `<div class="relic-card ${r.star>=6?'relic-epic':''}">
                 <b>⭐︎${r.star} ${r.name}</b><br>
                 ${r.type}: ${r.isPercent ? '+'+r.val+'%' : '+'+r.val.toLocaleString()}<br>
-                所持: ${count}
             </div>`;
         }
     });
@@ -186,15 +208,11 @@ function renderRelic() {
 function renderPower() {
     let h = "";
     POWER_DATA.forEach((p, pi) => {
-        h += `<div class="card-cell"><b>【権能】${p.name}</b><br><small>${p.base}</small><div style="margin-top:8px;">`;
+        h += `<div class="card-cell"><b>【権能】${p.name}</b><div style="margin-top:8px;">`;
         p.skills.forEach((s, si) => {
             const relicId = (pi * 10) + si;
             const isUnlocked = player.inventory[relicId] > 0;
-            const currentMul = (si + 1) * 2 * (pi === 0 ? 2 : 1) * (pi === 5 ? (1 + player.deathCount * 0.05) : 1);
-            h += `<div class="skill-item" style="opacity:${isUnlocked?1:0.4}">
-                <b>⭐︎${si+1} ${s}</b>
-                <span class="skill-desc">${isUnlocked ? '解放済み：ATK ' + currentMul.toFixed(1) + '倍' : '未解放（⭐︎' + (si+1) + '遺物が必要）'}</span>
-            </div>`;
+            h += `<div class="skill-item" style="opacity:${isUnlocked?1:0.4}"><b>⭐︎${si+1} ${s}</b></div>`;
         });
         h += `</div></div>`;
     });
