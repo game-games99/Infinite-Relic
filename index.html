@@ -10,7 +10,6 @@
     
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* ヘッダー：ATK/HPを際立たせる */
     #header { background: var(--dark); color: #fff; padding: 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .status-box { display: flex; gap: 10px; margin-top: 5px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; border-left: 4px solid var(--primary); }
@@ -26,11 +25,11 @@
     .tab { display: none; padding: 10px; }
     .tab.active { display: block; }
     
-    /* ステータスタブ */
-    .info-list { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-    .info-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 0.9em; }
+    /* 遺物：2列表示を維持 */
+    .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.75em; background: #fff; }
+    .relic-card.vow { border: 2px solid gold; background: #fffdf0; grid-column: span 2; font-size: 0.85em; }
 
-    /* 権能表示 */
     .power-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .power-card { background: #f8f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 8px; }
     .power-title { font-weight: bold; font-size: 0.95em; color: var(--primary); border-bottom: 1px solid var(--border); margin-bottom: 8px; }
@@ -38,9 +37,10 @@
     .skill-item.active { border-left-color: var(--primary); background: #fff; }
 
     .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: none; margin-bottom: 15px; box-shadow: 0 4px 0 #0056b3; }
-    .btn-attack:active { transform: translateY(2px); box-shadow: 0 2px 0 #0056b3; }
     
-    #log { height: 380px; font-size: 0.75em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    /* ログ：高さ確保 */
+    #log { height: 400px; font-size: 0.75em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    .log-death { color: #dc3545; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -49,14 +49,8 @@
     <div style="font-size:0.75em; font-weight:bold; color:var(--hp);">魔神 HP: <span id="bosshp-pct">100.0000</span>%</div>
     <div style="height:6px; background:#444; border-radius:3px; overflow:hidden; margin: 4px 0 8px;"><div id="bosshp-bar" style="height:100%; background:var(--hp); width:100%"></div></div>
     <div class="status-box">
-        <div class="stat-card">
-            <span class="stat-label">攻撃力 (ATK)</span>
-            <div class="stat-val" id="p-atk">10</div>
-        </div>
-        <div class="stat-card hp-card">
-            <span class="stat-label">生命力 (HP)</span>
-            <div class="stat-val" id="p-hp">100</div>
-        </div>
+        <div class="stat-card"><span class="stat-label">攻撃力 (ATK)</span><div class="stat-val" id="p-atk">10</div></div>
+        <div class="stat-card hp-card"><span class="stat-label">生命力 (HP)</span><div class="stat-val" id="p-hp">100</div></div>
     </div>
 </div>
 
@@ -74,12 +68,12 @@
     </div>
     
     <div id="status" class="tab">
-        <div class="info-list">
-            <div class="info-item"><span>再起の誓い（回数）</span><span id="st-death" style="font-weight:bold; color:var(--primary);">0</span></div>
-            <div class="info-item"><span>最大与ダメージ</span><span id="st-maxdmg">0</span></div>
+        <div style="background:#fefefe; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #eee;"><span>再起の誓い</span><span id="st-death" style="font-weight:bold; color:var(--primary);">0</span></div>
+            <div style="display:flex; justify-content:space-between; padding:6px 0;"><span>最大与ダメージ</span><span id="st-maxdmg">0</span></div>
         </div>
-        <div style="font-size:0.8em; font-weight:bold; margin: 10px 0 5px;">現在の遺物ドロップ率</div>
-        <div class="info-list" id="drop-list"></div>
+        <div style="font-size:0.8em; font-weight:bold; margin:15px 0 5px;">ドロップ率明細</div>
+        <div id="drop-list" style="font-size:0.85em; line-height:1.6; color:#666;"></div>
     </div>
 
     <div id="power" class="tab"><div class="power-grid" id="power-list"></div></div>
@@ -88,9 +82,8 @@
 
 <script>
 const BOSS_MAX_HP = 100000000000000000000n;
-const MAJIN_DMG = 99999999999999n;
-const SAVE_KEY = "infiniterelic_savedata_v6";
-const MAX_STACK = 99999999;
+const MAJIN_DMG = 99999999n; // 表示に合わせ9999万に設定
+const SAVE_KEY = "infiniterelic_savedata_v7";
 
 const SKILL_DATA = [
     { name: "剣神", skills: [{t:"P",n:"一の太刀",d:"基礎ATKを1.5倍に固定増幅"},{t:"P",n:"心眼",d:"最小打点を最大値の80%に固定"},{t:"A",n:"飛燕",d:"25%の確率で2回連続攻撃"},{t:"A",n:"天断",d:"防御を100%無視する衝撃を与える"},{t:"A",n:"剣神再臨",d:"全攻撃倍率を2.0倍に極大化"}]},
@@ -108,17 +101,16 @@ const SKILL_DATA = [
 const RELIC_MASTER = [{ id: 100, star: 11, name: "再起の誓い", desc: "死を経験に変え、新たなる力を得る" }];
 for(let p=0; p<10; p++) {
     const pName = SKILL_DATA[p].name;
-    const isAtk = (p % 2 === 0);
     for(let s=1; s<=10; s++) {
         let name, desc;
         if(s <= 5) {
             name = `${pName}の破片[★${s}]`;
-            desc = `${isAtk?'ATK':'HP'}を基礎値+${s*50}向上させる`;
+            desc = `${p % 2 === 0 ? 'ATK' : 'HP'}基礎値+${s*50}`;
         } else {
             name = `${pName}の至宝[★${s}]`;
-            desc = `${pName}権能倍率+${s*15}% / 全${isAtk?'ATK':'HP'}+${s-5}%`;
+            desc = `倍率+${s*15}% / 全${p % 2 === 0 ? 'ATK' : 'HP'}+${s-5}%`;
         }
-        RELIC_MASTER.push({ id: (p * 10) + (s - 1), pIdx: p, star: s, name: name, desc: desc });
+        RELIC_MASTER.push({ id: (p * 10) + (s - 1), star: s, name: name, desc: desc });
     }
 }
 
@@ -137,11 +129,7 @@ function loadGame() {
     const saved = localStorage.getItem(SAVE_KEY);
     if(saved) {
         const p = JSON.parse(saved);
-        player = { 
-            inventory: p.inventory, deathCount: p.deathCount, 
-            baseAtk: BigInt(p.baseAtk), baseHP: BigInt(p.baseHP),
-            maxDmg: p.maxDmg ? BigInt(p.maxDmg) : 0n
-        };
+        player = { inventory: p.inventory, deathCount: p.deathCount, baseAtk: BigInt(p.baseAtk), baseHP: BigInt(p.baseHP), maxDmg: p.maxDmg ? BigInt(p.maxDmg) : 0n };
     }
 }
 
@@ -160,7 +148,7 @@ function renderStatus() {
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
     const dList = document.getElementById("drop-list");
     const probs = ["★1: 15%","★2-5: 10%","★6: 5%","★7: 1%","★8: 0.1%","★9: 0.01%","★10: 0.0001%"];
-    dList.innerHTML = probs.map(p => `<div class="info-item">${p}</div>`).join("");
+    dList.innerHTML = probs.map(p => `<div>${p}</div>`).join("");
 }
 
 function renderRelic() {
@@ -168,9 +156,9 @@ function renderRelic() {
     const owned = Object.keys(player.inventory).map(id => RELIC_MASTER.find(r => r.id == id)).sort((a,b)=>a.star-b.star);
     list.innerHTML = owned.map(r => `
         <div class="relic-card ${r.star==11?'vow':''}">
-            <span class="relic-star">★${r.star}</span><b>${r.name}</b>
-            <span class="relic-count">x${player.inventory[r.id].toLocaleString()}</span>
-            <div style="color:var(--primary); font-weight:bold; font-size:0.85em; margin-top:4px;">${r.desc}</div>
+            <span style="color:var(--rare); font-weight:bold;">★${r.star}</span> <b>${r.name}</b>
+            <div style="color:var(--primary); font-weight:bold; margin-top:3px;">${r.desc}</div>
+            <div style="text-align:right; font-size:0.8em; color:#999;">x${player.inventory[r.id].toLocaleString()}</div>
         </div>
     `).join("");
 }
@@ -179,12 +167,11 @@ function renderPower() {
     const list = document.getElementById("power-list");
     list.innerHTML = SKILL_DATA.map((p, pi) => `
         <div class="power-card">
-            <div class="power-title">${p.name}の権能</div>
+            <div class="power-title">${p.name}</div>
             ${p.skills.map((s, si) => {
                 const has = player.inventory[pi * 10 + si];
-                return `<div class="skill-item ${has?'active':''}" style="opacity:${has?1:0.4}">
-                    <span style="font-weight:bold; color:${s.t=='P'?'#28a745':'#e83e8c'}">[${s.t}]</span><b>${s.n}</b>
-                    <span style="font-size:0.85em; color:#444; display:block;">${s.d}</span>
+                return `<div class="skill-item ${has?'active':''}" style="opacity:${has?1:0.3}">
+                    <b>${s.n}</b><br><span style="font-size:0.8em; color:#666;">${s.d}</span>
                 </div>`;
             }).join("")}
         </div>
@@ -192,30 +179,30 @@ function renderPower() {
 }
 
 function attack() {
-    if (player.baseHP <= MAJIN_DMG) {
+    if (player.baseHP <= BigInt(MAJIN_DMG)) {
         player.deathCount++;
         const growth = BigInt(Math.floor((10 + player.deathCount) * (1.0 + Object.keys(player.inventory).length * 0.1)));
         player.baseAtk += growth; player.baseHP += growth * 10n;
-        addLog(`<span style="color:var(--primary); font-weight:bold;">魔神の劫火が魂を焼き、再起の誓いによって死を経験に変え新たなる力を得た！</span>`);
+        addLog(`<span class="log-death">99,999,999ダメージ。再起の誓いによって死を経験に変え、新たなる力を得た！</span>`);
         saveGame();
     } else {
-        addLog(`<span style="color:#888;">魔神の劫火が魂を焼く… ${MAJIN_DMG.toLocaleString()} ダメージ！</span>`);
+        addLog(`<span style="color:#999;">魔神の劫火が魂を焼く… ${MAJIN_DMG.toLocaleString()} ダメージ！</span>`);
     }
 
     let dmg = player.baseAtk;
     if (dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
-    if (currentBossHP <= 0n) { addLog(`<b><span style="color:orange;">魔神を討伐し再生させた！</span></b>`); currentBossHP = BOSS_MAX_HP; }
-    addLog(`魔神に ${dmg.toLocaleString()} ダメージを与えた！`);
+    if (currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
+    addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
-    if(Math.random() < 0.12) {
+    if(Math.random() < 0.15) {
         let star = 1; const rv = Math.random();
         if(rv < 0.000001) star = 10; else if(rv < 0.0001) star = 9; else if(rv < 0.001) star = 8;
         else if(rv < 0.01) star = 7; else if(rv < 0.05) star = 6; else if(rv < 0.15) star = 5;
         const cands = RELIC_MASTER.filter(rm => rm.star === star);
         const r = cands[Math.floor(Math.random() * cands.length)];
-        if (star >= 6) { if (!player.inventory[r.id]) { player.inventory[r.id] = 1; addLog(`<span style="color:var(--rare);">【遺物】${r.name} 獲得</span>`); } }
-        else { if ((player.inventory[r.id] || 0) < MAX_STACK) { player.inventory[r.id] = (player.inventory[r.id] || 0) + 1; addLog(`<span style="color:#28a745;">【遺物】${r.name} 獲得</span>`); } }
+        if (star >= 6) { if (!player.inventory[r.id]) player.inventory[r.id] = 1; }
+        else { player.inventory[r.id] = (player.inventory[r.id] || 0) + 1; if(player.inventory[r.id] > 99999999) player.inventory[r.id] = 99999999; }
         saveGame();
     }
     refreshUI();
