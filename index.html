@@ -32,7 +32,6 @@
     .skill-unlocked { border-left-color: var(--primary); background: #e7f5ff; color: #000; font-weight: bold; }
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 10px; }
     #log { font-size: 0.75em; background: #fdfdfd; padding: 8px; border: 1px solid var(--border); border-radius: 6px; height: 150px; overflow-y: auto; }
-    .relic-effect { font-size: 0.75em; color: var(--hp); font-weight: bold; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -56,7 +55,7 @@
 </div>
 <script>
 const BOSS_MAX_HP = 1e20;
-const SAVE_KEY = "MAJIN_DPS_V9_RELIC_FIX";
+const SAVE_KEY = "MAJIN_DPS_V10_FINAL_SKILL";
 const RELIC_GRADES = ["欠片", "心得", "記憶", "極意", "魂", "神域", "深淵", "虚無", "真理", "超越"];
 const STEPS = [10, 50, 150, 300, 500, 800, 1200, 2000, 3500, 5000];
 const POWER_NAMES = ["剣神の残火","不滅の守護者","魔導王の遺志","覇王の残光","絶影の残影","修羅の咆哮","真理の残滓","神託の残響","虚無の深淵","機工の心臓"];
@@ -65,55 +64,67 @@ const SKILL_MASTER = {
     "剣神の残火": [{n:"一の太刀", e:"ATK 5倍"}, {n:"燕返し", e:"追撃率+30%"}, {n:"心眼", e:"クリ率+40%"}, {n:"無想", e:"クリ威力10倍"}, {n:"天断", e:"1000倍撃"}, {n:"神速", e:"速度2倍"}, {n:"流星", e:"ヒット+5"}, {n:"真空", e:"ATK 20倍"}, {n:"極・一文字", e:"会心ダメ1,000倍"}, {n:"剣神降臨", e:"ダメ1万倍"}],
     "不滅の守護者": [{n:"不屈", e:"再起+5000"}, {n:"再生の楔", e:"HP回復10%"}, {n:"逆境の理", e:"HP減でATK倍"}, {n:"不死の魂", e:"即死耐性"}, {n:"守護神の誇り", e:"HP1万毎ATK+100%"}, {n:"金剛の体", e:"HP 100倍"}, {n:"鉄壁の構え", e:"被ダメ激減"}, {n:"報復の棘", e:"反射100倍"}, {n:"絶望への抗い", e:"全補正2倍"}, {n:"不滅の聖域", e:"耐時速度10倍"}],
     "魔導王の遺志": [{n:"魔力導線", e:"遺物ATK+10%"}, {n:"術式展開", e:"ATK 3倍"}, {n:"詠唱破棄", e:"25%でスキル連撃"}, {n:"多重構築", e:"ヒット+2"}, {n:"深淵の知恵", e:"EXP 2倍"}, {n:"魔導の極致", e:"ATK 30倍"}, {n:"元素爆発", e:"追撃500%"}, {n:"真理の門", e:"全スキ強化"}, {n:"賢者の石", e:"遺物数ATK"}, {n:"魔導王の再臨", e:"全権能効果2倍"}],
-    "覇王の残光": [{n:"威圧", e:"敵弱体化"}, {n:"王の進軍", e:"ATK 8倍"}, {n:"凱旋の鬨", e:"EXP 5倍"}, {n:"統率の才", e:"遺物ATK+50%"}, {n:"覇王の盾", e:"HP 10倍"}, {n:"黄金の夜明け", e:"全ダメ50倍"}, {n:"天をも統べる", e:"ヒット+10"}, {n:"不抜の城塞", e:"完全防御"}, {n:"絶対王政", e:"ATK 500倍"}, {n:"至高の御座", e:"Lv毎ATK+5,000"}],
-    "絶影の残影": [{n:"急所穿ち", e:"クリ威力5倍"}, {n:"影走り", e:"回避+50%"}, {n:"死の刻印", e:"割合ダメ"}, {n:"虚像の舞", e:"速度5倍"}, {n:"暗殺者の誇り", e:"ATK 15倍"}, {n:"刹那の閃き", e:"即死付与"}, {n:"闇に溶ける", e:"無敵化"}, {n:"絶影の連撃", e:"ヒット+20"}, {n:"魂の収穫", e:"撃破ATK増"}, {n:"虚無の終焉", e:"一撃必殺"}],
-    "修羅の咆哮": [{n:"狂乱", e:"ATK 12倍"}, {n:"血戦の契り", e:"HP消費ATK増"}, {n:"屠殺の牙", e:"クリ率+20%"}, {n:"闘神の血", e:"再起ATK+10%"}, {n:"修羅の道", e:"速度3倍"}, {n:"飽くなき闘争", e:"連撃数増加"}, {n:"憤怒の波動", e:"全体ダメ"}, {n:"鬼神の連撃", e:"ヒット+15"}, {n:"命を喰らう", e:"吸収10%"}, {n:"冥府の王", e:"修羅覚醒"}],
-    "真理の残滓": [{n:"等価交換", e:"EXPをATKへ"}, {n:"因果の糸", e:"ダメ2倍反転"}, {n:"世界の記憶", e:"遺物ATK100%"}, {n:"理の改変", e:"クリ確定"}, {n:"根源の理解", e:"ATK 100倍"}, {n:"虚構の崩壊", e:"防御無視"}, {n:"天の秤", e:"バランス調整"}, {n:"知識の激流", e:"速度10倍"}, {n:"運命の断罪", e:"ダメ1000倍"}, {n:"神の数式", e:"真理到達"}],
-    "神託の残響": [{n:"祈り", e:"全回復"}, {n:"聖なる光", e:"ATK 4倍"}, {n:"天使の加護", e:"被ダメ半減"}, {n:"奇跡の予兆", e:"ドロップ率UP"}, {n:"天啓の調べ", e:"全ステ1.5倍"}, {n:"聖域の盾", e:"状態異常無効"}, {n:"神の審判", e:"光ダメ"}, {n:"福音の響き", e:"再起数×10ATK"}, {n:"至福の時", e:"EXP 10倍"}, {n:"主の御手", e:"神託成就"}],
-    "虚無の深淵": [{n:"忘却", e:"敵HP 5%削り"}, {n:"影の浸食", e:"ATK 7倍"}, {n:"暗黒の底", e:"速度減衰無視"}, {n:"空虚な夢", e:"ダメ無効"}, {n:"存在の否定", e:"消滅ダメ"}, {n:"無への還元", e:"全ステリセット"}, {n:"深淵の眼", e:"弱点看破"}, {n:"終焉の予言", e:"秒殺カウント"}, {n:"滅びの歌", e:"ATK 666倍"}, {n:"絶対零", e:"完全静止"}],
-    "機工の心臓": [{n:"歯車の回転", e:"速度1.2倍"}, {n:"過負荷の熱", e:"ATK 20倍"}, {n:"精密演算", e:"クリ率100%"}, {n:"鋼鉄の意志", e:"HP 5倍"}, {n:"自動修復", e:"毎秒回復"}, {n:"蒸気の噴進", e:"ヒット+8"}, {n:"機工の連鎖", e:"連撃ATK増"}, {n:"次元の歯車", e:"時間操作"}, {n:"神の設計図", e:"基礎ATK10倍"}, {n:"究極の機構", e:"機工神化"}]
+    "覇王の残光": [{n:"威圧", e:"敵弱体化"}, {n:"王の進軍", e:"ATK 8倍"}, {n:"凱旋の鬨", e:"EXP 5倍"}, {n:"統率の才", e:"遺物ATK+50%"}, {n:"覇王の盾", e:"HP 10倍"}, {n:"黄金の夜明け", e:"全ダメ50倍"}, {n:"天をも統べる", e:"ヒット+10"}, {n:"不抜の城塞", e:"完全防御"}, {n:"絶対王政", e:"ATK 500倍"}, {n:"至高 of 御座", e:"Lv毎ATK+5,000"}],
+    "絶影 of 残影": [{n:"急所穿ち", e:"クリ威力5倍"}, {n:"影走り", e:"回避20%"}, {n:"死の刻印", e:"10H毎ダメ2倍"}, {n:"虚像の舞", e:"速度5倍"}, {n:"暗殺者の誇り", e:"回避時次撃1000倍"}, {n:"刹那の閃き", e:"確率+10%"}, {n:"闇に溶ける", e:"HP1耐え(10%)"}, {n:"絶影の連撃", e:"ヒット+20"}, {n:"魂の収穫", e:"1%でHP全快"}, {n:"虚無の終焉", e:"100 Hit固定"}],
+    "修羅の咆哮": [{n:"狂乱", e:"ATK 12倍"}, {n:"血戦の契り", e:"死亡数でATK増"}, {n:"屠殺の牙", e:"クリ率+20%"}, {n:"闘神の血", e:"再起ATK微増"}, {n:"修羅の道", e:"速度3倍"}, {n:"飽くなき闘争", e:"長押し中ATK10倍"}, {n:"憤怒の波動", e:"追撃200%"}, {n:"鬼神の連撃", e:"ヒット+15"}, {n:"命を喰らう", e:"最大HP永続増"}, {n:"冥府の王", e:"ATK最終10倍"}],
+    "真理の残滓": [{n:"等価交換", e:"EXP→ATK変換"}, {n:"因果の糸", e:"低確率4倍撃"}, {n:"世界の記憶", e:"遺物ATK2倍"}, {n:"理の改変", e:"クリ確定"}, {n:"根源の理解", e:"ATK 100倍"}, {n:"虚構の崩壊", e:"最大HP0.0001%削"}, {n:"天の秤", e:"HP/ATK平均化"}, {n:"知識の激流", e:"速度10倍"}, {n:"運命の断罪", e:"10%で1万倍"}, {n:"神の数式", e:"理論最大ダメ"}],
+    "神託の残響": [{n:"祈り", e:"再起後3秒ATK100倍"}, {n:"聖なる光", e:"敗北時10万倍撃"}, {n:"天使の加護", e:"被ダメ50%減"}, {n:"奇跡の予兆", e:"20%で遺物+1"}, {n:"天啓の調べ", e:"遺物総数ATK増"}, {n:"聖域の盾", e:"即死をHP1%化"}, {n:"神の審判", e:"追撃1000%"}, {n:"福音の響き", e:"死亡×1000加算"}, {n:"至福の時", e:"EXP 10倍"}, {n:"主の御手", e:"0.01秒毎自動攻撃"}],
+    "虚無の深淵": [{n:"忘却", e:"現在HP0.1%削"}, {n:"影の浸食", e:"ATK 7倍"}, {n:"暗黒の底", e:"散り際HP1%削"}, {n:"空虚な夢", e:"被弾毎ATK増"}, {n:"存在の否定", e:"最大HP1000倍"}, {n:"無への還元", e:"全倍率を乗算化"}, {n:"深淵の眼", e:"クリ威力20倍"}, {n:"終焉の予言", e:"攻撃毎に加速"}, {n:"滅びの歌", e:"ATK 666倍"}, {n:"絶対零", e:"敵停止"}],
+    "機工の心臓": [{n:"歯車の回転", e:"速度1.2倍"}, {n:"過負荷の熱", e:"HP全快時100倍"}, {n:"精密演算", e:"クリ100%"}, {n:"鋼鉄の意志", e:"HP 5倍"}, {n:"自動修復", e:"ヒット毎HP+100"}, {n:"蒸気の噴進", e:"ヒット+8"}, {n:"機工の連鎖", e:"連撃で威力増"}, {n:"次元の歯車", e:"1.5倍速"}, {n:"神の設計図", e:"遺物基礎10倍"}, {n:"究極の機構", e:"全確率を100%化"}]
 };
 
-let p, currentBossHP = BOSS_MAX_HP, longPressInterval = null;
+let p, currentBossHP = BOSS_MAX_HP, longPressInterval = null, isPressing = false;
 
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
     p = saved ? JSON.parse(saved) : { lv: 1, exp: 0, inventory: {}, deathCount: 0 };
-    // ⭐︎6〜10の遺物をリセット（一旦削除）
     Object.keys(p.inventory).forEach(id => { if (id % 10 >= 5) delete p.inventory[id]; });
-    if (!p.inventory) p.inventory = {};
     const btn = document.getElementById("attackBtn");
-    const start = (e) => { e.preventDefault(); if(!longPressInterval){ battle(); longPressInterval = setInterval(battle, 100); } };
-    const stop = () => { if(longPressInterval){ clearInterval(longPressInterval); longPressInterval = null; } };
+    const start = (e) => { e.preventDefault(); isPressing = true; if(!longPressInterval){ battle(); longPressInterval = setInterval(battle, 100); } };
+    const stop = () => { isPressing = false; if(longPressInterval){ clearInterval(longPressInterval); longPressInterval = null; } };
     btn.addEventListener("touchstart", start); btn.addEventListener("touchend", stop);
     btn.addEventListener("mousedown", start); btn.addEventListener("mouseup", stop); btn.addEventListener("mouseleave", stop);
     refresh();
 }
 
 function calcStats() {
-    const maxHP = p.lv * 100 + 10;
-    let relicAtkBonus = 0;
-    Object.keys(p.inventory).forEach(id => {
-        const grade = id % 10;
-        relicAtkBonus += (100 * (grade + 1) * p.inventory[id]);
-    });
-
-    let s = { maxHP: maxHP, baseAtk: 10 + (p.lv * 5) + relicAtkBonus, deathM: 1 + (p.deathCount * 0.001), multi: 1 };
+    let s = { maxHP: p.lv * 100 + 10, baseAtk: 10 + (p.lv * 5), deathM: 1 + (p.deathCount * 0.001), multi: 1 };
     
-    // スキル反映
-    const swordCount = getRelicCountByName("剣神の残火");
-    const kingCount = getRelicCountByName("覇王の残光");
-    const mageCount = getRelicCountByName("魔導王の遺志");
-    const guardCount = getRelicCountByName("不滅の守護者");
-
-    let mageMastery = (mageCount >= STEPS[9]) ? 2 : 1; // 魔導王の再臨
-
-    if(swordCount >= STEPS[0]) s.multi *= (1.5 * mageMastery);
-    if(kingCount >= STEPS[9]) s.baseAtk += (p.lv * 5000 * mageMastery); // 至高の御座
-    if(guardCount >= STEPS[4]) s.multi *= (1 + (maxHP / 10000) * mageMastery); // 守護神の誇り
+    // 遺物・スキルロジックの反映（主要修正分）
+    const mageMastery = (getRelicCountByName("魔導王の遺志") >= STEPS[9]) ? 2 : 1;
+    if(isPressing && getRelicCountByName("修羅の咆哮") >= STEPS[5]) s.multi *= (10 * mageMastery); // 飽くなき闘争
+    if(getRelicCountByName("覇王の残光") >= STEPS[9]) s.baseAtk += (p.lv * 5000 * mageMastery); // 至高の御座
+    if(getRelicCountByName("真理の残滓") >= STEPS[5]) { /* 虚構の崩壊：battle内で処理 */ }
 
     s.finalAtk = s.baseAtk * s.deathM * s.multi;
     return s;
+}
+
+function battle() {
+    const s = calcStats();
+    let dmg = s.finalAtk;
+    
+    // 虚構の崩壊(真理6)
+    if(getRelicCountByName("真理の残滓") >= STEPS[5]) dmg += (BOSS_MAX_HP * 0.00000001);
+
+    currentBossHP -= dmg;
+    if(currentBossHP < 0) currentBossHP = 0;
+    
+    p.deathCount++;
+    p.exp += 10 + (p.lv * 2);
+    
+    // ドロップ判定
+    if (Math.random() < 0.2) {
+        const rid = Math.floor(Math.random() * 100);
+        if(rid % 10 < 5) {
+            p.inventory[rid] = (p.inventory[rid] || 0) + 1;
+            // 奇跡の予兆(神託4)
+            if(getRelicCountByName("神託の残響") >= STEPS[3] && Math.random() < 0.2) p.inventory[rid]++;
+        }
+    }
+    const nextExp = p.lv * 50 + 100;
+    while (p.exp >= nextExp) { p.exp -= nextExp; p.lv++; }
+    refresh();
 }
 
 function getRelicCountByName(name) {
@@ -123,45 +134,20 @@ function getRelicCountByName(name) {
     return count;
 }
 
-function battle() {
-    const s = calcStats();
-    currentBossHP -= s.finalAtk;
-    if(currentBossHP < 0) currentBossHP = 0;
-    p.deathCount++;
-    p.exp += 10 + (p.lv * 2);
-    if (Math.random() < 0.2) {
-        const rid = Math.floor(Math.random() * 100);
-        const grade = rid % 10;
-        if(grade < 5) { // 現在は⭐︎5までドロップ
-            p.inventory[rid] = (p.inventory[rid] || 0) + 1;
-            addLog(`<span style="color:var(--gold)">💎 ${POWER_NAMES[Math.floor(rid/10)].split("の")[0]}の${RELIC_GRADES[grade]} 獲得</span>`);
-        }
-    }
-    const nextExp = p.lv * 50 + 100;
-    while (p.exp >= nextExp) { p.exp -= nextExp; p.lv++; }
-    refresh();
-}
-
 function refresh() {
     const s = calcStats();
     const nextExp = p.lv * 50 + 100;
-    const bossPer = (currentBossHP / BOSS_MAX_HP * 100);
-    document.getElementById("bosshp").style.width = bossPer + "%";
-    document.getElementById("bosshp-text").innerText = bossPer.toFixed(6) + "%";
+    document.getElementById("bosshp").style.width = (currentBossHP / BOSS_MAX_HP * 100) + "%";
+    document.getElementById("bosshp-text").innerText = (currentBossHP / BOSS_MAX_HP * 100).toFixed(6) + "%";
     document.getElementById("playerhp-text").innerText = `${Math.floor(s.maxHP)} / ${Math.floor(s.maxHP)}`;
     document.getElementById("playerhp").style.width = "100%";
     document.getElementById("exp-bar").style.width = (p.exp / nextExp * 100) + "%";
     document.getElementById("exp-text").innerText = Math.floor(p.exp / nextExp * 100) + "%";
     document.getElementById("p-lv-text").innerText = `Lv.${p.lv}`;
     document.getElementById("sum-atk").innerText = Math.floor(s.finalAtk).toLocaleString();
-    if (document.activeTab === 'status') renderStatus(s);
     if (document.activeTab === 'power') renderPowers();
     if (document.activeTab === 'relic') renderRelics();
     localStorage.setItem(SAVE_KEY, JSON.stringify(p));
-}
-
-function renderStatus(s) {
-    document.getElementById("statusList").innerHTML = `<div class="status-item"><span>最大HP</span><span>${Math.floor(s.maxHP)}</span></div><div class="status-item"><span>最終攻撃力</span><span>${Math.floor(s.finalAtk).toLocaleString()}</span></div>`;
 }
 
 function renderPowers() {
