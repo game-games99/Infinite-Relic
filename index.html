@@ -14,20 +14,19 @@
     #content-area { flex-grow: 1; overflow-y: auto; }
     .tab { display: none; padding: 15px; box-sizing: border-box; }
     .tab.active { display: block; padding-bottom: 100px; }
-    
     .bar-label { display: flex; justify-content: space-between; font-size: 0.75em; font-weight: bold; }
     .bar { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin: 4px 0 8px; }
     .fill { height: 100%; transition: width 0.1s ease; }
-    
     .card-cell { background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 15px; }
     .skill-grid { display: grid; gap: 6px; margin-top: 8px; }
     .skill-item { font-size: 0.7em; padding: 8px; border-radius: 4px; border-left: 4px solid #ddd; }
     .p-skill { background: #f8f9fa; border-left-color: #adb5bd; }
     .a-skill { background: #e7f5ff; border-left-color: var(--primary); font-weight: bold; }
-    
-    .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
+    .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; }
     #log { font-size: 0.8em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 8px; height: 220px; overflow-y: auto; margin-top: 15px; }
     .relic-rare { border: 2px solid var(--rare); background: #fffdf5; }
+    .stat-row { display: flex; justify-content: space-between; font-size: 0.9em; padding: 4px 0; border-bottom: 1px solid #eee; }
+    .stat-val { font-weight: bold; color: var(--primary); }
 </style>
 </head>
 <body>
@@ -35,13 +34,10 @@
 <div id="header">
     <div class="bar-label"><span>魔神 HP</span><span id="bosshp-text">100%</span></div>
     <div class="bar"><div id="bosshp" class="fill" style="background:var(--hp); width:100%"></div></div>
-    
     <div class="bar-label"><span>経験値</span><span id="exp-text">0%</span></div>
     <div class="bar"><div id="exp-bar" class="fill" style="background:var(--exp); width:0%"></div></div>
-
     <div class="bar-label"><span>プレイヤー HP</span><span id="playerhp-text">100/100</span></div>
     <div class="bar"><div id="playerhp" class="fill" style="background:var(--player-hp); width:100%"></div></div>
-    
     <div style="font-size:0.8em; font-weight:bold; display:flex; justify-content:space-between; margin-top:5px;">
         <span>Lv: <span id="p-lv">1</span></span>
         <span>ATK: <span id="p-atk">0</span></span>
@@ -78,15 +74,19 @@ const SKILL_DATA = [
     ["歯車回転:1.2倍速","過負荷熱:全快100倍","精密演算:会心100%","鋼鉄意志:HP5倍","自動修復:H毎回復","蒸気噴進:H+8","機工連鎖:連撃増","次元歯車:1.5倍速","神設計図:遺物10倍","究極機構:確100%"]
 ];
 
-let player = { lv: 1, exp: 0, hp: 100, maxHP: 100, inventory: Array(100).fill(0), deathCount: 0, bonusAtk: 0, bonusHP: 0 };
+const RELIC_SUFFIX = ["の欠片", "の破片", "の結晶", "の輝石", "の紋章", "の腕", "の眼", "の核", "の心", "の術式心"];
+
+let player = { lv: 1, exp: 0, hp: 100, maxHP: 100, inventory: Array(100).fill(0), deathCount: 0, rAtk: 0, rHP: 0 };
 let boss = { hp: 1e18, maxHP: 1e18 };
 let maxDmgDealt = 0, isPressing = false;
 
+// 遺物マスタ
 const RELIC_MASTER = Array.from({length: 100}, (_, i) => {
     const star = (i % 10) + 1;
     const type = (i % 2 === 0) ? "ATK" : "HP";
-    const val = (type === "ATK") ? (star * 100 + i) : (star * 500 + i * 2);
-    return { id: i, star, type, val, power: POWER_NAMES[Math.floor(i/10)] };
+    const name = POWER_NAMES[Math.floor(i/10)] + RELIC_SUFFIX[star-1];
+    const val = (type === "ATK") ? (star * 111 + i) : (star * 555 + i * 2);
+    return { id: i, star, type, val, name, pIdx: Math.floor(i/10) };
 });
 
 function init() {
@@ -101,54 +101,46 @@ function init() {
 }
 
 function updateStats() {
-    let rAtk = 0; let rHP = 0;
+    let atkSum = 0; let hpSum = 0;
     player.inventory.forEach((count, id) => {
         if (count > 0) {
             const r = RELIC_MASTER[id];
-            if (r.type === "ATK") rAtk += r.val * count;
-            else rHP += r.val * count;
+            if (r.type === "ATK") atkSum += r.val * count;
+            else hpSum += r.val * count;
         }
     });
-    const oathAtk = player.deathCount * 50;
-    const oathHP = player.deathCount * 200;
-    player.bonusAtk = rAtk + oathAtk;
-    player.bonusHP = rHP + oathHP;
-    player.maxHP = (100 + player.lv * 100) + player.bonusHP;
+    player.rAtk = atkSum;
+    player.rHP = hpSum;
+    player.maxHP = (100 + player.lv * 100) + (player.deathCount * 200) + player.rHP;
     player.hp = player.maxHP;
 }
 
 function attack() {
-    // 魔神の致死ダメージ（整数表示）
     addLog(`<span style="color:red">魔神の攻撃：999999999999999 ダメージ</span>`);
     player.deathCount++;
     addLog(`再起の誓いにより力を取り戻した...`);
     updateStats();
 
-    const currentAtk = (10 + player.lv * 10) + player.bonusAtk;
-    let dmg = Math.floor(currentAtk * (0.8 + Math.random() * 0.4));
-    
-    // スキル反映（整数化）
+    const baseAtk = (10 + player.lv * 10);
+    const oathAtk = (player.deathCount * 50);
+    const totalAtk = baseAtk + oathAtk + player.rAtk;
+
+    let dmg = Math.floor(totalAtk * (0.8 + Math.random() * 0.4));
     boss.hp = Math.max(0, Math.floor(boss.hp - dmg));
     if(dmg > maxDmgDealt) maxDmgDealt = dmg;
 
     player.exp += (dmg / (player.lv * 10)) + 5;
-    if(player.exp >= 100) {
-        player.lv++; player.exp = 0;
-        updateStats();
-        addLog(`Lv UP! Lv ${player.lv}`);
-    }
+    if(player.exp >= 100) { player.lv++; player.exp = 0; updateStats(); addLog(`Lv UP! Lv ${player.lv}`); }
 
-    if (Math.random() < 0.05) {
+    if (Math.random() < 0.06) {
         let rId = Math.floor(Math.random() * 100);
         const r = RELIC_MASTER[rId];
         if (r.star >= 6) {
             for (let i=0; i<100; i++) if (RELIC_MASTER[i].star === r.star) player.inventory[i] = 0;
             player.inventory[rId] = 1;
-        } else {
-            player.inventory[rId]++;
-        }
+        } else { player.inventory[rId]++; }
         updateStats();
-        addLog(`<span style="color:var(--rare)">遺物【⭐︎${r.star} ${r.power}】を入手</span>`);
+        addLog(`<span style="color:var(--rare)">遺物【${r.name}】を入手</span>`);
     }
 
     addLog(`魔神に ${Math.floor(dmg).toLocaleString()} ダメージ！`);
@@ -162,10 +154,10 @@ function refreshUI() {
     document.getElementById("exp-bar").style.width = player.exp + "%";
     document.getElementById("exp-text").innerText = Math.floor(player.exp) + "%";
     document.getElementById("playerhp-text").innerText = `${Math.floor(player.maxHP).toLocaleString()}/${Math.floor(player.maxHP).toLocaleString()}`;
-    document.getElementById("playerhp").style.width = "100%";
     document.getElementById("p-lv").innerText = player.lv;
-    document.getElementById("p-atk").innerText = Math.floor((10 + player.lv * 10) + player.bonusAtk).toLocaleString();
+    document.getElementById("p-atk").innerText = Math.floor((10 + player.lv * 10) + (player.deathCount * 50) + player.rAtk).toLocaleString();
     document.getElementById("p-death").innerText = player.deathCount;
+    if(document.activeTab === 'status') renderStatus();
     if(document.activeTab === 'relic') renderRelic();
 }
 
@@ -196,8 +188,8 @@ function renderRelic() {
         if(count > 0) {
             const r = RELIC_MASTER[id];
             h += `<div class="card-cell ${r.star >= 6 ? 'relic-rare' : ''}">
-                <b>⭐︎${r.star} ${r.power}の遺物</b>: ${count}個
-                <div style="font-size:0.8em; color:#d63384; font-weight:bold;">強化権能スキル: ${SKILL_DATA[Math.floor(id/10)][r.star-1]}</div>
+                <b>⭐︎${r.star} ${r.name}</b>: ${count}個
+                <div style="font-size:0.8em; color:#d63384; font-weight:bold;">強化権能スキル: ${SKILL_DATA[r.pIdx][r.star-1]}</div>
                 <div style="font-size:0.8em;">能力加算: ${r.type} +${r.val.toLocaleString()}</div>
             </div>`;
         }
@@ -206,7 +198,30 @@ function renderRelic() {
 }
 
 function renderStatus() {
-    document.getElementById("status").innerHTML = `<div class="card-cell"><h3>討伐記録</h3>最大ダメージ: ${Math.floor(maxDmgDealt).toLocaleString()}<br>再起の誓い: ${player.deathCount}回</div>`;
+    const baseAtk = (10 + player.lv * 10);
+    const oathAtk = (player.deathCount * 50);
+    const baseHP = (100 + player.lv * 100);
+    const oathHP = (player.deathCount * 200);
+
+    document.getElementById("status").innerHTML = `
+        <div class="card-cell">
+            <h3>現在の能力詳細</h3>
+            <div class="stat-row"><span>基礎攻撃力 (Lv:${player.lv})</span><span class="stat-val">+${baseAtk.toLocaleString()}</span></div>
+            <div class="stat-row"><span>再起の誓いによる加算</span><span class="stat-val">+${oathAtk.toLocaleString()}</span></div>
+            <div class="stat-row"><span>遺物による加算</span><span class="stat-val">+${player.rAtk.toLocaleString()}</span></div>
+            <div class="stat-row" style="border-top:2px solid #333; margin-top:5px;"><span>合計攻撃力</span><span class="stat-val" style="font-size:1.2em;">${(baseAtk+oathAtk+player.rAtk).toLocaleString()}</span></div>
+        </div>
+        <div class="card-cell">
+            <h3>耐久の記録</h3>
+            <div class="stat-row"><span>基礎体力</span><span class="stat-val">+${baseHP.toLocaleString()}</span></div>
+            <div class="stat-row"><span>再起の誓いによる加算</span><span class="stat-val">+${oathHP.toLocaleString()}</span></div>
+            <div class="stat-row"><span>遺物による加算</span><span class="stat-val">+${player.rHP.toLocaleString()}</span></div>
+            <div class="stat-row" style="border-top:2px solid #333; margin-top:5px;"><span>合計体力 (最大HP)</span><span class="stat-val" style="font-size:1.2em;">${(baseHP+oathHP+player.rHP).toLocaleString()}</span></div>
+        </div>
+        <div class="card-cell">
+            <div class="stat-row"><span>最大ダメージ</span><span class="stat-val">${Math.floor(maxDmgDealt).toLocaleString()}</span></div>
+            <div class="stat-row"><span>累計の誓い</span><span class="stat-val">${player.deathCount} 回</span></div>
+        </div>`;
 }
 
 function addLog(m) {
