@@ -23,17 +23,23 @@
     #job-exp-bar { background: var(--death); }
     .stats-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; margin-top: 6px; background: rgba(0,0,0,0.05); padding: 6px; border-radius: 6px; }
     .stat-item { display: flex; justify-content: space-between; font-size: 0.85em; font-weight: bold; }
+    
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 10px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.75em; cursor: pointer; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-    #content { flex-grow: 1; overflow-y: auto; position: relative; }
-    .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; }
+    
+    #content { flex-grow: 1; overflow: hidden; position: relative; }
+    .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; overflow-y: auto; }
     .tab.active { display: block; }
+    
+    /* ステータスタブの調整 */
+    .status-large { font-size: 1.2em; font-weight: bold; padding: 15px; background: #fff; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; line-height: 1.6; }
+
     .btn-attack { width: 100%; padding: 12px; background: var(--primary); color: #fff; font-size: 1.0em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 2px; }
-    #log { flex-grow: 1; margin-top: 6px; overflow-y: auto; font-size: 0.7em; background: #fafafa; padding: 6px; border: 1px solid var(--border); border-radius: 4px; }
+    #log { flex-grow: 1; margin-top: 6px; overflow-y: auto; font-size: 0.7em; background: #fafafa; padding: 6px; border: 1px solid var(--border); border-radius: 4px; height: 200px; }
     .log-entry { margin-bottom: 1px; padding: 1px 0; border-bottom: 1px solid #eee; }
-    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .card-cell { background: #fff; border: 1px solid var(--border); padding: 8px; font-size: 0.75em; border-radius: 4px; cursor: pointer; }
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 20px; }
+    .card-cell { background: #fff; border: 1px solid var(--border); padding: 8px; font-size: 0.75em; border-radius: 4px; cursor: pointer; min-height: 45px; display: flex; align-items: center; }
     .detail-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 20; padding: 15px; display: none; overflow-y: auto; }
 </style>
 </head>
@@ -66,7 +72,7 @@
 
 <div class="nav">
     <button onclick="showTab('battle', this)" class="active">討伐</button>
-    <button onclick="showTab('status', this)">詳細情報</button>
+    <button onclick="showTab('status', this)">ステータス</button>
     <button onclick="showTab('job', this)">職業</button>
     <button onclick="showTab('equip', this)">遺物</button>
 </div>
@@ -86,9 +92,9 @@
 
 <script>
 const BOSS_MAX_HP = 1e24;
-const SAVE_KEY = "MAJIN_DPS_V8_FIX"; // セーブデータの継続性を確保
+const SAVE_KEY = "MAJIN_DPS_V8_FIX"; 
 
-// 職業データ（変更なし）
+// 20ジョブ・各5スキル（計100スキル）の定義復元
 const JOBS_DATA = {
     "剣聖": { skills: ["烈風斬", "雷鳴一閃", "空破斬", "奥義・天断", "神殺しの刃"], desc: "クリティカル倍率が大幅に上昇する。" },
     "神官": { skills: ["癒しの光", "守護の結界", "天罰の光", "奇跡の風", "聖域の守り"], desc: "被弾時の敗北経験値を徳としてATKに変換する。" },
@@ -102,8 +108,8 @@ const JOBS_DATA = {
     "吟遊詩人": { skills: ["鎮魂歌", "勇気の賛歌", "希望の旋律", "神々の絶唱", "終焉の歌"], desc: "全てのステータスにLvの100倍を加算する。" },
     "死霊使い": { skills: ["亡者召喚", "腐食の呪い", "魂の捕食", "冥府の門", "不死者の王"], desc: "敗北するたびに永続的にATKが+1000される。" },
     "聖騎士": { skills: ["献身の盾", "聖なる審判", "福音の光", "神威の波動", "究極の加護"], desc: "HPが尽きても30%の確率で耐える。" },
-    "風来坊": { skills: ["疾風自在", "木の葉隠れ", "一服の涼", "旅路の果て", "雲外蒼天"], desc: "攻撃速度（長押し間隔）が体感加速する。" },
-    "狂戦士": { skills: ["激昂の咆哮", "不屈の精神", "血塗れの粉砕", "暴走する力", "終焉の戦"], desc: "HPが減っているほど（常に即死なので最大時）ATKが3倍。" },
+    "風来坊": { skills: ["疾風自在", "木の葉隠れ", "一服の涼", "旅路の果て", "雲外蒼天"], desc: "攻撃速度が体感加速する。" },
+    "狂戦士": { skills: ["激昂の咆哮", "不屈の精神", "血塗れの粉砕", "暴走する力", "終焉の戦"], desc: "HP最大のとき（常に即死なので実質常時）ATKが3倍。" },
     "機工士": { skills: ["照準固定", "自動砲台", "過負荷稼働", "展開型兵装", "最終兵器"], desc: "クリティカル時にさらに追加ダメージを発生させる。" },
     "時魔道師": { skills: ["加速の刻", "遅延の砂", "停止の呪文", "回帰の刻印", "ビッグバン"], desc: "全経験値効率が+200%される。" },
     "格闘家": { skills: ["正拳突き", "連弾", "発勁", "鉄山靠", "真・神拳"], desc: "遺物によるATK上昇値を1.5倍にする。" },
@@ -112,7 +118,6 @@ const JOBS_DATA = {
     "博徒": { skills: ["賽の目", "一か八か", "強奪の一手", "大逆転劇", "ジャックポット"], desc: "10%の確率でダメージが10倍、90%で1になる。" }
 };
 
-// 遺物250種類の差別化ロジック
 const R_ADJ = ["星辰の", "冥府の", "黄金の", "深淵の", "聖天の", "古の", "虚無の", "永劫の", "混沌の", "因果の"];
 const R_CORE = ["竜王", "熾天使", "魔帝", "賢者", "精霊", "狂戦士", "覇道", "極夜", "神光", "奈落"];
 const R_OBJ = ["秘石", "紋章", "聖杯", "指輪", "魔冠", "剣片", "盾刻", "首飾り", "宝珠", "断罪"];
@@ -134,15 +139,13 @@ let p, longPressIdx, isProcessing = false;
 let currentBossHP = BOSS_MAX_HP;
 
 function fmt(num) { return Math.floor(num).toLocaleString(); }
+const nextLv = (l) => Math.pow(l, 3) * 1000;
+const nextJobLv = (l) => Math.pow(l, 3) * 500;
 
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
-    // 初期化時、既存データを保持しつつジョブ関連の構造を保護
     p = saved ? JSON.parse(saved) : { lv: 1, exp: 0, job: "剣聖", inventory: {}, jobLevels: {}, jobExp: {}, deathCount: 0, extraAtk: 0 };
-    Object.keys(JOBS_DATA).forEach(j => {
-        if (!p.jobLevels[j]) p.jobLevels[j] = 1;
-        if (p.jobExp[j] === undefined) p.jobExp[j] = 0;
-    });
+    Object.keys(JOBS_DATA).forEach(j => { if (!p.jobLevels[j]) p.jobLevels[j] = 1; if (p.jobExp[j] === undefined) p.jobExp[j] = 0; });
     
     const btn = document.getElementById("attackBtn");
     const handleStart = (e) => { e.preventDefault(); if(!longPressIdx) { battle(); longPressIdx = setInterval(battle, 100); } };
@@ -198,20 +201,28 @@ function battle() {
     p.exp += gainExp; p.jobExp[p.job] += gainExp * (p.job === "賢者" ? 3 : 1);
     if (Math.random() < (p.job === "錬金術師" ? 0.3 : 0.1)) { let rId = Math.floor(Math.random() * 250); p.inventory[rId] = (p.inventory[rId] || 0) + 1; }
     
-    checkLevelUp(); refresh(); isProcessing = false;
-}
-
-function checkLevelUp() {
-    const next = (l) => Math.pow(l, 3) * 1000; while (p.exp >= next(p.lv)) { p.exp -= next(p.lv); p.lv++; }
-    const jNext = (l) => Math.pow(l, 3) * 500; while (p.jobExp[p.job] >= jNext(p.jobLevels[p.job])) { p.jobExp[p.job] -= jNext(p.jobLevels[p.job]); p.jobLevels[p.job]++; }
+    while (p.exp >= nextLv(p.lv)) { p.exp -= nextLv(p.lv); p.lv++; }
+    while (p.jobExp[p.job] >= nextJobLv(p.jobLevels[p.job])) { p.jobExp[p.job] -= nextJobLv(p.jobLevels[p.job]); p.jobLevels[p.job]++; }
+    
+    refresh(); isProcessing = false;
 }
 
 function refresh() {
     const stats = calcStats();
     const hpPer = (currentBossHP / BOSS_MAX_HP * 100);
+    const expPer = (p.exp / nextLv(p.lv) * 100);
+    const jExpPer = (p.jobExp[p.job] / nextJobLv(p.jobLevels[p.job]) * 100);
+
     document.getElementById("bosshp").style.width = hpPer + "%";
     document.getElementById("bosshp-text").innerText = hpPer.toFixed(4) + "%";
     document.getElementById("playerhp-text").innerText = `0 / ${fmt(stats.maxHP)}`;
+    document.getElementById("playerhp").style.width = "0%";
+    
+    document.getElementById("exp-bar").style.width = expPer + "%";
+    document.getElementById("exp-text").innerText = expPer.toFixed(1) + "%";
+    document.getElementById("job-exp-bar").style.width = jExpPer + "%";
+    document.getElementById("job-exp-text").innerText = jExpPer.toFixed(1) + "%";
+    
     document.getElementById("sum-atk").innerText = fmt(stats.totalAtk);
     document.getElementById("sum-death").innerText = fmt(p.deathCount);
     document.getElementById("sum-crit").innerText = stats.crit + "%";
@@ -226,15 +237,27 @@ function refresh() {
 }
 
 function renderStatusList(s) {
-    document.getElementById("statusList").innerHTML = `<div style="background:#f1f3f5; padding:10px; border-radius:6px; font-size:0.85em;"><strong>最終ATK: ${fmt(s.totalAtk)}</strong><br>基礎ATK: ${fmt(s.baseAtk)}<br>遺物加算: ${fmt(s.atkRelic)}<br>増幅倍率: x${s.deathM.toFixed(2)}</div>`;
+    document.getElementById("statusList").innerHTML = `
+        <div class="status-large">
+            最終ATK: <span style="color:var(--accent)">${fmt(s.totalAtk)}</span><br>
+            基礎ATK: ${fmt(s.baseAtk)}<br>
+            遺物加算: ${fmt(s.atkRelic)}<br>
+            増幅倍率: <span style="color:var(--primary)">x${s.deathM.toFixed(2)}</span><br>
+            クリ倍率: x${s.critM.toFixed(2)}<br>
+            経験値倍率: x${s.fast.toFixed(2)}
+        </div>`;
 }
 
 function renderJobs() {
-    document.getElementById("jobList").innerHTML = Object.keys(JOBS_DATA).map(j => `<div class="card-cell" onclick="openJobDetail('${j}')"><span style="font-weight:bold;">${j} (Lv.${p.jobLevels[j]})</span></div>`).join("");
+    document.getElementById("jobList").innerHTML = Object.keys(JOBS_DATA).map(j => `
+        <div class="card-cell" onclick="openJobDetail('${j}')">
+            <span style="font-weight:bold;">${j} (Lv.${p.jobLevels[j]})</span>
+        </div>`).join("");
 }
 
 function openJobDetail(j) {
-    const d = JOBS_DATA[j]; showDetail(`<h3>${j}</h3><p>${d.desc}</p><button class="btn-attack" onclick="p.job='${j}'; closeDetail(); refresh();">この職業に転職</button>`);
+    const d = JOBS_DATA[j]; 
+    showDetail(`<h3>${j}</h3><p>${d.desc}</p><b>習得スキル:</b><ul>${d.skills.map(s=>`<li>${s}</li>`).join("")}</ul><button class="btn-attack" onclick="p.job='${j}'; closeDetail(); refresh();">この職業に転職</button>`);
 }
 
 function renderEquip() {
@@ -247,7 +270,7 @@ function openRelicDetail(id) {
     const d = getRelicData(id); showDetail(`<h3>${d.name}</h3><p>${d.effectText}</p><p>所持数: ${p.inventory[id]}</p>`);
 }
 
-function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className = "log-entry"; d.innerHTML = m; l.prepend(d); if (l.childNodes.length > 20) l.removeChild(l.lastChild); }
+function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className = "log-entry"; d.innerHTML = m; l.prepend(d); if (l.childNodes.length > 30) l.removeChild(l.lastChild); }
 function showTab(id, btn) { document.querySelectorAll(".tab").forEach(t => t.classList.remove("active")); document.getElementById(id).classList.add("active"); document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active")); btn.classList.add("active"); refresh(); }
 function showDetail(c) { document.getElementById("detailContent").innerHTML = c; document.getElementById("detailPanel").style.display = "block"; }
 function closeDetail() { document.getElementById("detailPanel").style.display = "none"; }
