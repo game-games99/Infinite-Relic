@@ -11,7 +11,19 @@
         --accent: #dc3545; --gold: #d39e00; --hp: #28a745;
     }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-    #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
+    
+    /* UI固定エリア */
+    #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; z-index: 100; }
+    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100; overflow-x: auto; }
+    .nav button { flex: 1; min-width: 70px; padding: 12px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.7em; cursor: pointer; white-space: nowrap; }
+    .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
+
+    /* コンテンツエリア */
+    #content { flex-grow: 1; overflow: hidden; position: relative; background: #fff; }
+    .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .tab.active { display: block; }
+
+    /* バー表示 */
     .bar-container { margin-bottom: 4px; }
     .bar-label { display: flex; justify-content: space-between; font-size: 0.75em; font-weight: bold; }
     .bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
@@ -20,30 +32,25 @@
     #playerhp { background: var(--hp); }
     #exp-bar { background: var(--primary); }
     
-    .stats-summary { margin-top: 6px; background: rgba(0,0,0,0.03); padding: 8px; border-radius: 4px; font-size: 0.85em; }
-    .stat-row { display: flex; justify-content: space-between; font-weight: bold; padding: 2px 0; }
+    .stats-summary { margin-top: 6px; background: rgba(0,0,0,0.03); padding: 8px; border-radius: 4px; font-size: 0.8em; }
+    .stat-row { display: flex; justify-content: space-between; font-weight: bold; }
 
-    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); overflow-x: auto; }
-    .nav button { flex: 1; min-width: 80px; padding: 12px 0; border: none; background: none; color: var(--sub); font-weight: bold; font-size: 0.75em; cursor: pointer; white-space: nowrap; }
-    .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-
-    #content { flex-grow: 1; overflow: hidden; position: relative; }
-    .tab { display: none; padding: 10px; height: 100%; box-sizing: border-box; overflow-y: auto; }
-    .tab.active { display: block; }
-
-    .grid-1col { display: grid; grid-template-columns: 1fr; gap: 10px; padding-bottom: 150px; }
-    .card-cell { background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; }
+    /* カード・リスト表示 */
+    .grid-1col { display: grid; grid-template-columns: 1fr; gap: 10px; padding-bottom: 100px; }
+    .card-cell { background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     
     .skill-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
-    .skill-item { font-size: 0.6em; padding: 4px; border-radius: 4px; background: #f1f3f5; border-left: 2px solid var(--border); color: #888; }
+    .skill-item { font-size: 0.55em; padding: 4px; border-radius: 4px; background: #f1f3f5; border-left: 2px solid var(--border); color: #888; line-height: 1.2; }
     .skill-unlocked { border-left-color: var(--primary); background: #e7f5ff; color: #000; font-weight: bold; }
 
-    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; user-select: none; }
-    #log { flex-grow: 1; margin-top: 10px; overflow-y: auto; font-size: 0.75em; background: #fdfdfd; padding: 8px; border: 1px solid var(--border); border-radius: 6px; height: 120px; }
+    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; user-select: none; box-shadow: 0 4px 0 #0056b3; margin-bottom: 10px; }
+    .btn-attack:active { transform: translateY(2px); box-shadow: 0 2px 0 #0056b3; }
     
-    .status-list { font-size: 0.9em; }
-    .status-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-    .relic-effect { font-size: 0.8em; color: var(--hp); font-weight: bold; }
+    #log { font-size: 0.75em; background: #fdfdfd; padding: 8px; border: 1px solid var(--border); border-radius: 6px; height: 150px; overflow-y: auto; }
+    
+    .status-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9em; }
+    .relic-effect { font-size: 0.75em; color: var(--hp); font-weight: bold; margin-top: 4px; }
+    .unique-tag { background: var(--accent); color: #fff; font-size: 0.6em; padding: 2px 4px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -52,11 +59,7 @@
     <div class="bar-container"><div class="bar-label"><span>魔神</span><span id="bosshp-text">100%</span></div><div class="bar"><div id="bosshp" class="fill"></div></div></div>
     <div class="bar-container"><div class="bar-label"><span>HP</span><span id="playerhp-text">0 / 0</span></div><div class="bar"><div id="playerhp" class="fill"></div></div></div>
     <div class="bar-container"><div class="bar-label"><span id="p-lv-text">Lv.1</span><span id="exp-text">0%</span></div><div class="bar"><div id="exp-bar" class="fill"></div></div></div>
-    
-    <div class="stats-summary">
-        <div class="stat-row"><span>ATK:</span><span id="sum-atk">0</span></div>
-        <div class="stat-row"><span>再起の誓い:</span><span id="sum-death">0</span></div>
-    </div>
+    <div class="stats-summary"><div class="stat-row"><span>ATK:</span><span id="sum-atk">0</span></div></div>
 </div>
 
 <div class="nav">
@@ -67,19 +70,22 @@
 </div>
 
 <div id="content">
-    <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">魔神に攻撃（長押し）</button><div id="log"></div></div>
-    <div id="status" class="tab"><div class="status-list" id="statusList"></div></div>
+    <div id="battle" class="tab active">
+        <button class="btn-attack" id="attackBtn">魔神に攻撃（長押し）</button>
+        <div id="log"></div>
+    </div>
+    <div id="status" class="tab"><div id="statusList"></div></div>
     <div id="power" class="tab"><div id="powerList" class="grid-1col"></div></div>
     <div id="relic" class="tab"><div id="relicList" class="grid-1col"></div></div>
 </div>
 
 <script>
-const BOSS_MAX_HP = 1e24; // 精度維持のため一旦この値
+const BOSS_MAX_HP = 1e24;
 const SAVE_KEY = "MAJIN_DPS_V8_FIX";
 const RELIC_GRADES = ["欠片", "心得", "記憶", "極意", "魂", "神域", "深淵", "虚無", "真理", "超越"];
 const STEPS = [10, 50, 150, 300, 500, 800, 1200, 2000, 3500, 5000];
-
 const POWER_NAMES = ["剣神の残火","不滅の守護者","魔導王の遺志","覇王の残光","絶影の残影","修羅の咆哮","真理の残滓","神託の残響","虚無の深淵","機工の心臓"];
+
 const POWER_DATA = {};
 POWER_NAMES.forEach((name, idx) => {
     POWER_DATA[name] = {
@@ -88,10 +94,12 @@ POWER_NAMES.forEach((name, idx) => {
     };
 });
 
-// 剣神と不滅のみ一部具体化
-POWER_DATA["剣神の残火"].skills[0] = {req:STEPS[0], n:"一の太刀", e:"ATK 5倍"};
-POWER_DATA["剣神の残火"].skills[2] = {req:STEPS[2], n:"心眼", e:"クリ率+40%"};
-POWER_DATA["不滅の守護者"].skills[0] = {req:STEPS[0], n:"不屈", e:"再起+5000"};
+// スキル内容の一部具体化
+POWER_DATA["剣神の残火"].skills = [
+    {req:STEPS[0], n:"一の太刀", e:"ATK 5倍"}, {req:STEPS[1], n:"燕返し", e:"追撃率+30%"}, {req:STEPS[2], n:"心眼", e:"クリ率+40%"},
+    {req:STEPS[3], n:"無想", e:"クリ威力10倍"}, {req:STEPS[4], n:"天断", e:"1000倍撃"}, {req:STEPS[5], n:"神速", e:"速度2倍"},
+    {req:STEPS[6], n:"流星", e:"ヒット+5"}, {req:STEPS[7], n:"真空", e:"ATK 20倍"}, {req:STEPS[8], n:"極", e:"クリ100%"}, {req:STEPS[9], n:"剣神", e:"全ダメ1万倍"}
+];
 
 let p, currentBossHP = BOSS_MAX_HP, longPressInterval = null;
 
@@ -115,24 +123,28 @@ function getSystemRelicCount(name) {
 }
 
 function calcStats() {
-    const maxHP = p.lv * 1500 + 100;
+    const maxHP = p.lv * 2000 + 100;
     let relicAtkBonus = 0;
-    Object.keys(p.inventory).forEach(id => { relicAtkBonus += (p.inventory[id] * 5000); });
+    Object.keys(p.inventory).forEach(id => {
+        const count = p.inventory[id];
+        const grade = id % 10;
+        // ⭐︎6以上は1つ限定だが、万一のバグに備え数値は1つ分で計算
+        const power = (grade < 5) ? (5000 * (grade + 1) * count) : (1000000 * (grade + 1));
+        relicAtkBonus += power;
+    });
 
     let s = { 
         maxHP: maxHP,
-        baseAtk: 5000 + (p.lv * 2000) + relicAtkBonus, 
+        baseAtk: 5000 + (p.lv * 2500) + relicAtkBonus, 
         deathM: 1 + (p.deathCount * 0.01), 
         multi: 1, crit: 5, critM: 2.0, hits: 1 
     };
     
-    // スキル反映
+    // スキル反映ロジック
     const swordCount = getSystemRelicCount("剣神の残火");
     if(swordCount >= STEPS[0]) s.multi *= 5;
     if(swordCount >= STEPS[2]) s.crit += 40;
-
-    const machineCount = getSystemRelicCount("機工の心臓");
-    if(machineCount >= STEPS[0]) s.hits += 1;
+    if(swordCount >= STEPS[4]) s.multi *= 1000;
 
     s.finalAtk = s.baseAtk * s.deathM * s.multi;
     return s;
@@ -150,27 +162,34 @@ function battle() {
     if(currentBossHP < 0) currentBossHP = 0;
 
     p.deathCount++;
-    p.exp += 500; // 経験値加算を確実に
+    p.exp += 1000;
 
+    // 遺物ドロップ判定
     if (Math.random() < 0.3) {
         const rid = Math.floor(Math.random() * 100);
-        p.inventory[rid] = (p.inventory[rid] || 0) + 1;
-        addLog(`<span style="color:var(--gold)">💎 遺物獲得 [ID:${rid}]</span>`);
+        const grade = rid % 10;
+        if(grade < 5) {
+            // 低レアは累積
+            p.inventory[rid] = (p.inventory[rid] || 0) + 1;
+            addLog(`<span style="color:var(--gold)">💎 ⭐︎${grade+1}遺物 獲得</span>`);
+        } else {
+            // ⭐︎6以上は唯一無二
+            if(!p.inventory[rid] || p.inventory[rid] === 0) {
+                p.inventory[rid] = 1;
+                addLog(`<span style="color:var(--accent)">🔥 超強力 ⭐︎${grade+1}遺物 獲得！</span>`);
+            }
+        }
     }
 
-    const nextExp = p.lv ** 2 * 1000; // レベルアップしやすく調整
-    while (p.exp >= nextExp) {
-        p.exp -= nextExp;
-        p.lv++;
-    }
+    const nextExp = p.lv ** 2 * 1200;
+    while (p.exp >= nextExp) { p.exp -= nextExp; p.lv++; }
     refresh();
 }
 
 function refresh() {
     const s = calcStats();
-    const nextExp = p.lv ** 2 * 1000;
+    const nextExp = p.lv ** 2 * 1200;
     
-    // 魔神HP表示調整
     const bossPer = (currentBossHP / BOSS_MAX_HP * 100);
     document.getElementById("bosshp").style.width = bossPer + "%";
     document.getElementById("bosshp-text").innerText = (bossPer < 100 && currentBossHP > 0) ? bossPer.toFixed(8) + "%" : Math.ceil(bossPer) + "%";
@@ -183,7 +202,6 @@ function refresh() {
     document.getElementById("p-lv-text").innerText = `Lv.${p.lv.toLocaleString()}`;
     
     document.getElementById("sum-atk").innerText = Math.floor(s.finalAtk).toLocaleString();
-    document.getElementById("sum-death").innerText = p.deathCount.toLocaleString();
 
     if (document.getElementById("status").classList.contains("active")) renderStatus(s);
     if (document.getElementById("power").classList.contains("active")) renderPowers();
@@ -193,16 +211,15 @@ function refresh() {
 }
 
 function renderStatus(s) {
-    const html = `
+    document.getElementById("statusList").innerHTML = `
         <div class="status-item"><span>最大HP</span><span>${Math.floor(s.maxHP).toLocaleString()}</span></div>
         <div class="status-item"><span>基礎ATK</span><span>${Math.floor(s.baseAtk).toLocaleString()}</span></div>
+        <div class="status-item"><span>再起の誓い</span><span>${p.deathCount.toLocaleString()} 回</span></div>
         <div class="status-item"><span>再起倍率</span><span>×${s.deathM.toFixed(2)}</span></div>
-        <div class="status-item"><span>最終ATK</span><span>${Math.floor(s.finalAtk).toLocaleString()}</span></div>
-        <div class="status-item"><span>クリティカル率</span><span>${s.crit}%</span></div>
-        <div class="status-item"><span>クリティカル倍率</span><span>×${s.critM.toFixed(1)}</span></div>
-        <div class="status-item"><span>連撃数（Hit）</span><span>${s.hits}</span></div>
+        <div class="status-item"><span>最終実効ATK</span><span>${Math.floor(s.finalAtk).toLocaleString()}</span></div>
+        <div class="status-item"><span>会心率</span><span>${s.crit}%</span></div>
+        <div class="status-item"><span>連撃数</span><span>${s.hits} Hit</span></div>
     `;
-    document.getElementById("statusList").innerHTML = html;
 }
 
 function renderPowers() {
@@ -217,10 +234,15 @@ function renderRelics() {
     document.getElementById("relicList").innerHTML = ids.length ? ids.map(id => {
         const typeIdx = Math.floor(id / 10);
         const gradeIdx = id % 10;
-        const baseName = POWER_NAMES[typeIdx] ? POWER_NAMES[typeIdx].split("の")[0] : "未知";
+        const baseName = POWER_NAMES[typeIdx].split("の")[0];
+        const isUnique = gradeIdx >= 5;
+        const effect = isUnique ? (1000000 * (gradeIdx + 1)) : (5000 * (gradeIdx + 1) * p.inventory[id]);
         return `<div class="card-cell">
-            <div style="display:flex; justify-content:space-between;"><b>⭐︎${gradeIdx + 1} ${baseName}の${RELIC_GRADES[gradeIdx]}</b> <span>所持: ${p.inventory[id]}</span></div>
-            <div class="relic-effect">効果: 基礎ATK +${(p.inventory[id] * 5000).toLocaleString()}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <b>⭐︎${gradeIdx + 1} ${baseName}の${RELIC_GRADES[gradeIdx]}${isUnique ? '<span class="unique-tag">唯一無二</span>' : ''}</b>
+                <span>所持: ${p.inventory[id]}</span>
+            </div>
+            <div class="relic-effect">効果: 基礎ATK +${effect.toLocaleString()}</div>
         </div>`;
     }).join("") : "<p style='text-align:center;'>遺物は未発見</p>";
 }
@@ -236,7 +258,7 @@ function showTab(id, btn) {
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if (l.childNodes.length > 15) l.removeChild(l.lastChild);
+    l.prepend(d); if (l.childNodes.length > 20) l.removeChild(l.lastChild);
 }
 init();
 </script>
