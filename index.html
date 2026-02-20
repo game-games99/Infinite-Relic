@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>infiniterelic</title>
 <style>
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --exp: #007bff; --player-hp: #28a745; --rare: #ffc107; }
+    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --exp: #007bff; --player-hp: #28a745; --rare: #ffc107; --skill: #28a745; }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     #header { background: var(--panel); padding: 10px; border-bottom: 2px solid var(--border); flex-shrink: 0; }
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -14,21 +14,18 @@
     #content-area { flex-grow: 1; overflow-y: auto; }
     .tab { display: none; padding: 15px; box-sizing: border-box; }
     .tab.active { display: block; padding-bottom: 100px; }
-    
     .bar-label { display: flex; justify-content: space-between; font-size: 0.75em; font-weight: bold; }
     .bar { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin: 4px 0 8px; }
     .fill { height: 100%; transition: width 0.1s ease; }
-    
     .card-cell { background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 15px; }
     .skill-grid { display: grid; gap: 6px; margin-top: 8px; }
     .skill-item { font-size: 0.7em; padding: 8px; border-radius: 4px; border-left: 4px solid #ddd; }
     .p-skill { background: #f8f9fa; border-left-color: #adb5bd; }
     .a-skill { background: #e7f5ff; border-left-color: var(--primary); font-weight: bold; }
-    
     .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
-    #log { font-size: 0.8em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 8px; height: 220px; overflow-y: auto; margin-top: 15px; }
-    .relic-rare { border: 2px solid var(--rare); background: #fffdf5; box-shadow: 0 0 10px rgba(255,193,7,0.2); }
-    .relic-effect { font-size: 0.8em; color: #d63384; font-weight: bold; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #ddd; }
+    #log { font-size: 0.8em; background: #000; color: #0f0; padding: 10px; border-radius: 8px; height: 220px; overflow-y: auto; margin-top: 15px; font-family: monospace; }
+    .relic-rare { border: 2px solid var(--rare); background: #fffdf5; }
+    .relic-effect { font-size: 0.8em; color: #d63384; font-weight: bold; margin-top: 5px; }
 </style>
 </head>
 <body>
@@ -36,13 +33,10 @@
 <div id="header">
     <div class="bar-label"><span>魔神 HP</span><span id="bosshp-text">100%</span></div>
     <div class="bar"><div id="bosshp" class="fill" style="background:var(--hp); width:100%"></div></div>
-    
     <div class="bar-label"><span>経験値</span><span id="exp-text">0%</span></div>
     <div class="bar"><div id="exp-bar" class="fill" style="background:var(--exp); width:0%"></div></div>
-
-    <div class="bar-label"><span>プレイヤー HP</span><span id="playerhp-text">100/100</span></div>
+    <div class="bar-label"><span>再起への耐性</span><span id="playerhp-text">100/100</span></div>
     <div class="bar"><div id="playerhp" class="fill" style="background:var(--player-hp); width:100%"></div></div>
-    
     <div style="font-size:0.8em; font-weight:bold; display:flex; justify-content:space-between; margin-top:5px;">
         <span>Lv: <span id="p-lv">1</span></span>
         <span>ATK: <span id="p-atk">0</span></span>
@@ -94,37 +88,60 @@ function init() {
 }
 
 function attack() {
-    // 魔神の即死攻撃判定（常に現在HPを上回るダメージ）
+    // 魔神の即死攻撃
     if (Math.random() < 0.08) {
         player.deathCount++;
-        addLog(`<span style="color:red">魔神の反撃！魂が砕け再起した。</span>`);
-        player.hp = player.maxHP; // 即死して再起
+        addLog(`<span style="color:#ff4444">>>> 魔神の反撃: 即死ダメージ</span>`);
+        addLog(`<span style="color:#ff4444">>>> 魂の再起完了</span>`);
     }
 
-    let atk = 10 + (player.lv * 10);
-    let dmg = Math.floor(atk * (0.8 + Math.random() * 0.7));
+    let multiplier = 1;
+    let baseAtk = 10 + (player.lv * 10);
+    
+    // スキル発動判定（全100種からランダムに、所持遺物やLvに応じて発動）
+    // ⭐︎1〜5のパッシブ効果（仮計算）
+    let passiveBonus = 1;
+    for(let i=0; i<100; i++){
+        if(player.inventory[i] > 0 && (i%10) < 5) passiveBonus += 0.1;
+    }
+    
+    // ⭐︎6〜10のアクティブ発動（10%の確率でどれか一つが叫ぶ）
+    if(Math.random() < 0.1) {
+        let pIdx = Math.floor(Math.random() * 10);
+        let sIdx = 5 + Math.floor(Math.random() * 5);
+        let skillName = SKILL_DATA[pIdx][sIdx].split(":")[0];
+        let skillEff = SKILL_DATA[pIdx][sIdx].split(":")[1];
+        
+        // ダメージ倍率の適用（テキストから数値を抽出）
+        let match = skillEff.match(/\d+/);
+        let val = match ? parseInt(match[0]) : 2;
+        multiplier *= val;
+        
+        addLog(`<span style="color:#ffee00">★SKILL: ${POWER_NAMES[pIdx]}【${skillName}】発動！ (${val}倍)</span>`);
+    }
+
+    let dmg = Math.floor(baseAtk * passiveBonus * multiplier * (0.8 + Math.random() * 0.7));
     boss.hp = Math.max(0, boss.hp - dmg);
     if(dmg > maxDmgDealt) maxDmgDealt = dmg;
     
-    player.exp += (dmg / (player.lv * 5));
-    if(player.exp >= 100) { player.lv++; player.exp = 0; addLog(`<b>Lv UP! Lv ${player.lv}</b>`); }
+    player.exp += (dmg / (player.lv * 10)) + 1;
+    if(player.exp >= 100) { player.lv++; player.exp = 0; addLog(`<span style="color:#007bff">LEVEL UP -> Lv ${player.lv}</span>`); }
     if(boss.hp <= 0) boss.hp = boss.maxHP;
 
-    // 遺物ドロップ判定
-    if (Math.random() < 0.03) {
+    // 遺物ドロップ
+    if (Math.random() < 0.05) {
         let rId = Math.floor(Math.random() * 100);
         let star = (rId % 10) + 1;
         if (star >= 6) {
-            // 指示通り、⭐︎6〜10は各ランク1つのみ。他を排除して上書き
             for (let i=0; i<100; i++) if ((i%10)+1 === star) player.inventory[i] = 0;
             player.inventory[rId] = 1;
+            addLog(`<span style="color:var(--rare)">！！遺物獲得！！ ⭐︎${star} ${POWER_NAMES[Math.floor(rId/10)]}</span>`);
         } else {
             player.inventory[rId]++;
         }
-        addLog(`<span style="color:var(--rare)">遺物【⭐︎${star} ${POWER_NAMES[Math.floor(rId/10)]}】を入手</span>`);
     }
 
-    addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
+    addLog(`Damage: ${dmg.toLocaleString()}`);
     refreshUI();
 }
 
@@ -133,10 +150,8 @@ function refreshUI() {
     document.getElementById("bosshp").style.width = (boss.hp / boss.maxHP * 100) + "%";
     document.getElementById("exp-bar").style.width = player.exp + "%";
     document.getElementById("exp-text").innerText = Math.floor(player.exp) + "%";
-    document.getElementById("playerhp-text").innerText = `${player.hp}/${player.maxHP}`;
-    document.getElementById("playerhp").style.width = (player.hp / player.maxHP * 100) + "%";
     document.getElementById("p-lv").innerText = player.lv;
-    document.getElementById("p-atk").innerText = (10 + player.lv * 10).toLocaleString();
+    document.getElementById("p-atk").innerText = Math.floor((10 + player.lv * 10)).toLocaleString();
     document.getElementById("p-death").innerText = player.deathCount;
     if(document.activeTab === 'relic') renderRelic();
 }
@@ -169,11 +184,11 @@ function renderRelic() {
             let s = (i % 10);
             h += `<div class="card-cell ${s >= 5 ? 'relic-rare' : ''}">
                 <b>⭐︎${s+1} ${POWER_NAMES[Math.floor(i/10)]}の遺物</b>: ${player.inventory[i]}個
-                <div class="relic-effect">強化権能: ${SKILL_DATA[Math.floor(i/10)][s]}</div>
+                <div class="relic-effect">スキル反映中: ${SKILL_DATA[Math.floor(i/10)][s]}</div>
             </div>`;
         }
     }
-    document.getElementById("relic").innerHTML = h || "遺物未所持";
+    document.getElementById("relic").innerHTML = h || "魔神を削り、遺物を入手せよ";
 }
 
 function renderStatus() {
@@ -183,7 +198,7 @@ function renderStatus() {
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 20) l.removeChild(l.lastChild);
+    l.prepend(d); if(l.childNodes.length > 30) l.removeChild(l.lastChild);
 }
 init();
 </script>
