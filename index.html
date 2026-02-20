@@ -15,7 +15,7 @@
     .tab { display: none; padding: 15px; box-sizing: border-box; }
     .tab.active { display: block; padding-bottom: 100px; }
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .relic-card { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.7em; }
+    .relic-card { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.75em; }
     .relic-epic { border: 2px solid var(--rare); background: #fffdf5; }
     .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
     #log { font-size: 0.8em; background: #fafafa; padding: 10px; border: 1px solid var(--border); border-radius: 8px; height: 220px; overflow-y: auto; margin-top: 15px; }
@@ -90,11 +90,11 @@ let maxDmg = 0, isPressing = false;
 
 function save() {
     const data = { lv: player.lv, exp: player.exp, inv: player.inventory, death: player.deathCount, bAtk: player.baseAtk, bHP: player.baseHP, mDmg: maxDmg };
-    localStorage.setItem("IR_Save_VFinal", JSON.stringify(data));
+    localStorage.setItem("IR_Save_VFinal_R2", JSON.stringify(data));
 }
 
 function load() {
-    const saved = localStorage.getItem("IR_Save_VFinal");
+    const saved = localStorage.getItem("IR_Save_VFinal_R2");
     if (saved) {
         const d = JSON.parse(saved);
         player.lv = d.lv || 1; player.exp = d.exp || 0; player.inventory = d.inv || Array(100).fill(0);
@@ -114,8 +114,12 @@ function init() {
 }
 
 function attack() {
-    // 内部的な成長処理（ログには出さない）
+    // 魔神からの攻撃と再起の文言（復活）
+    addLog(`<span style="color:var(--hp); font-weight:bold;">魔神の攻撃：即死ダメージを受けた！</span>`);
     player.deathCount++;
+    addLog(`<span style="color:var(--player-hp)">再起の誓いにより力を取り戻した...</span>`);
+
+    // 内部的な成長
     const growth = Math.floor(Math.random() * player.lv) + 5;
     const isLucky = Math.random() < 0.1;
     player.baseAtk += isLucky ? growth * 5 : growth;
@@ -141,7 +145,6 @@ function attack() {
     if(activeSkill) addLog(`<span style="color:var(--primary); font-weight:bold;">【${activeSkill}】 ${skillMul.toLocaleString()}倍撃！</span>`);
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
-    // 経験値計算
     player.exp += (dmg / (player.lv * 100));
     while(player.exp >= 100) { player.lv++; player.exp -= 100; addLog(`<span style="color:orange; font-weight:bold;">Lv UP! Lv${player.lv}</span>`); }
 
