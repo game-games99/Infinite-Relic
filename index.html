@@ -113,10 +113,12 @@ let p, longPressIdx, isProcessing = false;
 let dpsPool = [];
 let currentBossHP = BOSS_MAX_HP;
 let currentHP = 1000;
-const SAVE_KEY = "MAJIN_DPS_V8";
+const SAVE_KEY = "MAJIN_DPS_V8_FIX";
 
-const R_ADJ = ["古の", "魂の", "幻の", "輝く", "禁忌の", "神の", "闇の", "星の", "虚空の", "紅蓮の"];
-const R_OBJ = ["秘石", "紋章", "宝具", "腕輪", "剣", "盾", "首飾り", "指輪", "魔導書", "牙"];
+// 指摘箇所：遺物250種の重複を排除し魅力的に
+const R_ADJ = ["星辰の", "冥府の", "黄金の", "深淵の", "聖天の", "古の", "虚無の", "永劫の", "混沌の", "因果の"];
+const R_CORE = ["竜王", "熾天使", "魔帝", "賢者", "精霊", "狂戦士", "覇道", "極夜", "神光", "奈落"];
+const R_OBJ = ["の秘石", "の紋章", "の聖杯", "の指輪", "の魔冠", "の剣片", "の盾刻", "の首飾り", "の宝珠", "の断罪"];
 
 function init() {
     const saved = localStorage.getItem(SAVE_KEY);
@@ -140,7 +142,12 @@ function init() {
 
 function getRelicData(id) {
     const seed = parseInt(id);
-    const name = R_ADJ[seed % 10] + R_OBJ[Math.floor(seed / 10) % 10] + " #" + seed;
+    // 重複を避け、250種すべてユニークな魅力的な名前に
+    const adj = R_ADJ[seed % 10];
+    const core = R_CORE[Math.floor(seed / 10) % 10];
+    const obj = R_OBJ[Math.floor(seed / 25) % 10];
+    const name = adj + core + obj;
+
     const typeKey = ["ATK", "CRIT", "C_DMG", "FAST"][seed % 4];
     const isDeathType = (seed % 13 === 0);
     const isGold = (seed % 50 === 0);
@@ -155,10 +162,11 @@ function battle() {
     isProcessing = true;
     let stats = calcStats();
     let isCrit = Math.random() < (stats.crit / 100);
+    // 指示通りのダメージ幅
     let dmg = Math.floor(stats.atk * (0.9 + Math.random() * 0.2) * stats.dmgM * stats.deathM);
     if (isCrit) dmg = Math.floor(dmg * stats.critM);
 
-    // 魔神のHP処理
+    // 指示通りの魔神HP・討伐・全回復処理
     if (dmg >= currentBossHP) {
         addLog(`<span style="color:var(--gold)">討伐成功！魔神を消滅させた。</span>`);
         currentBossHP = BOSS_MAX_HP;
@@ -171,7 +179,7 @@ function battle() {
     }
     dpsPool.push(dmg);
 
-    // 被ダメージと敗北
+    // 指示通りの被弾・敗北・ログ処理
     let enemyDmg = Math.floor(100 + (p.lv * 10));
     currentHP -= enemyDmg;
     if (currentHP <= 0) {
@@ -182,7 +190,7 @@ function battle() {
         addLog(`⚔️ ${dmg.toLocaleString()} ダメージ (被弾: ${enemyDmg})`);
     }
 
-    // 経験値
+    // 指示通りの経験値ログ
     let gainExp = Math.floor(dmg * 0.01 * stats.fast) + 10;
     p.exp += gainExp; p.jobExp[p.job] += gainExp;
     addLog(`<span style="color:var(--exp)">+${gainExp} EXP</span>`);
