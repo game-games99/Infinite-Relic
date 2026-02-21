@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.9.4</title>
+<title>RELICORE - v1.9.5</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -42,7 +42,6 @@
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 120px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; flex-direction: column; min-height: 100px; position: relative; }
     .relic-name { font-weight: bold; font-size: 0.72em; margin-bottom: 4px; display: block; min-height: 2.4em; line-height: 1.2; }
-    .relic-count-row { font-size: 0.62em; color: #888; margin-bottom: 4px; border-top: 1px solid #f0f0f0; padding-top: 4px; }
     .relic-effect-box { font-size: 0.68em; line-height: 1.4; color: #444; margin-bottom: 4px; }
     .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
     
@@ -124,10 +123,6 @@
             ドロップ資格: <span id="st-rank" class="clickable" onclick="toggleConds()">確認中...</span>
             <div id="cond-display" class="cond-list"></div>
         </div>
-        <div class="st-box" style="border: 1px solid gold; background: #fffdf0;">
-            <span style="font-size: 0.75em; color: #b8860b;">★最終目標のヒント★</span><br>
-            <span style="font-size: 0.85em;" id="st-hint">？？？？？？？？？？</span>
-        </div>
         <div class="st-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <b>遺物出現率</b>
@@ -137,7 +132,7 @@
             </div>
             <table class="prob-table" id="prob-list"></table>
         </div>
-        <div class="version-info">RELICORE v1.9.4</div>
+        <div class="version-info">RELICORE v1.9.5</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -169,61 +164,60 @@ const POWERS = [
     { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
 ];
 
-// pIdx対応: 0:剣神, 1:不滅, 2:魔導, 3:覇王, 4:虚無
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, aP:0, hP:0, pIdx:-1, w:0, mult:1, desc:"死を経験することで新たな力を得る"},
-    {id:101, star:1, name:"勇者の木片", atk:2, hp:0, pIdx:0, w:100}, 
-    {id:102, star:1, name:"野草の滴", atk:0, hp:10, pIdx:1, w:100},
-    {id:103, star:1, name:"冒険の証", atk:3, hp:5, pIdx:2, w:90},
-    {id:104, star:1, name:"兵士の号令", atk:5, hp:0, pIdx:3, w:80},
-    {id:105, star:1, name:"虚ろな石", atk:6, hp:0, pIdx:4, w:70},
-    {id:201, star:2, name:"鉄の剣", atk:15, hp:0, pIdx:0, w:100},
-    {id:202, star:2, name:"兵士の盾", atk:0, hp:100, pIdx:1, w:100},
-    {id:203, star:2, name:"熟練の証", atk:20, hp:50, pIdx:2, w:90},
-    {id:204, star:2, name:"鋼の篭手", atk:30, hp:0, pIdx:3, w:80},
-    {id:205, star:2, name:"影の残滓", atk:40, hp:0, pIdx:4, w:70},
-    {id:301, star:3, name:"魔力剣", atk:120, hp:0, pIdx:0, w:100},
-    {id:302, star:3, name:"命の硬玉", atk:0, hp:600, pIdx:1, w:100},
-    {id:303, star:3, name:"知恵の輪", atk:150, hp:300, pIdx:2, w:90},
-    {id:304, star:3, name:"騎士の魂", atk:250, hp:0, pIdx:3, w:80},
-    {id:305, star:3, name:"深淵の破片", atk:350, hp:0, pIdx:4, w:60},
-    {id:401, star:4, name:"王宮の秘宝", atk:5000, hp:0, pIdx:0, w:100},
-    {id:402, star:4, name:"聖樹の種", atk:0, hp:20000, pIdx:1, w:100},
-    {id:403, star:4, name:"伝説の断片", atk:8000, hp:8000, pIdx:2, w:80},
-    {id:404, star:4, name:"覇道の手引書", atk:15000, hp:0, pIdx:3, w:60},
-    {id:405, star:4, name:"破滅の引き金", atk:25000, hp:0, pIdx:4, w:40},
-    {id:501, star:5, name:"天界の神剣", atk:600000, hp:0, pIdx:0, w:100},
-    {id:502, star:5, name:"神殺しの刃", atk:1200000, hp:0, pIdx:0, w:50},
-    {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:500000, pIdx:1, w:100},
-    {id:504, star:5, name:"神格の心臓", atk:0, hp:1500000, pIdx:1, w:50},
-    {id:505, star:5, name:"魔力回路の核", atk:800000, hp:800000, pIdx:2, w:100},
-    {id:506, star:5, name:"真理の到達者", atk:2000000, hp:2000000, pIdx:2, w:40},
-    {id:507, star:5, name:"王者の刻印", atk:2500000, hp:0, pIdx:3, w:80},
-    {id:508, star:5, name:"終焉の号令", atk:4000000, hp:0, pIdx:3, w:30},
-    {id:509, star:5, name:"虚空の魔眼", atk:5000000, hp:0, pIdx:4, w:60},
-    {id:510, star:5, name:"魔神の供物", atk:8000000, hp:8000000, pIdx:4, w:20},
-    {id:601, star:6, name:"極限の魔剣", atk:10000000, hp:0, aP:600, hP:0, pIdx:0, w:1, mult:1.5},
-    {id:602, star:6, name:"極限の魔盾", atk:0, hp:20000000, aP:0, hP:1200, pIdx:1, w:1, mult:1.5},
-    {id:603, star:6, name:"極限の魔導書", atk:8000000, hp:8000000, aP:300, hP:600, pIdx:2, w:1, mult:1.5},
-    {id:604, star:6, name:"極限の王冠", atk:15000000, hp:0, aP:450, hP:555, pIdx:3, w:1, mult:1.5},
-    {id:605, star:6, name:"極限の虚珠", atk:30000000, hp:30000000, aP:4444, hP:4444, pIdx:4, w:1, mult:1.5},
-    {id:701, star:7, name:"天啓の戦斧", atk:200000000, hp:0, aP:800, hP:0, pIdx:0, w:1, mult:2.0},
-    {id:702, star:7, name:"天啓の聖鎧", atk:0, hp:500000000, aP:0, hP:1500, pIdx:1, w:1, mult:2.0},
-    {id:703, star:7, name:"天啓の指輪", atk:100000000, hp:100000000, aP:500, hP:800, pIdx:2, w:1, mult:2.0},
-    {id:704, star:7, name:"天啓の翼", atk:150000000, hp:0, aP:600, hP:700, pIdx:3, w:1, mult:2.0},
-    {id:705, star:7, name:"天啓の瞳", atk:400000000, hp:400000000, aP:5000, hP:5000, pIdx:4, w:1, mult:2.0},
-    {id:801, star:8, name:"輪廻の滅刃", atk:1000000000, hp:0, aP:10000, hP:0, pIdx:0, w:1, mult:2.5},
-    {id:802, star:8, name:"輪廻の業盾", atk:0, hp:2000000000, aP:0, hP:15000, pIdx:1, w:1, mult:2.5},
-    {id:803, star:8, name:"輪廻の魔晶", atk:800000000, hp:800000000, aP:5000, hP:5000, pIdx:2, w:1, mult:2.5},
-    {id:804, star:8, name:"輪廻の覇角", atk:1200000000, hp:0, aP:6000, hP:8000, pIdx:3, w:1, mult:2.5},
-    {id:805, star:8, name:"輪廻の虚鏡", atk:2000000000, hp:2000000000, aP:20000, hP:20000, pIdx:4, w:1, mult:2.5},
-    {id:901, star:9, name:"創世の聖剣", atk:5000000000, hp:0, aP:100000, hP:0, pIdx:0, w:1, mult:5.0},
-    {id:902, star:9, name:"創世の神衣", atk:0, hp:10000000000, aP:0, hP:200000, pIdx:1, w:1, mult:5.0},
-    {id:903, star:9, name:"創世の心臓", atk:3000000000, hp:3000000000, aP:50000, hP:50000, pIdx:2, w:1, mult:5.0},
-    {id:904, star:9, name:"創世の玉座", atk:4500000000, hp:0, aP:80000, hP:80000, pIdx:3, w:1, mult:5.0},
-    {id:905, star:9, name:"創世の深淵", atk:10000000000, hp:10000000000, aP:500000, hP:500000, pIdx:4, w:1, mult:5.0},
-    {id:1001, star:10, name:"パンドラの箱", atk:50000000000, hp:50000000000, aP:1000000, hP:1000000, pIdx:3, w:1, mult:100.0, desc:"災厄と希望が同居する唯一無二の匣"},
-    {id:1101, star:11, name:"終焉の福音", atk:1000000000000, hp:1000000000000, aP:10000000, hP:10000000, pIdx:4, w:1, mult:1000.0, desc:"全てを終わらせ、新たな世界を告げる響き"}
+    {id:101, star:1, name:"勇者の木片", atk:3, hp:0, pIdx:0, w:100}, 
+    {id:102, star:1, name:"野草の滴", atk:0, hp:14, pIdx:1, w:100},
+    {id:103, star:1, name:"冒険の証", atk:2, hp:9, pIdx:2, w:90},
+    {id:104, star:1, name:"兵士の号令", atk:7, hp:4, pIdx:3, w:80},
+    {id:105, star:1, name:"虚ろな石", atk:4, hp:4, pIdx:4, w:70},
+    {id:201, star:2, name:"鉄の剣", atk:17, hp:0, pIdx:0, w:100},
+    {id:202, star:2, name:"兵士の盾", atk:0, hp:126, pIdx:1, w:100},
+    {id:203, star:2, name:"熟練の証", atk:13, hp:55, pIdx:2, w:90},
+    {id:204, star:2, name:"鋼の篭手", atk:28, hp:11, pIdx:3, w:80},
+    {id:205, star:2, name:"影の残滓", atk:44, hp:4, pIdx:4, w:70},
+    {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0, w:100},
+    {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1, w:100},
+    {id:303, star:3, name:"知恵の輪", atk:144, hp:233, pIdx:2, w:90},
+    {id:304, star:3, name:"騎士の魂", atk:312, hp:88, pIdx:3, w:80},
+    {id:305, star:3, name:"深淵の破片", atk:444, hp:44, pIdx:4, w:60},
+    {id:401, star:4, name:"王宮の秘宝", atk:5777, hp:0, pIdx:0, w:100},
+    {id:402, star:4, name:"聖樹の種", atk:0, hp:24680, pIdx:1, w:100},
+    {id:403, star:4, name:"伝説の断片", atk:8192, hp:4096, pIdx:2, w:80},
+    {id:404, star:4, name:"覇道の手引書", atk:18888, hp:5555, pIdx:3, w:60},
+    {id:405, star:4, name:"破滅の引き金", atk:44444, hp:4444, pIdx:4, w:40},
+    {id:501, star:5, name:"天界の神剣", atk:677777, hp:0, pIdx:0, w:100},
+    {id:502, star:5, name:"神殺しの刃", atk:1333337, hp:0, pIdx:0, w:50},
+    {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:654321, pIdx:1, w:100},
+    {id:504, star:5, name:"神格の心臓", atk:0, hp:1888888, pIdx:1, w:50},
+    {id:505, star:5, name:"魔力回路の核", atk:987654, hp:456789, pIdx:2, w:100},
+    {id:506, star:5, name:"真理の到達者", atk:2178281, hp:2178281, pIdx:2, w:40},
+    {id:507, star:5, name:"王者の刻印", atk:3333333, hp:1111111, pIdx:3, w:80},
+    {id:508, star:5, name:"終焉の号令", atk:5555555, hp:2222222, pIdx:3, w:30},
+    {id:509, star:5, name:"虚空の魔眼", atk:6666666, hp:444444, pIdx:4, w:60},
+    {id:510, star:5, name:"魔神の供物", atk:9999999, hp:4444444, pIdx:4, w:20},
+    {id:601, star:6, name:"極限の魔剣", atk:12345678, hp:7654321, aP:666, hP:333, pIdx:0, w:1, mult:1.5},
+    {id:602, star:6, name:"極限の魔盾", atk:5555555, hp:24242424, aP:222, hP:1234, pIdx:1, w:1, mult:1.5},
+    {id:603, star:6, name:"極限の魔導書", atk:9988776, hp:9988776, aP:456, hP:456, pIdx:2, w:1, mult:1.5},
+    {id:604, star:6, name:"極限の王冠", atk:18181818, hp:12121212, aP:777, hP:555, pIdx:3, w:1, mult:1.5},
+    {id:605, star:6, name:"極限の虚珠", atk:44444444, hp:4444444, aP:4444, hP:444, pIdx:4, w:1, mult:1.5},
+    {id:701, star:7, name:"天啓の戦斧", atk:271828182, hp:141421356, aP:888, hP:444, pIdx:0, w:1, mult:2.0},
+    {id:702, star:7, name:"天啓の聖鎧", atk:88888888, hp:567890123, aP:333, hP:1555, pIdx:1, w:1, mult:2.0},
+    {id:703, star:7, name:"天啓の指輪", atk:123123123, hp:321321321, aP:567, hP:890, pIdx:2, w:1, mult:2.0},
+    {id:704, star:7, name:"天啓の翼", atk:222222222, hp:111111111, aP:678, hP:789, pIdx:3, w:1, mult:2.0},
+    {id:705, star:7, name:"天啓の瞳", atk:444444444, hp:44444444, aP:5555, hP:555, pIdx:4, w:1, mult:2.0},
+    {id:801, star:8, name:"輪廻の滅刃", atk:1333333333, hp:666666666, aP:12345, hP:5432, pIdx:0, w:1, mult:2.5},
+    {id:802, star:8, name:"輪廻の業盾", atk:444444444, hp:2525252525, aP:1111, hP:18888, pIdx:1, w:1, mult:2.5},
+    {id:803, star:8, name:"輪廻の魔晶", atk:876543210, hp:876543210, aP:5555, hP:5555, pIdx:2, w:1, mult:2.5},
+    {id:804, star:8, name:"輪廻の覇角", atk:1555555555, hp:555555555, aP:7777, hP:8888, pIdx:3, w:1, mult:2.5},
+    {id:805, star:8, name:"輪廻の虚鏡", atk:2444444444, hp:2444444444, aP:22222, hP:22222, pIdx:4, w:1, mult:2.5},
+    {id:901, star:9, name:"創世の聖剣", atk:5555555555, hp:1234567890, aP:111111, hP:11111, pIdx:0, w:1, mult:5.0},
+    {id:902, star:9, name:"創世の神衣", atk:1111111111, hp:9876543210, aP:11111, hP:222222, pIdx:1, w:1, mult:5.0},
+    {id:903, star:9, name:"創世の心臓", atk:3141592653, hp:3141592653, aP:55555, hP:55555, pIdx:2, w:1, mult:5.0},
+    {id:904, star:9, name:"創世の玉座", atk:4848484848, hp:1212121212, aP:88888, hP:88888, pIdx:3, w:1, mult:5.0},
+    {id:905, star:9, name:"創世の深淵", atk:14444444444, hp:4444444444, aP:444444, hP:444444, pIdx:4, w:1, mult:5.0},
+    {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:45678901234, aP:1234567, hP:1234567, pIdx:3, w:1, mult:100.0, desc:"災厄と希望が同居する唯一無二の匣"},
+    {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:444444444444, aP:8888888, hP:4444444, pIdx:4, w:1, mult:1000.0, desc:"全てを終わらせ、新たな世界を告げる響き"}
 ];
 
 function getPowerPoints() {
@@ -306,20 +300,9 @@ function attack() {
     if(currentBossHP <= 0n) {
         const isOneShot = (startHP === maxHP);
         const hasPandora = player.inventory[1001] > 0;
-        const titleEl = document.getElementById("modal-title");
-        const bodyEl = document.getElementById("modal-body");
-        
         if (isOneShot && hasPandora && !player.isEndless) {
-            titleEl.innerText = "【神域到達】";
-            bodyEl.innerHTML = "魔神を一撃で粉砕しました。<br>全ての呪縛は霧散し、かつての力を取り戻した。";
-            player.isEndless = true;
-            player.firstClear = true;
-        } else if (player.isEndless) {
-            titleEl.innerText = "【深淵踏破】";
-            bodyEl.innerHTML = "虚無の残滓を討伐しました。<br>さらなる高みへ歩みを進めます。";
+            player.isEndless = true; player.firstClear = true;
         } else {
-            titleEl.innerText = "【魔神討伐】";
-            bodyEl.innerHTML = "魔神を討伐しました！<br>莫大な経験と高レアリティの遺物が手に入ります。";
             player.firstClear = true;
         }
         handleDrop(true); 
@@ -336,23 +319,31 @@ function attack() {
 }
 
 function handleDrop(isBossKill) {
-    let dCount = isBossKill ? 5 : 1; 
-    if(!isBossKill) { [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; }); }
+    let dCount = 1; 
+    [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
+
+    // 討伐時は攻撃ドロップ数に+5追加
+    if(isBossKill) dCount += 5;
 
     for(let i=0; i<dCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
-        for(let s in DROP_DATA) { curP += parseFloat(DROP_DATA[s].p); if(rv <= curP) { star = parseInt(s); break; } }
-        if(isBossKill && star < 4) star = 4;
+        for(let s in DROP_DATA) { 
+            curP += parseFloat(DROP_DATA[s].p); 
+            if(rv <= curP) { star = parseInt(s); break; } 
+        }
+
         if (player.maxDmg < DROP_DATA[star].cond) continue;
         
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
-            // 重み付け選択
             let totalW = cands.reduce((s, m) => s + (m.w || 1), 0);
             let selectRv = Math.random() * totalW;
             let selected = cands[0];
             let accW = 0;
-            for(let m of cands) { accW += (m.w || 1); if(selectRv <= accW) { selected = m; break; } }
+            for(let m of cands) { 
+                accW += (m.w || 1); 
+                if(selectRv <= accW) { selected = m; break; } 
+            }
 
             if(selected.star >= 6 && selected.star <= 10 && player.inventory[selected.id] >= 1) continue;
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
@@ -373,9 +364,6 @@ function refreshUI() {
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
     document.getElementById("boss-display-name").innerText = player.isEndless ? "虚無の残滓" : "魔神";
 
-    const hintEl = document.getElementById("st-hint");
-    hintEl.innerText = player.firstClear ? "「★10遺物を手にし、魔神を一撃で葬る時、真の再起が訪れる……」" : "？？？？？？？？？？";
-
     const tabId = document.querySelector(".tab.active").id;
     if(tabId === 'vow') renderVow(); if(tabId === 'power') renderPower(b.pts); if(tabId === 'relic') renderRelics(); if(tabId === 'status') renderStatus();
 }
@@ -384,47 +372,28 @@ function renderVow() {
     let step = 1; let dCount = 1; 
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) { step++; dCount++; } });
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">ATKボーナス: 1 ～ ${(1 + player.deathCount).toLocaleString()}</div><div class="vow-desc">再起するたびに基礎ATKが上昇。</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">HPボーナス: 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">再起するたびに基礎HPが上昇。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">再起加速: +${step} / ドロップ: ${dCount}個</div><div class="vow-desc">再起回数に応じて成長効率が上がります。</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">最終ダメージ: +${(player.deathCount * 0.004).toFixed(3)}%</div><div class="vow-desc">死の記憶が攻撃を鋭くします。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">ATKボーナス: 1 ～ ${(1 + player.deathCount).toLocaleString()}</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">HPボーナス: 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div></div>
     `;
 }
 
 function renderPower(pts) {
     document.getElementById("power").innerHTML = POWERS.map((p, pIdx) => {
         const curPt = pts[pIdx];
-        return `
-        <div class="power-section">
-            <div class="power-head"><span>${p.name}権能</span><span style="color:var(--primary);">${curPt.toLocaleString()} pt</span></div>
-            <div class="skill-list">${p.skills.map((s, sIdx) => {
-                const req = POWER_UNLOCK_STEPS[sIdx];
-                const isLocked = curPt < req;
-                return `<div class="skill-row ${isLocked ? 'locked' : ''}"><div class="skill-chip">${isLocked ? '未覚醒' : s.name}</div><span class="skill-effect">${isLocked ? '？？？？？' : s.desc}</span>${isLocked ? `<span class="lock-text">${req.toLocaleString()}pt</span>` : ''}</div>`;
-            }).join("")}</div>
-        </div>`;
+        return `<div class="power-section"><div class="power-head"><span>${p.name}権能</span><span>${curPt.toLocaleString()} pt</span></div><div class="skill-list">${p.skills.map((s, sIdx) => {
+            const req = POWER_UNLOCK_STEPS[sIdx]; const isLocked = curPt < req;
+            return `<div class="skill-row ${isLocked ? 'locked' : ''}"><div class="skill-chip">${isLocked ? '未覚醒' : s.name}</div><span class="skill-effect">${isLocked ? '？？？' : s.desc}</span></div>`;
+        }).join("")}</div></div>`;
     }).join("");
 }
 
 function renderRelics() {
     const items = Object.entries(player.inventory).filter(([id, count]) => count > 0)
         .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count })).sort((a, b) => a.star - b.star);
-    
-    document.getElementById("relic-list").innerHTML = items.map(r => {
-        let powerInfo = "";
-        if (r.pIdx >= 0) {
-            const pName = POWERS[r.pIdx].name;
-            powerInfo = `<div class="relic-power-pt">${pName}権能pt: ${(r.star * r.count).toLocaleString()}</div>`;
-        }
-        let effectInfo = r.id === 0 ? r.desc : (r.atk > 0 ? `(ATK+${r.atk.toLocaleString()})` : "") + (r.hp > 0 ? ` (HP+${r.hp.toLocaleString()})` : "");
-
-        return `
-        <div class="relic-card">
-            <div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.count.toLocaleString()}</div>
-            <div class="relic-effect-box">${effectInfo}</div>
-            ${powerInfo}
-        </div>`;
-    }).join("");
+    document.getElementById("relic-list").innerHTML = items.map(r => `
+        <div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.count.toLocaleString()}</div>
+        <div class="relic-effect-box">${r.id === 0 ? r.desc : (r.atk > 0 ? `ATK+${r.atk.toLocaleString()} ` : "") + (r.hp > 0 ? `HP+${r.hp.toLocaleString()}` : "")}</div>
+        ${r.pIdx >= 0 ? `<div class="relic-power-pt">${POWERS[r.pIdx].name}pt: ${(r.star * r.count).toLocaleString()}</div>` : ""}</div>`).join("");
 }
 
 function renderStatus() {
@@ -432,11 +401,8 @@ function renderStatus() {
     let rank = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { rank = `★${s}解放`; break; } }
     document.getElementById("st-rank").innerText = rank;
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
-    document.getElementById("cond-display").innerHTML = Object.entries(DROP_DATA).filter(([s, d]) => d.cond > 0n).map(([s, d]) => `<div>★${s}: ${d.cond.toLocaleString()}dmg</div>`).join("");
+    document.getElementById("st-relic-count").innerText = Object.entries(player.inventory).filter(([id, count]) => count > 0).length;
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s, d]) => `<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join("");
-    
-    const ownedTypes = Object.entries(player.inventory).filter(([id, count]) => count > 0).length;
-    document.getElementById("st-relic-count").innerText = ownedTypes;
 }
 
 function showTab(id) {
