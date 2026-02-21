@@ -21,7 +21,6 @@
     .tab { display: none; padding: 10px; }
     .tab.active { display: block; }
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
-    /* ログサイズを画面に収まるよう調整 */
     #log { height: 380px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
@@ -43,7 +42,8 @@
     .cond-list { margin-top: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; display: none; }
     .prob-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9em; }
     .prob-table td { padding: 6px; border-bottom: 1px solid #eee; }
-    .btn-reset { width: 100%; padding: 12px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+    /* データ削除ボタンの改善 */
+    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 20px; margin-bottom: 80px; box-shadow: 0 4px 0 #a71d2a; }
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
     .c6 { color: #ff4500; } .c7 { color: #d2691e; } .c8 { color: #000000; } .c9 { color: #4b0082; } .c10 { color: #ff00ff; }
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
@@ -242,7 +242,6 @@ function renderPower() {
             <div class="power-head"><div class="power-title"><span>${p.name}</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${next}</div></div>
             <div class="skill-list">${p.skills.map((s, si) => {
                 const isUnlocked = si < unlocked;
-                // 解放済みスキルの場合のみ、効果説明を表示
                 const effectText = isUnlocked ? `<span class="skill-effect">効果: ${p.eff} (${si + 1})</span>` : "";
                 return `<div class="skill-row">
                     <div class="skill-chip ${isUnlocked ? 'unlocked' : ''}">${s}</div>
