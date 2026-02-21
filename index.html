@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>infiniterelic -Eternal-</title>
+<title>RELICORE -Eternal-</title>
 <style>
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #343a40; }
+    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
-    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    #header { background: var(--dark); color: #fff; padding: 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    #header { background: var(--dark); color: #fff; padding: 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
+    .game-title { font-size: 1.2em; font-weight: 900; letter-spacing: 2px; color: #fff; margin-bottom: 4px; text-transform: uppercase; }
     .status-box { display: flex; gap: 8px; margin-top: 4px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; border-left: 3px solid var(--primary); }
     .stat-card.hp-card { border-left-color: var(--hp); }
@@ -51,6 +52,7 @@
 <body>
 
 <div id="header">
+    <div class="game-title">RELICORE</div>
     <div style="font-size:0.7em; font-weight:bold; color:var(--hp);">魔神 HP: <span id="bosshp-pct">100.0000</span>%</div>
     <div class="status-box">
         <div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div>
@@ -90,7 +92,7 @@
 </div>
 
 <script>
-// セーブキーを固定。今後指示がない限り変更しない。
+// セーブキーは維持してデータを保護
 const SAVE_KEY = "infiniterelic_player_data"; 
 const OLD_KEYS = ["infiniterelic_v7_relics", "infiniterelic_v9_stacked"];
 
@@ -170,14 +172,12 @@ function saveGame() {
 
 function loadGame() {
     let saved = localStorage.getItem(SAVE_KEY);
-    // 旧データからの救出
     if (!saved) {
         for (const oldKey of OLD_KEYS) {
             const oldData = localStorage.getItem(oldKey);
             if (oldData) { saved = oldData; localStorage.setItem(SAVE_KEY, oldData); break; }
         }
     }
-
     if(saved) {
         const p = JSON.parse(saved);
         player.inventory = p.inventory || {0: 1};
@@ -207,7 +207,6 @@ function attack() {
     let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
     dmg = BigInt(Math.floor(Number(dmg) * bonus.mult));
     if(dmg > player.maxDmg) player.maxDmg = dmg;
-    
     currentBossHP -= dmg;
 
     if(currentBossHP <= 0n) {
@@ -224,7 +223,6 @@ function attack() {
             currentBossHP = BOSS_MAX_HP_BASE;
         }
     }
-
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     
     let dropCount = 1;
