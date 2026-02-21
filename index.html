@@ -4,295 +4,122 @@
     <meta charset="UTF-8">
     <title>infiniterelic</title>
     <style>
-        body {
-            background-color: #000;
-            color: #ccc;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            user-select: none;
-        }
-        #game-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            border-left: 1px solid #333;
-            border-right: 1px solid #333;
-        }
-        /* Header & Stats */
-        #header {
-            padding: 10px;
-            border-bottom: 1px solid #333;
-            background: #050505;
-        }
-        .stat-line {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9em;
-            margin-bottom: 2px;
-        }
-        .highlight { color: #fff; text-shadow: 0 0 5px #fff; }
-
-        /* HP Bar - Multi-layered */
-        #hp-container {
-            width: 100%;
-            height: 20px;
-            background-color: #220000;
-            position: relative;
-            margin: 5px 0;
-            border: 1px solid #440000;
-        }
-        #hp-bar {
-            height: 100%;
-            background: linear-gradient(to right, #ff0000, #880000);
-            transition: width 0.1s;
-        }
-
-        /* Battle Area */
-        #battle-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        #enemy-visual {
-            font-size: 1.2em;
-            color: #666;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        #click-btn {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 2px solid #555;
-            background: radial-gradient(#222, #000);
-            color: #888;
-            font-size: 1.2em;
-            cursor: pointer;
-            outline: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.05s;
-        }
-        #click-btn:active { transform: scale(0.95); border-color: #fff; color: #fff; }
-
-        /* Logs */
-        #log-container {
-            height: 150px;
-            background: #050505;
-            border-top: 1px solid #333;
-            padding: 5px;
-            font-size: 0.85em;
-            overflow-y: hidden;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-        .log-entry { margin-bottom: 2px; border-left: 2px solid #333; padding-left: 5px; }
-        .rarity-5 { color: #ff0044; font-weight: bold; } /* 鮮紅 */
-        .rarity-7 { color: #4b0082; font-weight: bold; } /* 深紫 */
-
-        /* Tabs */
-        #tab-menu {
-            display: flex;
-            background: #111;
-            border-top: 1px solid #333;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.8em;
-            border-right: 1px solid #222;
-        }
-        .tab-btn.active { background: #222; color: #fff; }
-
-        #details-panel {
-            display: none;
-            background: #0a0a0a;
-            padding: 15px;
-            font-size: 0.9em;
-            overflow-y: auto;
-            height: 300px;
-        }
-
-        /* Drop Rate Table Visualization */
-        .drop-rate-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'Courier New', monospace;
-            margin-top: 10px;
-        }
-        .drop-rate-table td {
-            padding: 4px 8px;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .rate-val {
-            text-align: right;
-            white-space: pre;
-        }
+        /* 以前の安定したスタイルを保持 */
+        body { background-color: #000; color: #ccc; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        #stats { width: 100%; max-width: 500px; display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        #hp-container { width: 100%; max-width: 500px; height: 20px; background: #220000; border: 1px solid #440000; margin-bottom: 20px; }
+        #hp-bar { height: 100%; background: #ff0000; width: 100%; }
+        #battle-area { text-align: center; margin-bottom: 20px; }
+        #click-btn { width: 120px; height: 120px; border-radius: 50%; border: 1px solid #555; background: #111; color: #888; cursor: pointer; }
+        #log { width: 100%; max-width: 500px; height: 150px; background: #050505; border: 1px solid #333; overflow-y: auto; font-size: 12px; padding: 5px; }
+        .tab-content { display: none; width: 100%; max-width: 500px; margin-top: 20px; border-top: 1px solid #333; padding-top: 10px; }
+        .show { display: block; }
+        
+        /* ドロップ率のみ指定通り強調 */
+        .rate-table { width: 100%; font-family: monospace; }
+        .rate-table td { padding: 2px 5px; font-size: 1.2em; font-weight: bold; }
+        .rate-num { text-align: right; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="header">
-        <div class="stat-line">
-            <span>ATK: <span id="atk-val" class="highlight">0</span></span>
-            <span>HP: <span id="hp-val" class="highlight">0</span></span>
-        </div>
-        <div class="stat-line" style="font-size: 0.75em; color: #888;">
-            <span>Max Damage: <span id="max-dmg-val">0</span></span>
-            <span>再起回数: <span id="rebirth-val">0</span></span>
-        </div>
-        <div id="hp-container">
-            <div id="hp-bar" style="width: 100%;"></div>
-        </div>
-    </div>
+<div id="stats">
+    <div>ATK: <span id="atk">10</span></div>
+    <div>HP: <span id="hp">100</span></div>
+    <div>再起: <span id="rebirth">0</span></div>
+</div>
+<div id="stats" style="font-size: 12px; color: #888;">
+    <div>Max Damage: <span id="max-dmg">0</span></div>
+</div>
 
-    <div id="battle-area">
-        <div id="enemy-visual">― 魔神 ―</div>
-        <button id="click-btn">こうげき</button>
-    </div>
+<div id="hp-container"><div id="hp-bar"></div></div>
 
-    <div id="log-container"></div>
+<div id="battle-area">
+    <div style="margin-bottom: 10px; color: #666;">― 魔神 ―</div>
+    <button id="click-btn" onclick="attack()">こうげき</button>
+</div>
 
-    <div id="tab-menu">
-        <div class="tab-btn active" onclick="toggleDetails(false)">戦闘ログ</div>
-        <div class="tab-btn" onclick="toggleDetails(true)">詳細 / 遺物</div>
-    </div>
+<div id="log"></div>
 
-    <div id="details-panel" id="details-content">
-        <h3 style="border-bottom: 1px solid #444;">死を刻む</h3>
-        <p>再起1回につき、ダメージに **0.004%** を永続加算する。</p>
-        <p>現在の加算補正: <span id="death-刻-val" class="highlight">0</span>%</p>
-        
-        <h3 style="border-bottom: 1px solid #444; margin-top: 20px;">魂の研磨</h3>
-        <p>再起1万回ごとに、遺物の固定ドロップ枠を+1解放する。</p>
+<div style="margin-top: 10px;">
+    <button onclick="showTab('log-tab')">ログ</button>
+    <button onclick="showTab('info-tab')">詳細</button>
+</div>
 
-        <h3 style="border-bottom: 1px solid #444; margin-top: 20px;">ドロップ資格（排出率）</h3>
-        <table class="drop-rate-table">
-            <tr style="color: #888;"><td>★1</td><td class="rate-val">81.88888%</td></tr>
-            <tr><td>★2</td><td class="rate-val">12%     </td></tr>
-            <tr><td>★3</td><td class="rate-val"> 5%     </td></tr>
-            <tr><td>★4</td><td class="rate-val"> 1%     </td></tr>
-            <tr class="rarity-5"><td>★5</td><td class="rate-val"> 0.1%    </td></tr>
-            <tr style="color: #0088ff;"><td>★6</td><td class="rate-val"> 0.01%   </td></tr>
-            <tr class="rarity-7"><td>★7</td><td class="rate-val"> 0.001%  </td></tr>
-            <tr style="color: #ffaa00;"><td>★8</td><td class="rate-val"> 0.0001% </td></tr>
-            <tr style="color: #00ffcc;"><td>★9</td><td class="rate-val"> 0.00001%</td></tr>
-            <tr style="color: #ffffff; text-shadow: 0 0 8px #fff;"><td>★10</td><td class="rate-val">0.000001%</td></tr>
-        </table>
-    </div>
+<div id="info-tab" class="tab-content">
+    <h3>死を刻む</h3>
+    <p>再起1回につきダメージ+0.004%</p>
+    <p>現在の補正: <span id="death-val">0</span>%</p>
+    
+    <h3>魂の研磨</h3>
+    <p>再起1万回ごとに固定ドロップ枠+1</p>
+
+    <h3>ドロップ確率</h3>
+    <table class="rate-table">
+        <tr><td>★1</td><td class="rate-num">81.88888%</td></tr>
+        <tr><td>★2</td><td class="rate-num">12%</td></tr>
+        <tr><td>★3</td><td class="rate-num">5%</td></tr>
+        <tr><td>★4</td><td class="rate-num">1%</td></tr>
+        <tr style="color:#ff0044"><td>★5</td><td class="rate-num">0.1%</td></tr>
+        <tr style="color:#0088ff"><td>★6</td><td class="rate-num">0.01%</td></tr>
+        <tr style="color:#4b0082"><td>★7</td><td class="rate-num">0.001%</td></tr>
+    </table>
 </div>
 
 <script>
-    // --- Data Management ---
     const SAVE_KEY = "infiniterelic_v1_base";
-    let gameState = {
-        atk: 10,
-        hp: 100,
-        maxHp: 100,
-        currentEnemyHp: 9999999999999,
-        rebirthCount: 0,
-        maxDamage: 0,
-        artifacts: [],
-        lastUpdate: Date.now()
+    let state = {
+        atk: 10, hp: 100, maxHp: 100, rebirth: 0, maxDmg: 0
     };
 
-    function saveGame() {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+    function save() { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); }
+    function load() {
+        const data = localStorage.getItem(SAVE_KEY);
+        if(data) state = JSON.parse(data);
+        update();
     }
 
-    function loadGame() {
-        const saved = localStorage.getItem(SAVE_KEY);
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            gameState = { ...gameState, ...parsed };
-        }
-        updateUI();
+    function update() {
+        document.getElementById('atk').innerText = Math.floor(state.atk).toLocaleString();
+        document.getElementById('hp').innerText = Math.max(0, Math.floor(state.hp)).toLocaleString();
+        document.getElementById('rebirth').innerText = state.rebirth.toLocaleString();
+        document.getElementById('max-dmg').innerText = Math.floor(state.maxDmg).toLocaleString();
+        document.getElementById('death-val').innerText = (state.rebirth * 0.004).toFixed(3);
+        document.getElementById('hp-bar').style.width = (state.hp / state.maxHp * 100) + "%";
     }
 
-    // --- Core Logic ---
-    function updateUI() {
-        document.getElementById('atk-val').innerText = Math.floor(gameState.atk).toLocaleString();
-        document.getElementById('hp-val').innerText = Math.floor(gameState.hp).toLocaleString();
-        document.getElementById('rebirth-val').innerText = gameState.rebirthCount.toLocaleString();
-        document.getElementById('max-dmg-val').innerText = Math.floor(gameState.maxDamage).toLocaleString();
-        
-        const deathScale = (gameState.rebirthCount * 0.004).toFixed(3);
-        document.getElementById('death-刻-val').innerText = deathScale;
-
-        const hpPercent = (gameState.hp / gameState.maxHp) * 100;
-        document.getElementById('hp-bar').style.width = Math.max(0, hpPercent) + "%";
+    function addLog(m) {
+        const l = document.getElementById('log');
+        l.innerHTML = `<div>${m}</div>` + l.innerHTML;
     }
 
-    function addLog(msg, colorClass = "") {
-        const log = document.getElementById('log-container');
-        const entry = document.createElement('div');
-        entry.className = 'log-entry ' + colorClass;
-        entry.innerText = msg;
-        log.prepend(entry);
-        if (log.childNodes.length > 50) log.removeChild(log.lastChild);
-    }
-
-    function toggleDetails(show) {
-        document.getElementById('details-panel').style.display = show ? 'block' : 'none';
-        const btns = document.querySelectorAll('.tab-btn');
-        btns[0].classList.toggle('active', !show);
-        btns[1].classList.toggle('active', show);
-    }
-
-    function rebirth() {
-        gameState.rebirthCount++;
-        const gainAtk = Math.max(1, Math.floor(Math.random() * gameState.rebirthCount) + 1);
-        const gainHp = Math.max(1, Math.floor(Math.random() * gameState.rebirthCount * 10) + 1);
-        
-        gameState.atk += gainAtk;
-        gameState.maxHp += gainHp;
-        gameState.hp = gameState.maxHp;
-        
-        addLog(`魔神の呪いにより 999,999,999,999,999 のダメージを受けた。`);
-        addLog(`再起の誓いによって新たなる力を得た (ATK+${gainAtk}, HP+${gainHp})`);
-        
-        saveGame();
-        updateUI();
-    }
-
-    document.getElementById('click-btn').addEventListener('click', () => {
-        // ダメージ計算（死を刻む補正適用）
-        const deathBonus = 1 + (gameState.rebirthCount * 0.00004);
-        let dmg = gameState.atk * deathBonus;
-        
-        if (dmg > gameState.maxDamage) gameState.maxDamage = dmg;
-        
+    function attack() {
+        const bonus = 1 + (state.rebirth * 0.00004);
+        const dmg = state.atk * bonus;
+        if(dmg > state.maxDmg) state.maxDmg = dmg;
         addLog(`${Math.floor(dmg).toLocaleString()} のダメージを与えた。`);
         
-        // 攻撃を受ける（魔神の呪い）
-        gameState.hp -= 999999999999;
-        if (gameState.hp <= 0) {
-            rebirth();
-        } else {
-            updateUI();
+        state.hp -= 999999999999;
+        if(state.hp <= 0) {
+            state.rebirth++;
+            const aPlus = Math.max(1, Math.floor(Math.random() * state.rebirth) + 1);
+            const hPlus = Math.max(1, Math.floor(Math.random() * state.rebirth * 10) + 1);
+            state.atk += aPlus;
+            state.maxHp += hPlus;
+            state.hp = state.maxHp;
+            addLog(`魔神から 999,999,999,999 ダメージを受けた。`);
+            addLog(`再起の誓いによって新たなる力を得た`);
+            save();
         }
-    });
+        update();
+    }
 
-    // --- Init ---
-    loadGame();
-    setInterval(saveGame, 30000);
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('show'));
+        if(id === 'info-tab') document.getElementById('info-tab').classList.add('show');
+    }
+
+    load();
 </script>
-
 </body>
 </html>
