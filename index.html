@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.9.1</title>
+<title>RELICORE - v1.9.2</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -127,8 +127,16 @@
             <span style="font-size: 0.75em; color: #b8860b;">★最終目標のヒント★</span><br>
             <span style="font-size: 0.85em;" id="st-hint">？？？？？？？？？？</span>
         </div>
-        <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.9.1</div>
+        <div class="st-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <b>遺物出現率</b>
+                <span style="font-size: 0.85em; color: var(--primary); font-weight: bold;">
+                    所持種類: <span id="st-relic-count">0</span> / 53
+                </span>
+            </div>
+            <table class="prob-table" id="prob-list"></table>
+        </div>
+        <div class="version-info">RELICORE v1.9.2</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -170,7 +178,7 @@ const RELIC_MASTER = [
     {id:304, star:3, name:"命の硬玉", atk:0, hp:520, pIdx:1, w:100}, {id:305, star:3, name:"守護神の祈り", atk:0, hp:888, pIdx:1, w:80},
     {id:401, star:4, name:"王宮の秘宝", atk:4200, hp:0, pIdx:2, w:100}, {id:402, star:4, name:"伝説の断片", atk:25002, hp:0, pIdx:3, w:60}, {id:403, star:4, name:"破滅の引き金", atk:44444, hp:0, pIdx:4, w:30},
     {id:404, star:4, name:"聖樹の種", atk:0, hp:12000, pIdx:3, w:100}, {id:405, star:4, name:"不死鳥の羽", atk:0, hp:44444, pIdx:4, w:40},
-    {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, pIdx:3, w:100}, {id:502, star:5, name:"天界의神剣", atk:599888, hp:0, pIdx:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, pIdx:4, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, pIdx:4, w:40},
+    {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, pIdx:3, w:100}, {id:502, star:5, name:"天界の神剣", atk:599888, hp:0, pIdx:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, pIdx:4, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, pIdx:4, w:40},
     {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, pIdx:3, w:10}, {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:3000000, hp:3000000, pIdx:4, w:70},
     {id:601, star:6, name:"極限の魔剣", atk:6000000, hp:0, aP:600, hP:0, pIdx:0, w:1, mult:1.5},
     {id:602, star:6, name:"極限の魔盾", atk:8560000, hp:0, aP:0, hP:1200, pIdx:1, w:1, mult:1.5},
@@ -253,7 +261,6 @@ function closeClearModal() {
 
 function attack() {
     if(isModalOpen) return;
-
     const startHP = currentBossHP;
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
 
@@ -275,11 +282,8 @@ function attack() {
     addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージ！</span>`);
     
     if(currentBossHP <= 0n) {
-        // 魔神または残滓の討伐判定
         const isOneShot = (startHP === maxHP);
         const hasPandora = player.inventory[1001] > 0;
-        
-        // モーダル内容の設定
         const titleEl = document.getElementById("modal-title");
         const bodyEl = document.getElementById("modal-body");
         
@@ -294,12 +298,9 @@ function attack() {
         } else {
             titleEl.innerText = "【魔神討伐】";
             bodyEl.innerHTML = "魔神を討伐しました！<br>莫大な経験と高レアリティの遺物が手に入ります。";
-            player.firstClear = true; // ヒント解禁用
+            player.firstClear = true;
         }
-
-        // 魔神討伐ボーナス：★4以上確定 & ドロップ数最大(魂の研磨強制適用)
         handleDrop(true); 
-        
         isModalOpen = true;
         document.getElementById("clear-modal").style.display = "flex";
         saveGame();
@@ -313,27 +314,17 @@ function attack() {
 }
 
 function handleDrop(isBossKill) {
-    // ボス討伐時はドロップ数を5個(最大)に固定
     let dCount = isBossKill ? 5 : 1; 
-    if(!isBossKill) {
-        [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
-    }
+    if(!isBossKill) { [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; }); }
 
     for(let i=0; i<dCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
-        for(let s in DROP_DATA) { 
-            curP += parseFloat(DROP_DATA[s].p); 
-            if(rv <= curP) { star = parseInt(s); break; } 
-        }
-
-        // 魔神討伐時は★4未満なら★4に引き上げ
+        for(let s in DROP_DATA) { curP += parseFloat(DROP_DATA[s].p); if(rv <= curP) { star = parseInt(s); break; } }
         if(isBossKill && star < 4) star = 4;
-        
         if (player.maxDmg < DROP_DATA[star].cond) continue;
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let selected = cands[Math.floor(Math.random() * cands.length)];
-            // ★6〜10は1つ制限
             if(selected.star >= 6 && selected.star <= 10 && player.inventory[selected.id] >= 1) continue;
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
             addLog(`<span class="c${selected.star}">【獲得】★${selected.star} ${selected.name}</span>`);
@@ -362,8 +353,7 @@ function refreshUI() {
 
 function renderVow() {
     let step = 1; let dCount = 1; 
-    const thresholds = [1000, 5000, 25000, 100000];
-    thresholds.forEach(t => { if(player.deathCount >= t) { step++; dCount++; } });
+    [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) { step++; dCount++; } });
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">ATKボーナス: 1 ～ ${(1 + player.deathCount).toLocaleString()}</div><div class="vow-desc">再起するたびに基礎ATKが上昇。</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">HPボーナス: 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">再起するたびに基礎HPが上昇。</div></div>
@@ -401,6 +391,10 @@ function renderStatus() {
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
     document.getElementById("cond-display").innerHTML = Object.entries(DROP_DATA).filter(([s, d]) => d.cond > 0n).map(([s, d]) => `<div>★${s}: ${d.cond.toLocaleString()}dmg</div>`).join("");
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s, d]) => `<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join("");
+    
+    // 収集率の更新
+    const ownedTypes = Object.entries(player.inventory).filter(([id, count]) => count > 0).length;
+    document.getElementById("st-relic-count").innerText = ownedTypes;
 }
 
 function showTab(id) {
