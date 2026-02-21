@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.5</title>
+<title>RELICORE - v1.2.6 (Skill Integrated)</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -26,13 +26,7 @@
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
 
-    #content-area { 
-        flex-grow: 1; 
-        overflow-y: auto; 
-        -webkit-overflow-scrolling: touch; 
-        background: #fff; 
-        padding-bottom: 20px; 
-    }
+    #content-area { flex-grow: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #fff; padding-bottom: 20px; }
     .tab { display: none; padding: 10px; }
     .tab.active { display: block; }
 
@@ -56,6 +50,7 @@
     .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #f0f0f0; color: #ccc; border: 1px solid #ddd; min-width: 70px; text-align: center; }
     .skill-chip.unlocked { background: #e7f3ff; color: #007bff; border-color: #007bff; font-weight: bold; }
     .skill-effect { font-size: 0.7em; color: #666; }
+    
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .clickable { cursor: pointer; color: var(--primary); text-decoration: underline; font-weight: bold; }
     .cond-list { margin-top: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; display: none; }
@@ -63,6 +58,7 @@
     .prob-table td { padding: 6px; border-bottom: 1px solid #eee; }
     .version-info { text-align: center; color: #999; font-size: 0.8em; margin-top: 20px; }
     .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; margin-bottom: 80px; box-shadow: 0 4px 0 #a71d2a; }
+    
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
     .c6 { color: #ff4500; } .c7 { color: #d2691e; } .c8 { color: #000000; } .c9 { color: #4b0082; } .c10 { color: #ff00ff; }
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
@@ -77,7 +73,6 @@
         <div class="hp-pct-display"><span id="bosshp-pct">100.0000</span>%</div>
     </div>
     <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
-    
     <div class="status-box">
         <div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div>
         <div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div>
@@ -107,18 +102,14 @@
             ドロップ資格: <span id="st-rank" class="clickable" onclick="toggleConds()">確認中...</span>
             <div id="cond-display" class="cond-list"></div>
         </div>
-        <div class="st-box">
-            <b>遺物出現率</b>
-            <table class="prob-table" id="prob-list"></table>
-        </div>
-        <div class="version-info">v1.2.5</div>
+        <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
+        <div class="version-info">v1.2.6</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
 
 <script>
 const SAVE_KEY = "infiniterelic_player_data"; 
-
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
 const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; 
 const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
@@ -127,27 +118,20 @@ const DROP_DATA = {
     1: { p: "81.888879%", cond: 0n }, 2: { p: "12%", cond: 0n }, 3: { p: "5%", cond: 0n }, 4: { p: "1%", cond: 0n },
     5: { p: "0.1%", cond: 1000000n }, 6: { p: "0.01%", cond: 10000000n }, 7: { p: "0.001%", cond: 100000000n },
     8: { p: "0.0001%", cond: 1000000000n }, 9: { p: "0.00001%", cond: 10000000000n }, 
-    10: { p: "0.000001%", cond: 100000000000n },
-    11: { p: "0.0000001%", cond: 1000000000000n } 
+    10: { p: "0.000001%", cond: 100000000000n }, 11: { p: "0.0000001%", cond: 1000000000000n } 
 };
 
-let player = { 
-    inventory: {0: 1}, 
-    deathCount: 0, 
-    baseAtk: 10n, 
-    baseHP: 100n, 
-    maxDmg: 0n, 
-    isEndless: false 
-};
+let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, isEndless: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 
+// スキルを50種から25種（各5個）に統廃合
 const POWERS = [
-    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "極意", "飛燕", "天断", "旋風", "残像", "奥義", "再臨"], eff: "物理ダメージ・ATK増加系"},
-    {name: "不滅", skills: ["守護", "金剛", "再生", "鉄壁", "不屈", "楔", "波動", "逆鱗", "聖域", "不滅"], eff: "HP・生存・防御増加系"},
-    {name: "魔導", skills: ["回路", "知恵", "魔力", "共鳴", "詠唱", "門", "魔法", "等価", "因果", "真理"], eff: "倍率・効率・特殊効果系"},
-    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"], eff: "総合力・全体強化系"},
-    {name: "虚無", skills: ["忘却", "残響", "空虚", "深淵", "残滓", "否定", "消失", "無情", "零壊", "虚無"], eff: "デバフ・割合ダメージ・特殊系"}
+    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "天断", "奥義"], eff: "物理ダメージ・ATK増加系"},
+    {name: "不滅", skills: ["守護", "再生", "鉄壁", "不屈", "不滅"], eff: "HP・生存・防御増加系"},
+    {name: "魔導", skills: ["回路", "魔力", "詠唱", "魔法", "真理"], eff: "倍率・効率・特殊効果系"},
+    {name: "覇王", skills: ["軍勢", "威圧", "凱旋", "号令", "終焉"], eff: "総合力・全体強化系"},
+    {name: "虚無", skills: ["忘却", "空虚", "残滓", "消失", "虚無"], eff: "デバフ・割合ダメージ・特殊系"}
 ];
 
 const RELIC_MASTER = [
@@ -175,41 +159,25 @@ function getRelicBonus() {
     let atk = 0n, hp = 0n, mult = 1.0;
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
-        if(r) { 
-            atk += BigInt(Math.floor(r.atk * count)); 
-            hp += BigInt(Math.floor(r.hp * count));
-            if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count);
-        }
+        if(r) { atk += BigInt(Math.floor(r.atk * count)); hp += BigInt(Math.floor(r.hp * count)); if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count); }
     });
     return { atk, hp, mult };
 }
 
 function getSkillMultiplier() {
-    let m = 1.0;
-    if(player.inventory[1001] > 0) m *= 100.0;
-    if(player.inventory[1101] > 0) m *= 1000.0;
-    return m;
+    let m = 1.0; if(player.inventory[1001] > 0) m *= 100.0; if(player.inventory[1101] > 0) m *= 1000.0; return m;
 }
 
 function getPowerPoints(pIdx) {
-    let pts = 0;
-    Object.entries(player.inventory).forEach(([id, count]) => {
+    let pts = 0; Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
-        if(r && r.pIdx === pIdx) { pts += (r.star * count); }
+        if(r && r.pIdx === pIdx) pts += (r.star * count);
     });
     return pts;
 }
 
 function saveGame() {
-    const saveData = {
-        inventory: player.inventory,
-        deathCount: player.deathCount,
-        baseAtk: player.baseAtk.toString(),
-        baseHP: player.baseHP.toString(),
-        maxDmg: player.maxDmg.toString(),
-        bossHP: currentBossHP.toString(),
-        isEndless: player.isEndless
-    };
+    const saveData = { inventory: player.inventory, deathCount: player.deathCount, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString(), isEndless: player.isEndless };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
 }
 
@@ -229,58 +197,33 @@ function loadGame() {
     }
 }
 
-function resetData() {
-    if(confirm("全データを削除します。よろしいですか？")) {
-        localStorage.clear();
-        location.reload();
-    }
-}
+function resetData() { if(confirm("全データを削除します。よろしいですか？")) { localStorage.clear(); location.reload(); } }
 
 function attack() {
     player.deathCount++;
     player.baseAtk += BigInt(Math.floor(Math.random() * (player.deathCount + 1))) + 1n;
     player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
-    
     const bonus = getRelicBonus();
-    const currentTotalAtk = (player.baseAtk + bonus.atk);
-
-    let dmg = currentTotalAtk * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
+    let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
     dmg = BigInt(Math.floor(Number(dmg) * bonus.mult));
-    
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
-
     addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージを与えた！</span>`);
-
     if(currentBossHP <= 0n) {
         if (player.inventory[1001] > 0) {
-            if (!player.isEndless) {
-                addLog(`<span style="color:#ffd700; font-weight:bold;">神格・無窮の魔神、顕現...</span>`);
-                player.isEndless = true;
-            }
+            if (!player.isEndless) { addLog(`<span style="color:#ffd700; font-weight:bold;">神格・無窮の魔神、顕現...</span>`); player.isEndless = true; }
             currentBossHP = BOSS_MAX_HP_ENDLESS;
-        } else {
-            addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`);
-            currentBossHP = BOSS_MAX_HP_BASE;
-        }
+        } else { addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`); currentBossHP = BOSS_MAX_HP_BASE; }
     }
-
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,99,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
-    
-    handleDrop();
-    saveGame(); 
-    refreshUI();
+    handleDrop(); saveGame(); refreshUI();
 }
 
 function handleDrop() {
-    let dropCount = 1;
-    [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
+    let dropCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
     for(let i=0; i<dropCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
-        for(let s in DROP_DATA) {
-            curP += parseFloat(DROP_DATA[s].p);
-            if(rv <= curP) { star = parseInt(s); break; }
-        }
+        for(let s in DROP_DATA) { curP += parseFloat(DROP_DATA[s].p); if(rv <= curP) { star = parseInt(s); break; } }
         if (player.maxDmg < DROP_DATA[star].cond) continue;
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
@@ -293,51 +236,24 @@ function handleDrop() {
 
 function refreshUI() {
     const bonus = getRelicBonus();
-    const totalAtk = BigInt(Math.floor(Number(player.baseAtk + bonus.atk) * bonus.mult));
-    const totalHp = BigInt(Math.floor(Number(player.baseHP + bonus.hp) * bonus.mult));
-    
-    document.getElementById("p-atk").innerText = totalAtk.toLocaleString();
-    document.getElementById("p-hp").innerText = totalHp.toLocaleString();
-    
+    document.getElementById("p-atk").innerText = BigInt(Math.floor(Number(player.baseAtk + bonus.atk) * bonus.mult)).toLocaleString();
+    document.getElementById("p-hp").innerText = BigInt(Math.floor(Number(player.baseHP + bonus.hp) * bonus.mult)).toLocaleString();
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
     document.getElementById("boss-display-name").innerText = player.isEndless ? "神格・無窮の魔神" : "魔神";
-    
     const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
-
-    const activeTab = document.querySelector(".tab.active").id;
-    if(activeTab === 'vow') renderVow();
-    if(activeTab === 'power') renderPower();
-    if(activeTab === 'relic') renderRelics();
-    if(activeTab === 'status') renderStatus();
+    const tab = document.querySelector(".tab.active").id;
+    if(tab === 'vow') renderVow(); if(tab === 'power') renderPower(); if(tab === 'relic') renderRelics(); if(tab === 'status') renderStatus();
 }
 
 function renderVow() {
-    let dCount = 1;
-    [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
-
+    let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item">
-            <div class="vow-name">不退転の力</div>
-            <div class="vow-val">現在ボーナス：<br>ATK 1 ～ ${(1 + player.deathCount).toLocaleString()} の範囲で上昇</div>
-            <div class="vow-desc">再起するたびにボーナス ATK 1 上昇</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">金剛の肉体</div>
-            <div class="vow-val">現在ボーナス：<br>HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()} の範囲で上昇</div>
-            <div class="vow-desc">再起するたびにボーナス HP 10 上昇</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">魂の研磨</div>
-            <div class="vow-val">同時ドロップ数: ${dCount} 個</div>
-            <div class="vow-desc">再起回数（1,000 / 5,000 / 25,000 / 100,000）に応じてドロップ数が増加します。（※倍率化対象外）</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">死を刻む</div>
-            <div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div>
-            <div class="vow-desc">死の経験をダメージに上乗せします。再起するたびに0.0004%を最終ダメージに追加します。</div>
-        </div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">現在ボーナス：ATK 1 ～ ${(1 + player.deathCount).toLocaleString()}</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">現在ボーナス：HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">同時ドロップ数: ${dCount} 個</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div></div>
     `;
 }
 
@@ -345,10 +261,12 @@ function renderPower() {
     const skillMult = getSkillMultiplier();
     document.getElementById("power").innerHTML = POWERS.map((p, idx) => {
         const pts = getPowerPoints(idx);
-        let unlocked = 0; SKILL_THRESHOLDS.forEach(t => { if(pts >= t) unlocked++; });
-        let next = unlocked < 10 ? `${p.name}権能pt: ${SKILL_THRESHOLDS[unlocked].toLocaleString()}で解放` : "全解放";
+        let unlocked = 0; 
+        // スキル5つに合わせて最初の5つの閾値を使用
+        for(let i=0; i<5; i++) { if(pts >= SKILL_THRESHOLDS[i]) unlocked++; }
+        let nextText = unlocked < 5 ? `${SKILL_THRESHOLDS[unlocked].toLocaleString()} ptで解放` : "全解放";
         return `<div class="power-section">
-            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${next}</div></div>
+            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${nextText}</div></div>
             <div class="skill-list">${p.skills.map((s, si) => {
                 const isUnlocked = si < unlocked;
                 const effectValue = (si + 1) * skillMult;
@@ -362,15 +280,8 @@ function renderPower() {
 function renderRelics() {
     const items = Object.entries(player.inventory).filter(([id, count]) => count > 0)
         .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count })).sort((a, b) => a.star - b.star);
-    
     document.getElementById("relic-list").innerHTML = items.map(r => {
-        if(r.id === 0) {
-            return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>${r.desc}</small></div>`;
-        }
-        let eff = []; 
-        if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); 
-        if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
-        if(r.mult && r.mult > 1) eff.push(`全効果x${r.mult}`);
+        let eff = []; if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`); if(r.mult && r.mult > 1) eff.push(`全効果x${r.mult}`);
         let powerStr = r.pIdx !== -1 ? `${POWERS[r.pIdx].name}権能pt: ${(r.star * r.count).toLocaleString()}` : r.desc;
         return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>(${eff.join(" / ")})</small><br><small>${powerStr}</small></div>`;
     }).join("");
@@ -378,40 +289,27 @@ function renderRelics() {
 
 function renderStatus() {
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-    let rank = "★4以下";
-    for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { rank = `★${s}以上解放`; break; } }
+    let rank = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { rank = `★${s}以上解放`; break; } }
     document.getElementById("st-rank").innerText = rank;
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
-    document.getElementById("cond-display").innerHTML = Object.entries(DROP_DATA).filter(([s, d]) => d.cond > 0n)
-        .map(([s, d]) => `<div style="margin-bottom:4px;">★${s}: ${d.cond.toLocaleString()} ダメージ</div>`).join("");
+    document.getElementById("cond-display").innerHTML = Object.entries(DROP_DATA).filter(([s, d]) => d.cond > 0n).map(([s, d]) => `<div>★${s}: ${d.cond.toLocaleString()}dmg</div>`).join("");
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s, d]) => `<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join("");
 }
 
 function showTab(id) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
-    document.getElementById(id).classList.add("active"); 
-    document.getElementById("nav-" + id).classList.add("active");
-    refreshUI();
+    document.getElementById(id).classList.add("active"); document.getElementById("nav-" + id).classList.add("active"); refreshUI();
 }
 
-function toggleConds() {
-    const el = document.getElementById("cond-display");
-    el.style.display = el.style.display === "block" ? "none" : "block";
-}
-
-function addLog(m) {
-    const l = document.getElementById("log"); const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 50) l.removeChild(l.lastChild);
-}
+function toggleConds() { const el = document.getElementById("cond-display"); el.style.display = el.style.display === "block" ? "none" : "block"; }
+function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.innerHTML = m; l.prepend(d); if(l.childNodes.length > 50) l.removeChild(l.lastChild); }
 
 const btn = document.getElementById("attackBtn");
 const start = (e) => { e.preventDefault(); if(!attackInterval) { attack(); attackInterval = setInterval(attack, 120); } };
 const stop = () => { clearInterval(attackInterval); attackInterval = null; };
 btn.addEventListener("pointerdown", start); window.addEventListener("pointerup", stop);
-
-loadGame(); 
-refreshUI();
+loadGame(); refreshUI();
 </script>
 </body>
 </html>
