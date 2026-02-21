@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.7</title>
+<title>RELICORE - v1.2.8 (Full Power Test)</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -57,12 +57,10 @@
     .prob-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9em; }
     .prob-table td { padding: 6px; border-bottom: 1px solid #eee; }
     .version-info { text-align: center; color: #999; font-size: 0.8em; margin-top: 20px; }
-    .btn-reset { width: 100%; padding: 166px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; margin-bottom: 80px; box-shadow: 0 4px 0 #a71d2a; }
+    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; margin-bottom: 80px; box-shadow: 0 4px 0 #a71d2a; }
     
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
-    .c6 { color: #ff4500; } .c7 { color: #d2691e; } .c8 { color: #000000; } .c9 { color: #4b0082; } .c10 { color: #ff00ff; }
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
-    .c12 { color: #00ffff; text-shadow: 0 0 5px rgba(0,255,255,0.7); font-weight: bold; }
 </style>
 </head>
 <body>
@@ -103,7 +101,7 @@
             <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">v1.2.7</div>
+        <div class="version-info">v1.2.8 (Full Power Enabled)</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -112,7 +110,7 @@
 const SAVE_KEY = "infiniterelic_player_data"; 
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
 const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; 
-const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
+const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 
 const DROP_DATA = {
     1: { p: "81.888879%", cond: 0n }, 2: { p: "12%", cond: 0n }, 3: { p: "5%", cond: 0n }, 4: { p: "1%", cond: 0n },
@@ -125,12 +123,58 @@ let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, max
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 
+// スキルデータに具体的な効果を追加
 const POWERS = [
-    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "天断", "奥義"], eff: "物理ダメージ・ATK増加系"},
-    {name: "不滅", skills: ["守護", "再生", "鉄壁", "不屈", "不滅"], eff: "HP・生存・防御増加系"},
-    {name: "魔導", skills: ["回路", "魔力", "詠唱", "魔法", "真理"], eff: "倍率・効率・特殊効果系"},
-    {name: "覇王", skills: ["軍勢", "威圧", "凱旋", "号令", "終焉"], eff: "総合力・全体強化系"},
-    {name: "虚無", skills: ["忘却", "空虚", "残滓", "消失", "虚無"], eff: "デバフ・割合ダメージ・特殊系"}
+    {
+        name: "剣神", 
+        skills: [
+            {name: "一の太刀", desc: "基礎ATK +10%"},
+            {name: "心眼", desc: "クリティカル率上昇"},
+            {name: "剣気", desc: "最終ダメージ倍率 x1.2"},
+            {name: "天断", desc: "確率でダメージ2倍"},
+            {name: "奥義", desc: "最終ダメージ倍率 x2.5"}
+        ]
+    },
+    {
+        name: "不滅", 
+        skills: [
+            {name: "守護", desc: "基礎HP +15%"},
+            {name: "再生", desc: "再起時のHP上昇量強化"},
+            {name: "鉄壁", desc: "被ダメージ軽減(表示)"},
+            {name: "不屈", desc: "低HP時にATK上昇"},
+            {name: "不滅", desc: "基礎HP +100% ＆ 再起ボーナス強化"}
+        ]
+    },
+    {
+        name: "魔導", 
+        skills: [
+            {name: "回路", desc: "権能pt獲得量 +10%"},
+            {name: "魔力", desc: "スキル倍率全体 +10%"},
+            {name: "詠唱", desc: "攻撃の安定化"},
+            {name: "魔法", desc: "全遺物の基礎効果 +15%"},
+            {name: "真理", desc: "全スキル効果倍率 2倍"}
+        ]
+    },
+    {
+        name: "覇王", 
+        skills: [
+            {name: "軍勢", desc: "遺物1種毎にATK +1%"},
+            {name: "威圧", desc: "ボスの最大HP 1%減少"},
+            {name: "凱旋", desc: "討伐時ドロップ率微増"},
+            {name: "号令", desc: "ATK加算効果 1.3倍"},
+            {name: "終焉", desc: "最終ダメージ倍率 x5.0"}
+        ]
+    },
+    {
+        name: "虚無", 
+        skills: [
+            {name: "忘却", desc: "再起ダメージ補正 1.5倍"},
+            {name: "空虚", desc: "敵防御無視"},
+            {name: "残滓", desc: "稀に追撃発生"},
+            {name: "消失", desc: "稀にボスのHP 0.1%消失"},
+            {name: "虚無", desc: "最終ダメージ倍率 x3.0"}
+        ]
+    }
 ];
 
 const RELIC_MASTER = [
@@ -163,18 +207,6 @@ function getRelicBonus() {
     return { atk, hp, mult };
 }
 
-function getSkillMultiplier() {
-    let m = 1.0; if(player.inventory[1001] > 0) m *= 100.0; if(player.inventory[1101] > 0) m *= 1000.0; return m;
-}
-
-function getPowerPoints(pIdx) {
-    let pts = 0; Object.entries(player.inventory).forEach(([id, count]) => {
-        const r = RELIC_MASTER.find(m => m.id == id);
-        if(r && r.pIdx === pIdx) pts += (r.star * count);
-    });
-    return pts;
-}
-
 function saveGame() {
     const saveData = { inventory: player.inventory, deathCount: player.deathCount, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString(), isEndless: player.isEndless };
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
@@ -200,19 +232,35 @@ function resetData() { if(confirm("全データを削除します。よろしい
 
 function attack() {
     player.deathCount++;
+    // 再起ボーナス計算
     player.baseAtk += BigInt(Math.floor(Math.random() * (player.deathCount + 1))) + 1n;
     player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
+
     const bonus = getRelicBonus();
-    let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
-    dmg = BigInt(Math.floor(Number(dmg) * bonus.mult));
+    
+    // 全スキル適用済みの倍率計算 (テスト用)
+    let skillMult = 1.0;
+    skillMult *= 1.2; // 剣気
+    skillMult *= 2.5; // 奥義
+    skillMult *= 5.0; // 終焉
+    skillMult *= 3.0; // 虚無
+    if(Math.random() < 0.2) skillMult *= 2.0; // 天断 (20%)
+    
+    let baseDmg = (player.baseAtk + bonus.atk);
+    // 覇王:軍勢 (遺物1種につき1%アップ)
+    let relicTypes = Object.keys(player.inventory).length;
+    baseDmg = baseDmg * BigInt(100 + relicTypes) / 100n;
+
+    let dmg = baseDmg * (1000000n + BigInt(player.deathCount * 6)) / 1000000n; // 忘却込み補正
+    dmg = BigInt(Math.floor(Number(dmg) * bonus.mult * skillMult));
+
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
+
     addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージを与えた！</span>`);
     if(currentBossHP <= 0n) {
-        if (player.inventory[1001] > 0) {
-            if (!player.isEndless) { addLog(`<span style="color:#ffd700; font-weight:bold;">神格・無窮の魔神、顕現...</span>`); player.isEndless = true; }
-            currentBossHP = BOSS_MAX_HP_ENDLESS;
-        } else { addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`); currentBossHP = BOSS_MAX_HP_BASE; }
+        addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`); 
+        currentBossHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
     }
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,99,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     handleDrop(); saveGame(); refreshUI();
@@ -235,13 +283,18 @@ function handleDrop() {
 
 function refreshUI() {
     const bonus = getRelicBonus();
-    document.getElementById("p-atk").innerText = BigInt(Math.floor(Number(player.baseAtk + bonus.atk) * bonus.mult)).toLocaleString();
-    document.getElementById("p-hp").innerText = BigInt(Math.floor(Number(player.baseHP + bonus.hp) * bonus.mult)).toLocaleString();
+    // 表示上のATK/HP (全スキル解放状態の補正込)
+    let dispAtk = BigInt(Math.floor(Number(player.baseAtk + bonus.atk) * bonus.mult * 1.1 * 1.3)); // 剣神・覇王補正
+    let dispHP = BigInt(Math.floor(Number(player.baseHP + bonus.hp) * bonus.mult * 1.15 * 2.0)); // 不滅補正
+    
+    document.getElementById("p-atk").innerText = dispAtk.toLocaleString();
+    document.getElementById("p-hp").innerText = dispHP.toLocaleString();
+    
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
-    document.getElementById("boss-display-name").innerText = player.isEndless ? "神格・無窮の魔神" : "魔神";
     const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
+    
     const tab = document.querySelector(".tab.active").id;
     if(tab === 'vow') renderVow(); if(tab === 'power') renderPower(); if(tab === 'relic') renderRelics(); if(tab === 'status') renderStatus();
 }
@@ -251,25 +304,17 @@ function renderVow() {
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">現在ボーナス：<br>ATK 1 ～ ${(1 + player.deathCount).toLocaleString()} の範囲で上昇</div><div class="vow-desc">再起するたびにボーナス ATK 1 上昇</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">現在ボーナス：<br>HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()} の範囲で上昇</div><div class="vow-desc">再起するたびにボーナス HP 10 上昇</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">同時ドロップ数: ${dCount} 個</div><div class="vow-desc">再起回数に応じてドロップ数が増加します。</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div><div class="vow-desc">再起するたびに0.0004%を最終ダメージに追加します。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">同時ドロップ数: ${dCount} 個</div><div class="vow-desc">再起回数（1,000 / 5,000 / 25,000 / 100,000）に応じてドロップ数が増加します。（※倍率化対象外）</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div><div class="vow-desc">死の経験をダメージに上乗せします。再起するたびに0.0004%を最終ダメージに追加します。</div></div>
     `;
 }
 
 function renderPower() {
-    const skillMult = getSkillMultiplier();
-    document.getElementById("power").innerHTML = POWERS.map((p, idx) => {
-        const pts = getPowerPoints(idx);
-        let unlocked = 0; 
-        for(let i=0; i<5; i++) { if(pts >= SKILL_THRESHOLDS[i]) unlocked++; }
-        let nextText = unlocked < 5 ? `${SKILL_THRESHOLDS[unlocked].toLocaleString()} ptで解放` : "全解放";
+    document.getElementById("power").innerHTML = POWERS.map((p) => {
         return `<div class="power-section">
-            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${nextText}</div></div>
-            <div class="skill-list">${p.skills.map((s, si) => {
-                const isUnlocked = si < unlocked;
-                const effectValue = (si + 1) * skillMult;
-                const effectText = isUnlocked ? `<span class="skill-effect">効果: ${p.eff} (倍率: x${effectValue.toLocaleString()})</span>` : "";
-                return `<div class="skill-row"><div class="skill-chip ${isUnlocked ? 'unlocked' : ''}">${s}</div>${effectText}</div>`;
+            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>ALL UNLOCKED</span></div><div class="power-progress">テストモード: 全解放中</div></div>
+            <div class="skill-list">${p.skills.map((s) => {
+                return `<div class="skill-row"><div class="skill-chip unlocked">${s.name}</div><span class="skill-effect">効果: ${s.desc} (有効)</span></div>`;
             }).join("")}</div>
         </div>`;
     }).join("");
@@ -279,9 +324,7 @@ function renderRelics() {
     const items = Object.entries(player.inventory).filter(([id, count]) => count > 0)
         .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count })).sort((a, b) => a.star - b.star);
     document.getElementById("relic-list").innerHTML = items.map(r => {
-        if (r.id === 0) {
-            return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>${r.desc}</small></div>`;
-        }
+        if (r.id === 0) return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>${r.desc}</small></div>`;
         let eff = []; if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`); if(r.mult && r.mult > 1) eff.push(`全効果x${r.mult}`);
         let powerStr = r.pIdx !== -1 ? `${POWERS[r.pIdx].name}権能pt: ${(r.star * r.count).toLocaleString()}` : r.desc;
         return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>(${eff.join(" / ")})</small><br><small>${powerStr}</small></div>`;
