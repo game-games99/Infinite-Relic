@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.4.8</title>
+<title>RELICORE - v1.4.9</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -33,7 +33,6 @@
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
     #log { height: 380px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     
-    /* 遺物リスト：2列グリッドの更なる最適化 */
     .relic-list-container { 
         display: grid; 
         grid-template-columns: 1fr 1fr; 
@@ -48,25 +47,25 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
         display: flex;
         flex-direction: column;
-        min-height: 80px;
+        min-height: 85px;
     }
     .relic-name { 
         font-weight: bold; 
-        font-size: 0.75em; 
+        font-size: 0.72em; 
         margin-bottom: 4px;
         display: block;
-        min-height: 2.4em; /* 名前が2行になっても耐えられるように */
+        min-height: 2.4em;
         line-height: 1.2;
     }
     .relic-count-row {
-        font-size: 0.65em;
+        font-size: 0.62em;
         color: #888;
         margin-bottom: 4px;
         border-top: 1px solid #f0f0f0;
         padding-top: 4px;
     }
     .relic-effect-box { 
-        font-size: 0.7em; 
+        font-size: 0.68em; 
         line-height: 1.4; 
         color: var(--primary);
         font-weight: bold;
@@ -138,7 +137,7 @@
             <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.4.8</div>
+        <div class="version-info">RELICORE v1.4.9</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -325,10 +324,10 @@ function renderRelics() {
     
     document.getElementById("relic-list").innerHTML = items.map(r => {
         let eff = []; 
-        if(r.atk > 0) eff.push(`A+${r.atk.toLocaleString()}`); 
-        if(r.hp > 0) eff.push(`H+${r.hp.toLocaleString()}`); 
-        if(r.aP) eff.push(`A+${r.aP}%`); 
-        if(r.hP) eff.push(`H+${r.hP}%`); 
+        if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); 
+        if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`); 
+        if(r.aP) eff.push(`ATK+${r.aP}%`); 
+        if(r.hP) eff.push(`HP+${r.hP}%`); 
         if(r.mult > 1) eff.push(`x${r.mult.toFixed(1)}`);
         
         let effectStr = eff.length > 0 ? `${eff.join(" / ")}` : "";
