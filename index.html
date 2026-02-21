@@ -34,7 +34,6 @@
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
     
-    /* 再起の誓い スタイル */
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
     .vow-name { font-weight: bold; font-size: 0.95em; }
     .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
@@ -124,6 +123,14 @@ let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, max
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 
+const POWERS = [
+    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "極意", "飛燕", "天断", "旋風", "残像", "奥義", "再臨"], eff: "物理ダメージ・ATK増加系"},
+    {name: "不滅", skills: ["守護", "金剛", "再生", "鉄壁", "不屈", "楔", "波動", "逆鱗", "聖域", "不滅"], eff: "HP・生存・防御増加系"},
+    {name: "魔導", skills: ["回路", "知恵", "魔力", "共鳴", "詠唱", "門", "魔法", "等価", "因果", "真理"], eff: "倍率・効率・特殊効果系"},
+    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"], eff: "総合力・ドロップ・全体強化系"},
+    {name: "虚無", skills: ["忘却", "残響", "空虚", "深淵", "残滓", "否定", "消失", "無情", "零壊", "虚無"], eff: "デバフ・割合ダメージ・特殊系"}
+];
+
 const RELIC_MASTER = [
     {id:0, star:11, name:"再起の誓い", atk:0, hp:0, pIdx:-1, w:0, mult:1},
     {id:101, star:1, name:"勇者の木片", atk:1, hp:0, pIdx:0, w:100}, {id:102, star:1, name:"戦士の砥石", atk:3, hp:0, pIdx:0, w:80},
@@ -142,14 +149,6 @@ const RELIC_MASTER = [
     {id:801, star:8, name:"輪廻の滅刃", atk:800000000, hp:0, pIdx:0, w:1, mult:2.0}, {id:802, star:8, name:"輪廻の守護像", atk:0, hp:1800000000, pIdx:1, w:1, mult:2.0}, {id:803, star:8, name:"輪廻の天秤", atk:400000000, hp:400000000, pIdx:2, w:1, mult:1.8}, {id:804, star:8, name:"輪廻の錫杖", atk:200000000, hp:200000000, pIdx:3, w:1, mult:2.5}, {id:805, star:8, name:"輪廻の魂灯", atk:500000000, hp:500000000, pIdx:4, w:1, mult:3.0},
     {id:901, star:9, name:"創世の心臓", atk:10000000000, hp:20000000000, pIdx:2, w:1, mult:5.0}, {id:902, star:9, name:"創世の理", atk:5000000000, hp:5000000000, pIdx:4, w:1, mult:4.0}, {id:903, star:9, name:"創世の牙", atk:15000000000, hp:0, pIdx:0, w:1, mult:3.5}, {id:904, star:9, name:"創世の盾", atk:0, hp:30000000000, pIdx:1, w:1, mult:3.5}, {id:905, star:9, name:"創世の楔", atk:10000000000, hp:10000000000, pIdx:3, w:1, mult:10.0},
     {id:1001, star:10, name:"インフィニットレリック", atk:0, hp:0, pIdx:-1, w:1, mult:1.0} 
-];
-
-const POWERS = [
-    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "極意", "飛燕", "天断", "旋風", "残像", "奥義", "再臨"], eff: "物理ダメージ・ATK増加系"},
-    {name: "不滅", skills: ["守護", "金剛", "再生", "鉄壁", "不屈", "楔", "波動", "逆鱗", "聖域", "不滅"], eff: "HP・生存・防御増加系"},
-    {name: "魔導", skills: ["回路", "知恵", "魔力", "共鳴", "詠唱", "門", "魔法", "等価", "因果", "真理"], eff: "倍率・効率・特殊効果系"},
-    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"], eff: "総合力・ドロップ・全体強化系"},
-    {name: "虚無", skills: ["忘却", "残響", "空虚", "深淵", "残滓", "否定", "消失", "無情", "零壊", "虚無"], eff: "デバフ・割合ダメージ・特殊系"}
 ];
 
 function getRelicBonus() {
@@ -215,8 +214,8 @@ function resetData() {
 
 function attack() {
     player.deathCount++;
-    player.baseAtk += 1n; // 死ぬ度にATK+1
-    player.baseHP += 10n; // 死ぬ度にHP+10
+    player.baseAtk += 1n;
+    player.baseHP += 10n;
     const bonus = getRelicBonus();
     let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
     dmg = BigInt(Math.floor(Number(dmg) * bonus.mult));
@@ -263,9 +262,9 @@ function renderPower() {
     document.getElementById("power").innerHTML = POWERS.map((p, idx) => {
         const pts = getPowerPoints(idx);
         let unlocked = 0; SKILL_THRESHOLDS.forEach(t => { if(pts >= t) unlocked++; });
-        let next = unlocked < 10 ? `${SKILL_THRESHOLDS[unlocked].toLocaleString()}ptで解放` : "全解放";
+        let next = unlocked < 10 ? `${p.name}権能pt: ${SKILL_THRESHOLDS[unlocked].toLocaleString()}で解放` : "全解放";
         return `<div class="power-section">
-            <div class="power-head"><div class="power-title"><span>${p.name}</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${next}</div></div>
+            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${next}</div></div>
             <div class="skill-list">${p.skills.map((s, si) => {
                 const isUnlocked = si < unlocked;
                 const effLabel = skillMult > 1 ? `真・${p.eff}` : p.eff;
@@ -284,28 +283,11 @@ function renderVow() {
     const thresholds = [1000, 5000, 25000, 100000];
     thresholds.forEach(t => { if(player.deathCount >= t) dCount++; });
     let nextT = dCount < 5 ? thresholds[dCount-1].toLocaleString() : "MAX";
-
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item">
-            <div class="vow-name">不退転の力</div>
-            <div class="vow-val">効率: 1 ～ ${player.deathCount.toLocaleString()}</div>
-            <div class="vow-desc">死ぬ度にATK基礎値 +1</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">金剛の肉体</div>
-            <div class="vow-val">効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div>
-            <div class="vow-desc">死ぬ度にHP基礎値 +10</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">魂の研磨</div>
-            <div class="vow-val">ドロップ: ${dCount} 個</div>
-            <div class="vow-desc">条件: 次回 ${nextT} 回再起で増加</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">死を刻む</div>
-            <div class="vow-val">威力: +${(player.deathCount * 0.0004).toFixed(4)}%</div>
-            <div class="vow-desc">死ぬ度に最終ダメージ増加 0.0004%</div>
-        </div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">効率: 1 ～ ${player.deathCount.toLocaleString()}</div><div class="vow-desc">死ぬ度にATK基礎値 +1</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">死ぬ度にHP基礎値 +10</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">ドロップ: ${dCount} 個</div><div class="vow-desc">条件: 次回 ${nextT} 回再起で増加</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力: +${(player.deathCount * 0.0004).toFixed(4)}%</div><div class="vow-desc">死ぬ度に最終ダメージ増加 0.0004%</div></div>
     `;
 }
 
@@ -316,7 +298,11 @@ function renderRelics() {
         let eff = []; if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
         if(r.mult && r.mult > 1) eff.push(`倍率x${r.mult}`);
         let effStr = eff.length > 0 ? `(${eff.join(" / ")})` : "";
-        return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small style="color:#666;">${effStr}</small><br><small>権能pt: ${(r.star * r.count).toLocaleString()}</small></div>`;
+        
+        let powerName = r.pIdx !== -1 ? POWERS[r.pIdx].name : "特殊";
+        let powerStr = r.pIdx !== -1 ? `${powerName}権能pt: ${(r.star * r.count).toLocaleString()}` : "固有遺物";
+        
+        return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small style="color:#666;">${effStr}</small><br><small>${powerStr}</small></div>`;
     }).join("");
 }
 
@@ -349,11 +335,8 @@ function refreshUI() {
     const totalHp = BigInt(Math.floor(Number(player.baseHP + bonus.hp) * bonus.mult));
     document.getElementById("p-atk").innerText = totalAtk.toLocaleString();
     document.getElementById("p-hp").innerText = totalHp.toLocaleString();
-
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
-    const bossName = player.isEndless ? "真・魔神" : "魔神";
-    document.getElementById("boss-display-name").innerText = bossName;
-    
+    document.getElementById("boss-display-name").innerText = player.isEndless ? "真・魔神" : "魔神";
     const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
