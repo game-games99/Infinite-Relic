@@ -8,33 +8,26 @@
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #343a40; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    
     #header { background: var(--dark); color: #fff; padding: 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .status-box { display: flex; gap: 8px; margin-top: 4px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; border-left: 3px solid var(--primary); }
     .stat-card.hp-card { border-left-color: var(--hp); }
     .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
     .stat-val { font-size: 1.1em; font-weight: bold; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-    
     #content-area { flex-grow: 1; overflow-y: auto; background: #fff; padding-bottom: 80px; }
     .tab { display: none; padding: 10px; }
     .tab.active { display: block; }
-    
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
     #log { height: 260px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
-    
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
-    
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
     .vow-name { font-weight: bold; font-size: 0.95em; }
     .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
     .vow-cond { font-size: 0.7em; color: #666; margin-top: 2px; }
-    
     .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .power-head { background: #eee; padding: 8px; font-weight: bold; display: flex; flex-direction: column; font-size: 0.8em; }
     .power-title { display: flex; justify-content: space-between; margin-bottom: 2px; }
@@ -42,11 +35,11 @@
     .skill-list { padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
     .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #f0f0f0; color: #ccc; border: 1px solid #ddd; }
     .skill-chip.unlocked { background: #e7f3ff; color: #007bff; border-color: #007bff; font-weight: bold; }
-
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
+    .clickable { cursor: pointer; color: var(--primary); text-decoration: underline; font-weight: bold; }
+    .cond-list { margin-top: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; display: none; }
     .prob-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9em; }
-    .prob-table td { padding: 4px; border-bottom: 1px solid #eee; }
-
+    .prob-table td { padding: 6px; border-bottom: 1px solid #eee; }
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
     .c6 { color: #ff4500; } .c7 { color: #d2691e; } .c8 { color: #000000; } .c9 { color: #4b0082; } .c10 { color: #ff00ff; }
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
@@ -82,10 +75,11 @@
     <div id="status" class="tab">
         <div class="st-box">
             最高ダメージ: <span id="st-maxdmg">0</span><br>
-            ドロップ資格: <span id="st-rank">-</span>
+            ドロップ資格: <span id="st-rank" class="clickable" onclick="toggleConds()">確認中...</span>
+            <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box">
-            <b>遺物出現率 & 解放条件</b>
+            <b>遺物出現率</b>
             <table class="prob-table" id="prob-list"></table>
         </div>
     </div>
@@ -204,7 +198,6 @@ function attack() {
             curP += parseFloat(DROP_DATA[s].p);
             if(rv <= curP) { star = parseInt(s); break; }
         }
-        
         if (player.maxDmg < DROP_DATA[star].cond) continue;
 
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
@@ -253,16 +246,25 @@ function renderRelics() {
     }).join("");
 }
 
+function toggleConds() {
+    const el = document.getElementById("cond-display");
+    el.style.display = el.style.display === "block" ? "none" : "block";
+}
+
 function renderStatus() {
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
     let rank = "★4以下";
     for(let s=10; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { rank = `★${s}以上解放`; break; } }
     document.getElementById("st-rank").innerText = rank;
     
-    document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s, d]) => {
-        let condStr = d.cond > 0n ? `${d.cond.toLocaleString()} dmg` : "-";
-        return `<tr><td class="c${s}">★${s}</td><td>${d.p}</td><td style="text-align:right; color:#888;">${condStr}</td></tr>`;
-    }).join("");
+    document.getElementById("cond-display").innerHTML = Object.entries(DROP_DATA)
+        .filter(([s, d]) => d.cond > 0n)
+        .map(([s, d]) => `<div style="margin-bottom:4px;">★${s}: ${d.cond.toLocaleString()} ダメージ</div>`)
+        .join("");
+
+    document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s, d]) => `
+        <tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>
+    `).join("");
 }
 
 function showTab(id) {
