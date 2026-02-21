@@ -28,11 +28,20 @@
     #log { height: 280px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
+    .vow-name { font-weight: bold; font-size: 0.95em; }
+    .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
+    
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; margin-bottom: 4px; }
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .rank-clickable { color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: bold; }
     #prob-list { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    #prob-list td { padding: 4px; border-bottom: 1px solid #eee; font-weight: bold; }
+    #prob-list td { padding: 6px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 0.9em; }
+    
+    /* レアリティカラー設定 */
+    .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
+    .c6 { color: #fd7e14; } .c7 { color: #dc3545; } .c8 { color: #ffc107; text-shadow: 0 0 2px #000; } 
+    .c9 { color: #ffd700; text-shadow: 0 0 3px #daa520; }
+    .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
 </style>
 </head>
 <body>
@@ -61,7 +70,7 @@
     </div>
     <div id="vow" class="tab"><div id="vow-list"></div></div>
     <div id="power" class="tab"><div id="power-list"></div></div>
-    <div id="relic" class="tab"><div id="relic-list"></div></div>
+    <div id="relic" class="tab"><div class="relic-grid" id="relic-list"></div></div>
     <div id="status" class="tab">
         <div class="st-box">
             最高ダメージ: <span id="st-maxdmg">0</span><br>
@@ -76,7 +85,7 @@
 </div>
 
 <script>
-const SAVE_KEY = "infiniterelic_eternal_v3";
+const SAVE_KEY = "infiniterelic_v4_final";
 const BOSS_MAX_HP = 100000000000000000000n;
 const DROP_LIMITS = { 5: 1000000n, 6: 10000000n, 7: 100000000n, 8: 1000000000n, 9: 10000000000n, 10: 100000000000n };
 const BASE_PROBS = { 1: 81.88888, 2: 12, 3: 5, 4: 1, 5: 0.1, 6: 0.01, 7: 0.001, 8: 0.0001, 9: 0.00001, 10: 0.000001 };
@@ -121,14 +130,17 @@ function loadGame() {
     }
 }
 
-function resetGame() { if(confirm("データを全て消去しますか？")){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
+function resetGame() { if(confirm("データを消去しますか？")){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
 
 function attack() {
     player.deathCount++;
-    player.baseAtk += BigInt(Math.floor(Math.random() * player.deathCount) + 1);
-    player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10)) + 1);
+    player.baseAtk += BigInt(Math.floor(Math.random() * 2) + 1); // 基礎成長を緩やかに
+    player.baseHP += BigInt(Math.floor(Math.random() * 10) + 1);
 
-    let dmg = player.baseAtk * BigInt(player.deathCount);
+    // ダメージ計算: ATK × (1 + 再起数*0.001)
+    let bonusMult = 1000n + BigInt(player.deathCount);
+    let dmg = (player.baseAtk * bonusMult) / 1000n;
+
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
     if(currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
@@ -140,7 +152,6 @@ function attack() {
     let star = 1;
     if(rv < 0.1) star = 5; else if(rv < 5) star = 3; else star = 1;
 
-    // 厳格なドロップ条件チェック
     for(let s=5; s<=5; s++) { if(star >= s && dmg < DROP_LIMITS[s]) star = 1; }
 
     let cands = RELIC_MASTER.filter(m => m.star === star);
@@ -166,8 +177,12 @@ function showTab(id) {
 
 function renderVow() {
     const list = document.getElementById("vow-list");
-    list.innerHTML = `<div class="vow-item"><b>不退転の力</b><br><small>加算効率: 1 ～ ${player.deathCount}</small></div>
-                      <div class="vow-item"><b>金剛の肉体</b><br><small>加算効率: 1 ～ ${player.deathCount * 10}</small></div>`;
+    list.innerHTML = `
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">加算効率: 1 ～ ${player.deathCount.toLocaleString()}</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">加算効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">遺物ドロップ数: 1 個</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力増加: +${(player.deathCount * 0.1).toFixed(1)}%</div></div>
+    `;
 }
 
 function renderPower() {
@@ -193,7 +208,9 @@ function renderStatus() {
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
     let r = "★4以下"; if(player.maxDmg >= DROP_LIMITS[5]) r = "★5解放済み";
     document.getElementById("st-rank").innerText = r;
-    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).map(([s,p])=>`<tr><td>★${s}</td><td style="text-align:right;">${p}%</td></tr>`).join("");
+    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).map(([s,p])=>`
+        <tr><td class="c${s}">★${s}</td><td style="text-align:right;">${p}%</td></tr>
+    `).join("");
 }
 
 function showRankInfo() {
