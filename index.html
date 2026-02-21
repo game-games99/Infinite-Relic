@@ -3,18 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE -Eternal-</title>
+<title>RELICORE</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    
+    /* ヘッダー：タイトルを廃止し、魔神の情報を中心に */
     #header { background: var(--dark); color: #fff; padding: 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
-    .game-title { font-size: 1.2em; font-weight: 900; letter-spacing: 2px; color: #fff; margin-bottom: 4px; text-transform: uppercase; }
-    .status-box { display: flex; gap: 8px; margin-top: 4px; }
+    .boss-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .boss-name { font-size: 1.1em; font-weight: bold; color: var(--hp); letter-spacing: 1px; }
+    .boss-hp-val { font-size: 0.75em; color: #ccc; font-family: monospace; }
+    .hp-bar-container { background: #333; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+    #hp-bar-fill { height: 100%; background: var(--hp); width: 100%; transition: width 0.1s; }
+    
+    .status-box { display: flex; gap: 8px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; border-left: 3px solid var(--primary); }
     .stat-card.hp-card { border-left-color: var(--hp); }
     .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
     .stat-val { font-size: 1.1em; font-weight: bold; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
@@ -52,13 +60,18 @@
 <body>
 
 <div id="header">
-    <div class="game-title">RELICORE</div>
-    <div style="font-size:0.7em; font-weight:bold; color:var(--hp);">魔神 HP: <span id="bosshp-pct">100.0000</span>%</div>
+    <div class="boss-info">
+        <div class="boss-name" id="boss-display-name">魔神</div>
+        <div class="boss-hp-val" id="boss-hp-text">0 / 0</div>
+    </div>
+    <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
+    <div style="font-size:0.65em; color:var(--hp); margin-bottom:8px; font-weight:bold;">
+        残存率: <span id="bosshp-pct">100.0000</span>%
+    </div>
     <div class="status-box">
         <div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div>
         <div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div>
     </div>
-    <div style="margin-top:4px; font-size:0.8em; color:#fff;">再起回数: <span id="v-death">0</span> 回</div>
 </div>
 
 <div class="nav">
@@ -79,6 +92,7 @@
     <div id="relic" class="tab"><div class="relic-grid" id="relic-list"></div></div>
     <div id="status" class="tab">
         <div class="st-box">
+            再起回数: <span id="v-death">0</span> 回<br>
             最高ダメージ: <span id="st-maxdmg">0</span><br>
             ドロップ資格: <span id="st-rank" class="clickable" onclick="toggleConds()">確認中...</span>
             <div id="cond-display" class="cond-list"></div>
@@ -92,7 +106,7 @@
 </div>
 
 <script>
-// セーブキーは維持してデータを保護
+// セーブキー固定
 const SAVE_KEY = "infiniterelic_player_data"; 
 const OLD_KEYS = ["infiniterelic_v7_relics", "infiniterelic_v9_stacked"];
 
@@ -299,6 +313,7 @@ function renderStatus() {
     let rank = "★4以下";
     for(let s=10; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { rank = `★${s}以上解放`; break; } }
     document.getElementById("st-rank").innerText = rank;
+    document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
     document.getElementById("cond-display").innerHTML = Object.entries(DROP_DATA).filter(([s, d]) => d.cond > 0n)
         .map(([s, d]) => `<div style="margin-bottom:4px;">★${s}: ${d.cond.toLocaleString()} ダメージ</div>`).join("");
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s, d]) => `<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join("");
@@ -317,9 +332,15 @@ function refreshUI() {
     const totalHp = BigInt(Math.floor(Number(player.baseHP + bonus.hp) * bonus.mult));
     document.getElementById("p-atk").innerText = totalAtk.toLocaleString();
     document.getElementById("p-hp").innerText = totalHp.toLocaleString();
-    document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
+
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
-    document.getElementById("bosshp-pct").innerText = (Number(currentBossHP * 10000n / maxHP) / 100).toFixed(4);
+    const bossName = player.isEndless ? "真・魔神" : "魔神";
+    document.getElementById("boss-display-name").innerText = bossName;
+    document.getElementById("boss-hp-text").innerText = `${currentBossHP.toLocaleString()} / ${maxHP.toLocaleString()}`;
+    
+    const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
+    document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
+    document.getElementById("hp-bar-fill").style.width = `${pct}%`;
 }
 
 function addLog(m) {
