@@ -30,7 +30,7 @@
     
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
     .vow-name { font-weight: bold; font-size: 0.95em; }
-    .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); font-family: monospace; margin-top: 4px; }
+    .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); font-family: sans-serif; margin-top: 4px; }
 
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
@@ -39,11 +39,11 @@
     .rank-clickable { color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: bold; }
     .btn-reset { width: 100%; padding: 12px; background: #dc3545; color: #fff; border: none; border-radius: 6px; margin-top: 20px; font-weight: bold; }
     
-    /* 修正点：ドロップ率のフォントを大きく、等幅、右寄せ */
-    #prob-list { width: 100%; border-collapse: collapse; font-family: 'Courier New', Courier, monospace; }
+    #prob-list { width: 100%; border-collapse: collapse; font-family: sans-serif; }
     #prob-list tr { border-bottom: 1px solid #eee; }
-    #prob-list td { padding: 8px 0; font-size: 1.2em; font-weight: bold; }
-    .prob-val { text-align: right; white-space: pre; padding-right: 4px; }
+    #prob-list td { padding: 8px 0; font-size: 1.1em; font-weight: bold; }
+    .prob-val { text-align: right; padding-right: 4px; }
+    .prob-unit { width: 20px; text-align: left; }
 </style>
 </head>
 <body>
@@ -73,11 +73,7 @@
         <button class="btn-attack" id="attackBtn">こうげき</button>
         <div id="log"></div>
     </div>
-    
-    <div id="vow" class="tab">
-        <div id="vow-list"></div>
-    </div>
-
+    <div id="vow" class="tab"><div id="vow-list"></div></div>
     <div id="status" class="tab">
         <div class="st-box">
             <div>最高ダメージ: <span id="st-maxdmg">0</span></div>
@@ -89,7 +85,6 @@
         </div>
         <button class="btn-reset" onclick="resetGame()">プレイデータをリセット</button>
     </div>
-
     <div id="power" class="tab"><div id="power-list"></div></div>
     <div id="relic" class="tab"><div class="relic-grid" id="relic-list"></div></div>
 </div>
@@ -111,14 +106,6 @@ function getRareColor(s) {
     if (s === 4)  return "#9c27b0"; 
     if (s === 3)  return "#4a90e2"; 
     return "#888"; 
-}
-
-// 修正点：不要な0を消し、小数点の位置を揃えるフォーマッタ
-function formatProb(n) {
-    let s = n.toString();
-    // 小数点がない場合、位置合わせのためにスペースを調整するロジック（または固定長）
-    // 今回はシンプルに、数値の桁を揃えるために padStart を利用
-    return s.padStart(10, ' ');
 }
 
 const SKILL_DATA = [
@@ -168,7 +155,7 @@ function getVowStats() {
         atkMax: Math.max(1, dc), 
         hpMax: Math.max(1, dc * 10), 
         dropCount: (dc >= 100000 ? 5 : dc >= 25000 ? 4 : dc >= 5000 ? 3 : dc >= 1000 ? 2 : 1),
-        death刻: dc * 4 
+        death刻: dc * 4 // 1回につき0.004%
     };
 }
 
@@ -187,12 +174,7 @@ function calcStats() {
             else rHpMul += BigInt(r.star - 5) * count;
         }
     });
-    
-    let currentAtk = (player.baseAtk + rAtkAdd) * rAtkMul / 100n;
-    const v = getVowStats();
-    let finalAtk = currentAtk + (currentAtk * BigInt(v.death刻) / 100000n);
-
-    return { atk: finalAtk, hp: (player.baseHP + rHpAdd) * rHpMul / 100n };
+    return { atk: (player.baseAtk + rAtkAdd) * rAtkMul / 100n, hp: (player.baseHP + rHpAdd) * rHpMul / 100n };
 }
 
 function attack() {
@@ -205,17 +187,17 @@ function attack() {
     
     addLog(`<span style="color:#dc3545;font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
 
-    let dmg = stats.atk;
+    // 与ダメージの計算: 基礎ATK × (1 + (再起数 * 0.00004))
+    let dmg = stats.atk + (stats.atk * BigInt(v.death刻) / 100000n);
+    
     if (dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg; 
     if (currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
     let drops = [];
-    const totalRolls = v.dropCount;
-    for (let i = 0; i < totalRolls; i++) {
+    for (let i = 0; i < v.dropCount; i++) {
         let star = 1; let rv = Math.random() * 100;
-        // 累積確率ではなく指定された絶対確率を想定
         if(rv < 0.000001) star = 10;
         else if(rv < 0.00001) star = 9;
         else if(rv < 0.0001) star = 8;
@@ -238,7 +220,6 @@ function attack() {
         drops.push(`<span style="color:${getRareColor(star)}; font-weight:${star>=4?'bold':'normal'};">★${star}${target.name}</span>`);
     }
     if(drops.length > 0) addLog(`【ドロップ】${drops.join(", ")}`);
-    
     saveGame(); refreshUI();
 }
 
@@ -260,7 +241,7 @@ function renderVow() {
         {n:"不退転の力", d:"加算幅: 1 ～ 再起回数", v:`+1 ～ +${v.atkMax.toLocaleString()}`},
         {n:"金剛の肉体", d:"加算幅: 1 ～ 再起x10", v:`+1 ～ +${v.hpMax.toLocaleString()}`},
         {n:"魂の研磨", d:"追加枠解放", v:`${v.dropCount} 個`},
-        {n:"死を刻む", d:"死ぬ毎に0.004%増加", v:`+${(player.deathCount * 0.004).toFixed(3)}%`}
+        {n:"死を刻む", d:"死ぬ毎に与ダメージが0.004%増加", v:`+${(player.deathCount * 0.004).toFixed(3)}%`}
     ].map(i => `<div class="vow-item"><div class="vow-name">${i.n} <small style="color:#888;">${i.d}</small></div><div class="vow-val">${i.v}</div></div>`).join("");
 }
 
@@ -281,11 +262,9 @@ function renderStatus() {
     let rText = "★3以下";
     for(let s=10; s>=5; s--) { if(player.maxDmg >= DROP_LIMITS[s]) { rText = `★${s}以下`; break; } }
     document.getElementById("st-rank").innerText = rText;
-    
-    // 修正点：ドロップ率一覧を美化
     document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).sort((a,b)=>Number(a[0])-Number(b[0])).map(([s, p]) => {
         const star = Number(s);
-        return `<tr><td style="color:${getRareColor(star)};">★${s}</td><td class="prob-val">${formatProb(p)}</td><td>%</td></tr>`;
+        return `<tr><td style="color:${getRareColor(star)};">★${s}</td><td class="prob-val">${p}</td><td class="prob-unit">%</td></tr>`;
     }).join("");
 }
 
@@ -295,7 +274,6 @@ function refreshUI() {
     document.getElementById("bosshp-pct").innerText = totalPct;
     const gaugePct = (Number((currentBossHP % GAUGE_UNIT) * 10000n / GAUGE_UNIT) / 100).toFixed(2);
     document.getElementById("bosshp-bar").style.width = gaugePct + "%";
-    
     document.getElementById("p-atk").innerText = stats.atk.toLocaleString();
     document.getElementById("p-hp").innerText = stats.hp.toLocaleString();
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString() + " 回";
