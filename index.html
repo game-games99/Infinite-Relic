@@ -155,7 +155,7 @@ function getVowStats() {
         atkMax: Math.max(1, dc), 
         hpMax: Math.max(1, dc * 10), 
         dropCount: (dc >= 100000 ? 5 : dc >= 25000 ? 4 : dc >= 5000 ? 3 : dc >= 1000 ? 2 : 1),
-        death刻: dc * 4 
+        death刻: dc * 4 // 1回につき0.0004% (内部計算用: 1000000nで割る)
     };
 }
 
@@ -180,15 +180,22 @@ function calcStats() {
 function attack() {
     const stats = calcStats();
     const v = getVowStats();
+
     player.deathCount++;
     player.baseAtk += BigInt(Math.floor(Math.random() * v.atkMax) + 1);
     player.baseHP += BigInt(Math.floor(Math.random() * v.hpMax) + 1);
+    
     addLog(`<span style="color:#dc3545;font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
-    let dmg = stats.atk + (stats.atk * BigInt(v.death刻) / 100000n);
+
+    // 与ダメージの計算: 基礎ATK × (1 + (再起数 * 0.000004))
+    let dmg = stats.atk + (stats.atk * BigInt(v.death刻) / 1000000n);
+    
     if (dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg; 
     if (currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
+
+    let drops = [];
     for (let i = 0; i < v.dropCount; i++) {
         let star = 1; let rv = Math.random() * 100;
         if(rv < 0.000001) star = 10;
@@ -201,6 +208,7 @@ function attack() {
         else if(rv < 6.1) star = 3;
         else if(rv < 18.1) star = 2;
         else star = 1;
+
         for (let s = 10; s >= 5; s--) { if (star >= s && dmg < DROP_LIMITS[s]) { star = s - 1; } }
         const cands = RELIC_MASTER.filter(rm => rm.star === star);
         const r = cands[Math.floor(Math.random() * cands.length)];
@@ -209,7 +217,11 @@ function attack() {
         if (!player.inventory[target.id]) player.inventory[target.id] = 0;
         player.inventory[target.id]++;
         player.totalCounts[target.pIdx]++;
+        drops.push(`<span style="color:${getRareColor(star)}; font-weight:${star>=4?'bold':'normal'};">★${star}${target.name}</span>`);
     }
+    // 修正: ドロップがあった場合にログを表示
+    if(drops.length > 0) addLog(`【ドロップ】${drops.join(", ")}`);
+    
     saveGame(); refreshUI();
 }
 
@@ -224,7 +236,6 @@ function showTab(id) {
     if(id === 'status') renderStatus();
 }
 
-// 復元した関数
 function showRankInfo() {
     let msg = "【ドロップ解放条件（最高ダメージ）】\n";
     Object.entries(DROP_LIMITS).forEach(([star, dmg]) => {
@@ -240,8 +251,8 @@ function renderVow() {
     list.innerHTML = [
         {n:"不退転の力", d:"加算幅: 1 ～ 再起回数", v:`+1 ～ +${v.atkMax.toLocaleString()}`},
         {n:"金剛の肉体", d:"加算幅: 1 ～ 再起x10", v:`+1 ～ +${v.hpMax.toLocaleString()}`},
-        {n:"魂の研磨", d:"追加枠解放", v:`${v.dropCount} 個`},
-        {n:"死を刻む", d:"死ぬ毎に与ダメージが0.004%増加", v:`+${(player.deathCount * 0.004).toFixed(3)}%`}
+        {n:"魂の研磨", d:`遺物ドロップ数 +${v.dropCount}`, v:`${v.dropCount} 個`},
+        {n:"死を刻む", d:"死ぬ毎に与ダメージが0.0004%増加", v:`+${(player.deathCount * 0.0004).toFixed(4)}%`}
     ].map(i => `<div class="vow-item"><div class="vow-name">${i.n} <small style="color:#888;">${i.d}</small></div><div class="vow-val">${i.v}</div></div>`).join("");
 }
 
