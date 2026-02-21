@@ -27,7 +27,6 @@
     .btn-attack { width: 100%; padding: 22px; background: var(--primary); color: #fff; font-size: 1.5em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 0 #0056b3; }
     #log { height: 320px; font-size: 0.9em; line-height: 1.4; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     
-    /* 再起タブのデザイン */
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
     .vow-name { font-weight: bold; color: var(--dark); font-size: 1em; }
     .vow-desc { font-size: 0.8em; color: #666; margin-top: 4px; }
@@ -123,26 +122,26 @@ function loadGame() {
     const saved = localStorage.getItem(SAVE_KEY);
     if(saved) {
         const p = JSON.parse(saved);
-        player.inventory = p.inventory; player.deathCount = p.deathCount;
+        player.inventory = p.inventory || {}; 
+        player.deathCount = p.deathCount || 0;
         player.totalCounts = p.totalCounts || [0,0,0,0,0];
-        player.baseAtk = BigInt(p.baseAtk); player.baseHP = BigInt(p.baseHP);
-        player.maxDmg = BigInt(p.maxDmg || 0);
+        player.baseAtk = BigInt(p.baseAtk || "10");
+        player.baseHP = BigInt(p.baseHP || "100");
+        player.maxDmg = BigInt(p.maxDmg || "0");
     }
 }
 
 function getVowStats() {
     const dc = player.deathCount;
     return {
-        atkBonus: 1.0 + (dc * 0.05),
-        hpBonus: 1.0 + (dc * 0.1),
-        // 魂の研磨: 基礎1個 + 再起100回毎に1個 (上限合計5)
+        atkMax: dc, // 不退転の最大上昇量
+        hpMax: dc * 10, // 金剛の最大上昇量
         dropCount: Math.min(5, 1 + Math.floor(dc / 100)),
         rareBonus: dc * 0.0001
     };
 }
 
 function calcStats() {
-    const v = getVowStats();
     let atk = player.baseAtk; let hp = player.baseHP;
     let atkMul = 100n; let hpMul = 100n;
     Object.keys(player.inventory).forEach(id => {
@@ -164,19 +163,20 @@ function attack() {
     const stats = calcStats();
     const v = getVowStats();
 
-    // 魔神の絶対致死攻撃（HPに関わらず再起）
+    // 再起(死亡)とランダム成長
     player.deathCount++;
-    const growth = BigInt(Math.floor((10 + player.deathCount) * 1.2));
-    player.baseAtk += BigInt(Math.floor(Number(growth) * v.atkBonus));
-    player.baseHP += BigInt(Math.floor(Number(growth * 10n) * v.hpBonus));
-    addLog(`<span style="color:#dc3545;font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
+    const addAtk = BigInt(Math.floor(Math.random() * (v.atkMax + 1)));
+    const addHp = BigInt(Math.floor(Math.random() * (v.hpMax + 1)));
+    player.baseAtk += addAtk;
+    player.baseHP += addHp;
+    addLog(`<span style="color:#dc3545;font-weight:bold;">9,999,999,999,999ダメージ。再起の誓約によって新たなる力を得た</span>`);
 
     let dmg = stats.atk;
     if (dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg; if (currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
-    // 魂の研磨による複数回ドロップ（上限5回・個別ランダム）
+    // 魂の研磨による個別ドロップ
     for (let i = 0; i < v.dropCount; i++) {
         let star = 1; let rv = Math.random() * 100;
         for(let s=10; s>=2; s--) {
@@ -184,18 +184,23 @@ function attack() {
             if(rv < prob) { star = s; break; }
             rv -= prob;
         }
-        // 実力足切り
         for (let s = 10; s >= 5; s--) { if (star >= s && dmg < DROP_LIMITS[s]) { star = s - 1; } }
 
         const cands = RELIC_MASTER.filter(rm => rm.star === star);
         const r = cands[Math.floor(Math.random() * cands.length)];
 
-        player.totalCounts[r.pIdx]++;
-        if (star >= 6 && player.inventory[r.id]) {
+        // インベントリ追加処理(修正版)
+        if (!player.inventory[r.id]) player.inventory[r.id] = 0;
+        
+        if (star >= 6 && player.inventory[r.id] >= 1) {
+            // ★6以上を既に持っている場合は★1へ変換
             const r1 = RELIC_MASTER.find(rm => rm.pIdx === r.pIdx && rm.star === 1);
-            player.inventory[r1.id] = (player.inventory[r1.id] || 0) + 1;
+            if (!player.inventory[r1.id]) player.inventory[r1.id] = 0;
+            player.inventory[r1.id]++;
+            player.totalCounts[r.pIdx]++;
         } else {
-            player.inventory[r.id] = (player.inventory[r.id] || 0) + 1;
+            player.inventory[r.id]++;
+            player.totalCounts[r.pIdx]++;
             if(star >= 6) addLog(`<span style="color:orange;font-weight:bold;">【至宝】${r.name} 獲得！</span>`);
         }
     }
@@ -217,10 +222,10 @@ function renderVow() {
     const v = getVowStats();
     const list = document.getElementById("vow-list");
     const data = [
-        {n:"不退転の力", d:"再起時のATK成長補正", v:`+${((v.atkBonus-1)*100).toFixed(1)}%`},
-        {n:"金剛の肉体", d:"再起時のHP成長補正", v:`+${((v.hpBonus-1)*100).toFixed(1)}%`},
+        {n:"不退転の力", d:"再起時のATK加算ポテンシャル", v:`0 ～ +${v.atkMax.toLocaleString()}`},
+        {n:"金剛の肉体", d:"再起時のHP加算ポテンシャル", v:`0 ～ +${v.hpMax.toLocaleString()}`},
         {n:"魂の研磨", d:"同時ドロップ数 (上限5)", v:`${v.dropCount} 個`},
-        {n:"因果の超越", d:"遺物ドロップ率への基礎加算", v:`+${v.rareBonus.toFixed(4)}%`}
+        {n:"因果の超越", d:"幸運ボーナス (全レアリティ加算)", v:`+${v.rareBonus.toFixed(4)}%`}
     ];
     list.innerHTML = data.map(i => `
         <div class="vow-item">
@@ -233,7 +238,8 @@ function renderVow() {
 
 function renderRelic() {
     const list = document.getElementById("relic-list");
-    const owned = Object.keys(player.inventory).map(id => RELIC_MASTER.find(r => r.id == id)).sort((a,b)=>a.star-b.star);
+    const ownedIds = Object.keys(player.inventory).filter(id => player.inventory[id] > 0);
+    const owned = ownedIds.map(id => RELIC_MASTER.find(r => r.id == id)).sort((a,b)=>a.star-b.star);
     list.innerHTML = owned.map(r => `
         <div class="relic-card">
             <span style="color:orange; font-weight:bold;">★${r.star}</span> <b>${r.name}</b>
@@ -247,7 +253,7 @@ function renderPower() {
     const UNLOCK_CRITERIA = [
         { n: 1000, r: 0 }, { n: 5000, r: 0 }, { n: 20000, r: 6 }, { n: 100000, r: 7 },
         { n: 250000, r: 8 }, { n: 500000, r: 8 }, { n: 1000000, r: 9 }, { n: 2500000, r: 9 },
-        { n: 5000000, r: 10 }, { n: 10000000, r: 10, r2: 9 }
+        { n: 5000000, r: 10 }, { n: 10000000, r: 10 }
     ];
     list.innerHTML = SKILL_DATA.map((p, pi) => `
         <div class="power-card">
@@ -256,7 +262,7 @@ function renderPower() {
                 const c = UNLOCK_CRITERIA[si];
                 const total = player.totalCounts[pi];
                 let ok = total >= c.n;
-                if(ok && c.r > 0) ok = Object.keys(player.inventory).some(id => {const r=RELIC_MASTER.find(re=>re.id==id); return r && r.pIdx==pi && r.star==c.r;});
+                if(ok && c.r > 0) ok = (player.inventory[RELIC_MASTER.find(re => re.pIdx == pi && re.star == c.r).id] || 0) > 0;
                 return `<div class="skill-row ${ok?'active':'locked'}">
                     <b>${s.t}</b> ${s.n} <span style="font-size:0.7em;float:right;color:#666;">${s.d}</span>
                     ${!ok ? `<div style="color:red;font-size:0.65em;">必要: ${c.n.toLocaleString()}${c.r?` & ★${c.r}`:''}</div>` : ''}
