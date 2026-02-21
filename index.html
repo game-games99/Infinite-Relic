@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>infiniterelic -Eternal-</title>
 <style>
-    /* CSSは維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #343a40; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -91,7 +90,10 @@
 </div>
 
 <script>
-const SAVE_KEY = "infiniterelic_v9_stacked";
+// セーブキーを固定。今後指示がない限り変更しない。
+const SAVE_KEY = "infiniterelic_player_data"; 
+const OLD_KEYS = ["infiniterelic_v7_relics", "infiniterelic_v9_stacked"];
+
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
 const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; 
 const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
@@ -141,13 +143,9 @@ function getRelicBonus() {
         if(r) { 
             atk += BigInt(r.atk * count); 
             hp += BigInt(r.hp * count);
-            // ★6〜9の倍率を所持数分だけ乗算（指数関数的強化）
-            if(r.mult && r.mult > 1) {
-                mult *= Math.pow(r.mult, count);
-            }
+            if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count);
         }
     });
-    // ★10所持で最終ステータス100倍補正
     if(player.inventory[1001] > 0) mult *= 100.0;
     return { atk, hp, mult };
 }
@@ -171,7 +169,15 @@ function saveGame() {
 }
 
 function loadGame() {
-    const saved = localStorage.getItem(SAVE_KEY);
+    let saved = localStorage.getItem(SAVE_KEY);
+    // 旧データからの救出
+    if (!saved) {
+        for (const oldKey of OLD_KEYS) {
+            const oldData = localStorage.getItem(oldKey);
+            if (oldData) { saved = oldData; localStorage.setItem(SAVE_KEY, oldData); break; }
+        }
+    }
+
     if(saved) {
         const p = JSON.parse(saved);
         player.inventory = p.inventory || {0: 1};
@@ -181,12 +187,14 @@ function loadGame() {
         player.maxDmg = BigInt(p.maxDmg || "0");
         player.isEndless = p.isEndless || false;
         currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString());
+        if (currentBossHP <= 0n) currentBossHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
     }
 }
 
 function resetData() {
     if(confirm("全てのプレイデータを初期化しますか？")) {
         localStorage.removeItem(SAVE_KEY);
+        OLD_KEYS.forEach(k => localStorage.removeItem(k));
         location.reload();
     }
 }
@@ -219,7 +227,6 @@ function attack() {
 
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     
-    // ドロップ判定：★6〜9の重複制限を撤廃
     let dropCount = 1;
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
     for(let i=0; i<dropCount; i++) {
@@ -232,7 +239,6 @@ function attack() {
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let selected = cands[Math.floor(Math.random() * cands.length)];
-            // star >= 6 の重複禁止条件を削除し、スタック可能に
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
             addLog(`<span class="c${selected.star}">【獲得】★${selected.star} ${selected.name}</span>`);
         }
@@ -314,7 +320,6 @@ function refreshUI() {
     document.getElementById("p-atk").innerText = totalAtk.toLocaleString();
     document.getElementById("p-hp").innerText = totalHp.toLocaleString();
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
-
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
     document.getElementById("bosshp-pct").innerText = (Number(currentBossHP * 10000n / maxHP) / 100).toFixed(4);
 }
