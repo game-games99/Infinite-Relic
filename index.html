@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.4.5 (Genesis Update)</title>
+<title>RELICORE - v1.4.6</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -106,7 +106,7 @@
             <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.4.5</div>
+        <div class="version-info">RELICORE v1.4.6</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -147,34 +147,30 @@ const RELIC_MASTER = [
     {id:401, star:4, name:"王宮の秘宝", atk:4200, hp:0, pIdx:2, w:100}, {id:402, star:4, name:"伝説の断片", atk:25002, hp:0, pIdx:3, w:60}, {id:403, star:4, name:"破滅の引き金", atk:44444, hp:0, pIdx:4, w:30},
     {id:404, star:4, name:"聖樹の種", atk:0, hp:12000, pIdx:3, w:100}, {id:405, star:4, name:"不死鳥の羽", atk:0, hp:44444, pIdx:4, w:40},
     {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, pIdx:3, w:100}, {id:502, star:5, name:"天界の神剣", atk:599888, hp:0, pIdx:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, pIdx:4, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, pIdx:4, w:40},
-    {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, pIdx:3, w:10}, {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:3000000, hp:3000000, pIdx:4, w:70},
-    // ★6 極限シリーズ (x1.5)
+    {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, pIdx:3, w:10}, {id:506, star:5, name:"慈愛의 聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:3000000, hp:3000000, pIdx:4, w:70},
     {id:601, star:6, name:"極限の魔剣", atk:6000000, hp:0, aP:600, hP:0, pIdx:0, w:1, mult:1.5},
     {id:602, star:6, name:"極限の魔盾", atk:8560000, hp:0, aP:0, hP:1200, pIdx:1, w:1, mult:1.5},
     {id:603, star:6, name:"極限の魔導書", atk:3000000, hp:6000000, aP:300, hP:600, pIdx:2, w:1, mult:1.5},
     {id:604, star:6, name:"極限の王冠", atk:24240000, hp:36360000, aP:450, hP:555, pIdx:3, w:1, mult:1.5},
     {id:605, star:6, name:"極限の虚珠", atk:44444000, hp:44444000, aP:4444, hP:4444, pIdx:4, w:1, mult:1.5},
-    // ★7 天啓シリーズ (x2.0)
     {id:701, star:7, name:"天啓の戦斧", atk:120000000, hp:0, aP:800, hP:0, pIdx:0, w:1, mult:2.0},
     {id:702, star:7, name:"天啓の聖鎧", atk:20000000, hp:300000000, aP:0, hP:1500, pIdx:1, w:1, mult:2.0},
     {id:703, star:7, name:"天啓の指輪", atk:60000000, hp:100000000, aP:500, hP:800, pIdx:2, w:1, mult:2.0},
     {id:704, star:7, name:"天啓の翼", atk:80000000, hp:80000000, aP:600, hP:700, pIdx:3, w:1, mult:2.0},
     {id:705, star:7, name:"天啓の瞳", atk:150000000, hp:150000000, aP:5000, hP:5000, pIdx:4, w:1, mult:2.0},
-    // ★8 輪廻シリーズ (x2.5)
     {id:801, star:8, name:"輪廻の滅刃", atk:500000000, hp:0, aP:10000, hP:0, pIdx:0, w:1, mult:2.5},
     {id:802, star:8, name:"輪廻の業盾", atk:0, hp:1000000000, aP:0, hP:15000, pIdx:1, w:1, mult:2.5},
     {id:803, star:8, name:"輪廻の魔晶", atk:300000000, hp:300000000, aP:5000, hP:5000, pIdx:2, w:1, mult:2.5},
     {id:804, star:8, name:"輪廻の覇角", atk:400000000, hp:600000000, aP:6000, hP:8000, pIdx:3, w:1, mult:2.5},
     {id:805, star:8, name:"輪廻の虚鏡", atk:800000000, hp:800000000, aP:20000, hP:20000, pIdx:4, w:1, mult:2.5},
-    // ★9 創世シリーズ (x5.0)
     {id:901, star:9, name:"創世の聖剣", atk:2000000000, hp:0, aP:100000, hP:0, pIdx:0, w:1, mult:5.0},
     {id:902, star:9, name:"創世の神衣", atk:0, hp:5000000000, aP:0, hP:200000, pIdx:1, w:1, mult:5.0},
     {id:903, star:9, name:"創世の心臓", atk:1000000000, hp:2000000000, aP:50000, hP:50000, pIdx:2, w:1, mult:5.0},
     {id:904, star:9, name:"創世の玉座", atk:1500000000, hp:1500000000, aP:80000, hP:80000, pIdx:3, w:1, mult:5.0},
     {id:905, star:9, name:"創世の深淵", atk:5000000000, hp:5000000000, aP:500000, hP:500000, pIdx:4, w:1, mult:5.0},
-    // ★10〜
-    {id:1001, star:10, name:"パンドラの箱", atk:0, hp:0, pIdx:-1, w:1, mult:100.0},
-    {id:1101, star:11, name:"終焉の福音", atk:0, hp:0, pIdx:-1, w:1, mult:1000.0}
+    // ★10〜 (前レアリティを圧倒)
+    {id:1001, star:10, name:"パンドラの箱", atk:50000000000, hp:50000000000, aP:1000000, hP:1000000, pIdx:3, w:1, mult:100.0, desc:"災厄と希望が同居する唯一無二の匣"},
+    {id:1101, star:11, name:"終焉の福音", atk:1000000000000, hp:1000000000000, aP:10000000, hP:10000000, pIdx:4, w:1, mult:1000.0, desc:"全てを終わらせ、新たな世界を告げる響き"}
 ];
 
 function getRelicBonus() {
@@ -253,6 +249,8 @@ function handleDrop() {
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let selected = cands[Math.floor(Math.random() * cands.length)];
+            // ★6〜10は1つしか所持できないルール（指示に基づく制限）
+            if(selected.star >= 6 && selected.star <= 10 && player.inventory[selected.id] >= 1) continue;
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
             addLog(`<span class="c${selected.star}" style="${selected.star >= 5 ? 'font-weight:bold;' : ''}">【獲得】★${selected.star} ${selected.name}</span>`);
         }
