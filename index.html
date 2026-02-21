@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.3</title>
+<title>RELICORE - v1.2.4</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -25,19 +25,27 @@
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-    #content-area { flex-grow: 1; overflow-y: auto; background: #fff; padding-bottom: 20px; }
+
+    #content-area { 
+        flex-grow: 1; 
+        overflow-y: auto; 
+        -webkit-overflow-scrolling: touch; /* スクロール改善 */
+        background: #fff; 
+        padding-bottom: 20px; 
+    }
     .tab { display: none; padding: 10px; }
     .tab.active { display: block; }
+
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
     #log { height: 380px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 120px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
     
-    .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
-    .vow-name { font-weight: bold; font-size: 0.95em; }
-    .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
-    .vow-desc { font-size: 0.75em; color: #666; margin-top: 2px; line-height: 1.4; }
+    .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; border-left: 5px solid gold; }
+    .vow-name { font-weight: bold; font-size: 0.9em; }
+    .vow-val { font-size: 0.95em; font-weight: bold; color: var(--primary); margin-top: 4px; line-height: 1.3; }
+    .vow-desc { font-size: 0.72em; color: #666; margin-top: 4px; line-height: 1.3; }
     
     .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .power-head { background: #eee; padding: 8px; font-weight: bold; display: flex; flex-direction: column; font-size: 0.8em; }
@@ -103,7 +111,7 @@
             <b>遺物出現率</b>
             <table class="prob-table" id="prob-list"></table>
         </div>
-        <div class="version-info">v1.2.3</div>
+        <div class="version-info">v1.2.4</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -312,13 +320,13 @@ function renderVow() {
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item">
             <div class="vow-name">不退転の力</div>
-            <div class="vow-val">現在ボーナス: ATK 1 ～ ${(1 + player.deathCount).toLocaleString()} の範囲で上昇</div>
-            <div class="vow-desc">再起するたびにボーナス ATK 1 確定上昇</div>
+            <div class="vow-val">現在ボーナス：<br>ATK 1 ～ ${(1 + player.deathCount).toLocaleString()} の範囲で上昇</div>
+            <div class="vow-desc">再起するたびにボーナス ATK 1 上昇</div>
         </div>
         <div class="vow-item">
             <div class="vow-name">金剛の肉体</div>
-            <div class="vow-val">現在ボーナス: HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()} の範囲で上昇</div>
-            <div class="vow-desc">再起するたびにボーナス HP 10 確定上昇</div>
+            <div class="vow-val">現在ボーナス：<br>HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()} の範囲で上昇</div>
+            <div class="vow-desc">再起するたびにボーナス HP 10 上昇</div>
         </div>
         <div class="vow-item">
             <div class="vow-name">魂の研磨</div>
@@ -357,10 +365,8 @@ function renderRelics() {
     
     document.getElementById("relic-list").innerHTML = items.map(r => {
         if(r.id === 0) {
-            // 再起の誓い専用表示：カッコ類を排除し名前・個数・説明のみ
             return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>${r.desc}</small></div>`;
         }
-        
         let eff = []; 
         if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); 
         if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
