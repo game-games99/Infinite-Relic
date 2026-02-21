@@ -50,8 +50,7 @@
         <div class="stat-card hp-card"><span class="stat-label">Total HP</span><div class="stat-val" id="p-hp">0</div></div>
     </div>
     <div class="status-box">
-        <div class="stat-card vow-card"><span class="stat-label">再起加算: ATK</span><div class="stat-val" style="font-size:0.9em;" id="v-atk">0</div></div>
-        <div class="stat-card vow-card hp-card"><span class="stat-label">再起加算: HP</span><div class="stat-val" style="font-size:0.9em;" id="v-hp">0</div></div>
+        <div class="stat-card vow-card" style="flex:none; width:100%;"><span class="stat-label">再起回数</span><div class="stat-val" id="v-death">0 回</div></div>
     </div>
 </div>
 
@@ -83,7 +82,7 @@
             <div>HP倍率: <span id="st-relic-hp-mul">1.00</span>x</div>
         </div>
         <div class="st-box">
-            <div>最高打点: <span id="st-maxdmg">0</span></div>
+            <div>最高ダメージ: <span id="st-maxdmg">0</span></div>
             <div style="margin-top:4px;">ドロップ資格: <span id="st-rank" class="rank-clickable" onclick="showRankInfo()">-</span></div>
         </div>
         <div style="font-size:0.75em; background:#f8f9fa; padding:10px; border-radius:8px;">
@@ -101,9 +100,12 @@
 const SAVE_KEY = "infiniterelic_eternal_v1"; 
 const BOSS_MAX_HP = 100000000000000000000n;
 const DROP_LIMITS = { 5: 1000000n, 6: 10000000n, 7: 100000000n, 8: 1000000000n, 9: 10000000000n, 10: 100000000000n };
-const BASE_PROBS = { 1: 80.8988899, 2: 12, 3: 5, 4: 2, 5: 0.1, 6: 0.001, 7: 0.0001, 8: 0.00001, 9: 0.000001, 10: 0.0000001 };
+// ドロップ率の厳密反映：★4(1%), ★5(0.01%), ★6(0.001%), 10倍ずつ落ちにくく。余りを★1へ
+const BASE_PROBS = { 
+    1: 81.9888889, 2: 12, 3: 5, 4: 1, 
+    5: 0.01, 6: 0.001, 7: 0.0001, 8: 0.00001, 9: 0.000001, 10: 0.0000001 
+};
 
-// 全50スキルの復元
 const SKILL_DATA = [
     { name: "剣神", skills: [{t:"P",n:"一の太刀",d:"基礎ATK 1.5倍"},{t:"P",n:"心眼",d:"最小打点 80%固定"},{t:"P",n:"剣気",d:"遺物数×1%ATK増"},{t:"P",n:"極意",d:"全倍率 1.2倍"},{t:"A",n:"飛燕",d:"25%で2回攻撃"},{t:"A",n:"天断",d:"防御100%無視"},{t:"A",n:"旋風",d:"全体ダメ1.5倍"},{t:"A",n:"残像",d:"発動率 1.1倍"},{t:"A",n:"奥義",d:"ダメ 5.0倍"},{t:"A",n:"再臨",d:"スキル威力 2倍"}]},
     { name: "不滅", skills: [{t:"P",n:"守護",d:"最大HP 1.5倍"},{t:"P",n:"金剛",d:"再起成長 2倍"},{t:"P",n:"再生",d:"毎秒HP 1%回復"},{t:"P",n:"鉄壁",d:"被ダメ 0.8倍"},{t:"A",n:"不屈",d:"HP10%をATK加算"},{t:"A",n:"楔",d:"攻撃時HP5%回復"},{t:"A",n:"波動",d:"致死時ATK 3倍"},{t:"A",n:"逆鱗",d:"減少HP分ATK増"},{t:"A",n:"聖域",d:"全発動率+5%"},{t:"A",n:"不滅",d:"10秒間無敵/ATK2倍"}]},
@@ -141,7 +143,7 @@ function loadGame() {
         player.maxDmg = BigInt(p.maxDmg || "0");
     }
 }
-function resetGame() { if(confirm("全リセットしますか？")){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
+function resetGame() { if(confirm("全てのデータを消去し最初からやり直しますか？")){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
 
 function getVowStats() {
     const dc = player.deathCount;
@@ -154,18 +156,18 @@ function getVowStats() {
 }
 
 function showRankInfo() {
-    let current = "★4以下";
-    let next = "★5";
-    let nextReq = DROP_LIMITS[5];
+    let current = "★3以下";
+    let next = "★4";
+    let nextReq = DROP_LIMITS[5]; // ★4は制限なし、★5から制限
     for(let s=10; s>=5; s--) {
         if(player.maxDmg >= DROP_LIMITS[s]) {
             current = `★${s}以下`;
-            next = s < 10 ? `★${s+1}` : "なし(極限)";
+            next = s < 10 ? `★${s+1}` : "極限到達";
             nextReq = s < 10 ? DROP_LIMITS[s+1] : 0n;
             break;
         }
     }
-    alert(`【ドロップ資格詳細】\n現在の最高資格: ${current}\n\n次のランク: ${next}\n必要最高打点: ${nextReq === 0n ? "究極到達" : nextReq.toLocaleString() + " ダメージ"}\n\n※打点が足りない場合、高レアは1つ下のレアリティに変換されます。`);
+    alert(`【ドロップ資格詳細】\n現在の最高資格: ${current}\n\n次のランク: ${next}\n必要最高ダメージ: ${nextReq === 0n ? "究極到達" : nextReq.toLocaleString() + " ダメージ"}\n\n※最高ダメージが不足している場合、高レアリティ遺物は1つ下のレアリティに変換されます。`);
 }
 
 function calcStats() {
@@ -283,7 +285,7 @@ function renderStatus() {
     document.getElementById("st-relic-atk-mul").innerText = stats.relics.atkMul.toFixed(2);
     document.getElementById("st-relic-hp-mul").innerText = stats.relics.hpMul.toFixed(2);
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-    let rText = "★4以下";
+    let rText = "★3以下";
     for(let s=10; s>=5; s--) { if(player.maxDmg >= DROP_LIMITS[s]) { rText = `★${s}以下`; break; } }
     document.getElementById("st-rank").innerText = rText;
     const v = getVowStats();
@@ -297,8 +299,8 @@ function refreshUI() {
     document.getElementById("bosshp-bar").style.width = pct + "%";
     document.getElementById("p-atk").innerText = stats.atk.toLocaleString();
     document.getElementById("p-hp").innerText = stats.hp.toLocaleString();
-    document.getElementById("v-atk").innerText = "+" + player.baseAtk.toLocaleString();
-    document.getElementById("v-hp").innerText = "+" + player.baseHP.toLocaleString();
+    // ヘッダーにシンプルに再起回数を表示
+    document.getElementById("v-death").innerText = player.deathCount.toLocaleString() + " 回";
 }
 
 function addLog(m) {
