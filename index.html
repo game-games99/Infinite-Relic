@@ -39,6 +39,8 @@
     .skill-row { background: #fff; border: 1px solid var(--border); padding: 6px; margin-top: 4px; font-size: 0.8em; border-radius: 4px; }
     .skill-row.locked { opacity: 0.5; }
     .skill-row.active { border-left: 4px solid var(--primary); }
+
+    .btn-reset { width: 100%; padding: 10px; background: #6c757d; color: #fff; border: none; border-radius: 6px; margin-top: 20px; font-size: 0.8em; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -78,9 +80,10 @@
             <div style="color:var(--hp); font-weight:bold; margin-top:4px;">ドロップ資格: <span id="st-rank">-</span></div>
         </div>
         <div style="font-size:0.8em; background:#f8f9fa; padding:10px; border-radius:8px;">
-            <b>ドロップ率（幸運補正込）</b>
+            <b>ドロップ率（★1から順に表示）</b>
             <table id="prob-list" style="width:100%; margin-top:5px;"></table>
         </div>
+        <button class="btn-reset" onclick="resetGame()">プレイデータをリセット</button>
     </div>
 
     <div id="power" class="tab"><div id="power-list"></div></div>
@@ -131,11 +134,18 @@ function loadGame() {
     }
 }
 
+function resetGame() {
+    if(confirm("全ての進行状況をリセットしますか？")){
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+    }
+}
+
 function getVowStats() {
     const dc = player.deathCount;
     return {
-        atkMax: dc, // 不退転の最大上昇量
-        hpMax: dc * 10, // 金剛の最大上昇量
+        atkMax: dc,
+        hpMax: dc * 10,
         dropCount: Math.min(5, 1 + Math.floor(dc / 100)),
         rareBonus: dc * 0.0001
     };
@@ -169,14 +179,14 @@ function attack() {
     const addHp = BigInt(Math.floor(Math.random() * (v.hpMax + 1)));
     player.baseAtk += addAtk;
     player.baseHP += addHp;
-    addLog(`<span style="color:#dc3545;font-weight:bold;">9,999,999,999,999ダメージ。再起の誓約によって新たなる力を得た</span>`);
+    addLog(`<span style="color:#dc3545;font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
 
     let dmg = stats.atk;
     if (dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg; if (currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
-    // 魂の研磨による個別ドロップ
+    // 遺物ドロップ判定 (魂の研磨数分ループ)
     for (let i = 0; i < v.dropCount; i++) {
         let star = 1; let rv = Math.random() * 100;
         for(let s=10; s>=2; s--) {
@@ -189,22 +199,27 @@ function attack() {
         const cands = RELIC_MASTER.filter(rm => rm.star === star);
         const r = cands[Math.floor(Math.random() * cands.length)];
 
-        // インベントリ追加処理(修正版)
-        if (!player.inventory[r.id]) player.inventory[r.id] = 0;
-        
+        // --- 修正されたインベントリ加算ロジック ---
+        if (!player.inventory[r.id]) {
+            player.inventory[r.id] = 0;
+        }
+
+        // ★6以上の重複チェック
         if (star >= 6 && player.inventory[r.id] >= 1) {
-            // ★6以上を既に持っている場合は★1へ変換
+            // 重複時は★1の破片へ変換
             const r1 = RELIC_MASTER.find(rm => rm.pIdx === r.pIdx && rm.star === 1);
             if (!player.inventory[r1.id]) player.inventory[r1.id] = 0;
-            player.inventory[r1.id]++;
-            player.totalCounts[r.pIdx]++;
+            player.inventory[r1.id] += 1;
         } else {
-            player.inventory[r.id]++;
-            player.totalCounts[r.pIdx]++;
+            // 新規または★5以下はそのまま加算
+            player.inventory[r.id] += 1;
             if(star >= 6) addLog(`<span style="color:orange;font-weight:bold;">【至宝】${r.name} 獲得！</span>`);
         }
+        player.totalCounts[r.pIdx] += 1;
     }
-    saveGame(); refreshUI();
+    
+    saveGame(); 
+    refreshUI();
 }
 
 function showTab(id) {
@@ -278,8 +293,10 @@ function renderStatus() {
     let rText = "★4以下";
     for(let s=10; s>=5; s--) { if(player.maxDmg >= DROP_LIMITS[s]) { rText = `★${s}以下`; break; } }
     document.getElementById("st-rank").innerText = rText;
+    
     const v = getVowStats();
-    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).sort((a,b)=>b[0]-a[0]).map(([s, p]) => `
+    // ★1から順に並べて表示
+    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).sort((a,b)=>Number(a[0])-Number(b[0])).map(([s, p]) => `
         <tr style="border-bottom:1px solid #eee;"><td>★${s}</td><td style="text-align:right;">${(p + v.rareBonus).toFixed(5)}%</td></tr>
     `).join("");
 }
