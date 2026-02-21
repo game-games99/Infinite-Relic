@@ -32,13 +32,15 @@
     .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
     .vow-cond { font-size: 0.7em; color: #666; margin-top: 2px; }
     
-    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; margin-bottom: 4px; }
+    /* 遺物タブの2列表示設定 */
+    .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
+    
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .rank-clickable { color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: bold; }
     #prob-list { width: 100%; border-collapse: collapse; margin-top: 10px; }
     #prob-list td { padding: 6px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 0.9em; }
     
-    /* カラーコード */
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
     .c6 { color: #fd7e14; } .c7 { color: #dc3545; } .c8 { color: #ffc107; text-shadow: 0 0 1px #000; } 
     .c9 { color: #ffd700; text-shadow: 0 0 2px #000; }
@@ -86,6 +88,7 @@
 </div>
 
 <script>
+// データの初期化を防ぐため、SAVE_KEYは固定（または指示があるまで変更禁止）
 const SAVE_KEY = "infiniterelic_v7_relics";
 const BOSS_MAX_HP = 100000000000000000000n;
 const DROP_LIMITS = { 5: 1000000n, 6: 10000000n, 7: 100000000n, 8: 1000000000n, 9: 10000000000n, 10: 100000000000n };
@@ -95,23 +98,17 @@ let player = { inventory: {}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg:
 let currentBossHP = BOSS_MAX_HP;
 let attackInterval = null;
 
-// 遺物マスタ
 const RELIC_MASTER = [
-    // ★1 (Weight: 高いほど出やすい)
     {id:101, star:1, name:"勇者の木片", atk:1, hp:0, w:100}, {id:102, star:1, name:"戦士の砥石", atk:3, hp:0, w:80}, {id:103, star:1, name:"冒険の証", atk:5, hp:0, w:60},
     {id:104, star:1, name:"野草の滴", atk:0, hp:7, w:100}, {id:105, star:1, name:"旅人の靴", atk:0, hp:13, w:80},
-    // ★2
     {id:201, star:2, name:"鉄の剣", atk:10, hp:0, w:100}, {id:202, star:2, name:"鋼の篭手", atk:16, hp:0, w:80}, {id:203, star:2, name:"熟練の証", atk:24, hp:0, w:60},
     {id:204, star:2, name:"癒しの香油", atk:0, hp:50, w:100}, {id:205, star:2, name:"兵士の盾", atk:0, hp:84, w:80},
-    // ★3
     {id:301, star:3, name:"魔力剣", atk:99, hp:0, w:100}, {id:302, star:3, name:"英雄の鞘", atk:143, hp:0, w:80}, {id:303, star:3, name:"騎士の魂", atk:198, hp:0, w:60},
     {id:304, star:3, name:"命の硬玉", atk:0, hp:520, w:100}, {id:305, star:3, name:"守護神の祈り", atk:0, hp:888, w:80},
-    // ★4
     {id:401, star:4, name:"王宮の秘宝", atk:4200, hp:0, w:100}, {id:402, star:4, name:"伝説の断片", atk:25002, hp:0, w:60}, {id:403, star:4, name:"破滅の引き金", atk:44444, hp:0, w:30},
     {id:404, star:4, name:"聖樹の種", atk:0, hp:12000, w:100}, {id:405, star:4, name:"不死鳥の羽", atk:0, hp:44444, w:40},
-    // ★5
     {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, w:100}, {id:502, star:5, name:"天界の神剣", atk:599888, hp:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, w:40},
-    {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, w:10}, // 複合・強力(激レア)
+    {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, w:10},
     {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, w:100}, {id:510, star:5, name:"魔神の供物", atk:150000, hp:150000, w:70}
 ];
 
@@ -119,10 +116,7 @@ function getRelicBonus() {
     let atk = 0n, hp = 0n;
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
-        if(r) {
-            atk += BigInt(r.atk * count);
-            hp += BigInt(r.hp * count);
-        }
+        if(r) { atk += BigInt(r.atk * count); hp += BigInt(r.hp * count); }
     });
     return { atk, hp };
 }
@@ -168,7 +162,6 @@ function attack() {
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
-    // ドロップ数 (1000, 5000, 25000, 100000)
     let dropCount = 1;
     const thresholds = [1000, 5000, 25000, 100000];
     for(let t of thresholds) { if(player.deathCount >= t) dropCount++; }
@@ -177,17 +170,13 @@ function attack() {
         let rv = Math.random() * 100;
         let star = 1;
         if(rv < 0.1) star = 5; else if(rv < 1) star = 4; else if(rv < 5) star = 3; else if(rv < 17) star = 2; else star = 1;
-
-        // ドロップ資格チェック
         for(let s=5; s<=5; s++) { if(star >= s && dmg < DROP_LIMITS[s]) star = 1; }
 
         let cands = RELIC_MASTER.filter(m => m.star === star);
         if(cands.length > 0) {
-            // レアリティ内での重み付け抽選
             let totalW = cands.reduce((s, m) => s + m.w, 0);
             let rW = Math.random() * totalW;
-            let currentW = 0;
-            let selected = cands[0];
+            let currentW = 0, selected = cands[0];
             for(let m of cands) {
                 currentW += m.w;
                 if(rW <= currentW) { selected = m; break; }
