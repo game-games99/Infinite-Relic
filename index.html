@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.7.0</title>
+<title>RELICORE - v1.8.0</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -47,11 +47,13 @@
     
     .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .power-section:last-child { margin-bottom: 120px; }
-    .power-head { background: #eee; padding: 8px; font-weight: bold; font-size: 0.8em; }
+    .power-head { background: #eee; padding: 8px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; }
     .skill-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-    .skill-row { display: flex; align-items: center; gap: 8px; }
+    .skill-row { display: flex; align-items: center; gap: 8px; opacity: 1; }
+    .skill-row.locked { opacity: 0.4; filter: grayscale(1); }
     .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #e7f3ff; color: #007bff; border: 1px solid #007bff; font-weight: bold; min-width: 80px; text-align: center; }
     .skill-effect { font-size: 0.7em; color: #666; }
+    .lock-text { font-size: 0.6em; color: #dc3545; font-weight: bold; margin-left: auto; }
     
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .clickable { cursor: pointer; color: var(--primary); text-decoration: underline; font-weight: bold; }
@@ -112,7 +114,7 @@
             <span style="font-size: 0.85em;">「★10遺物を手にし、魔神を一撃で葬る時、真の再起が訪れる……」</span>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.7.0</div>
+        <div class="version-info">RELICORE v1.8.0</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -132,6 +134,8 @@ const DROP_DATA = {
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, isEndless: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
+
+const POWER_UNLOCK_STEPS = [1000, 10000, 100000, 1000000, 10000000];
 
 const POWERS = [
     { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +20%"}, {name: "心気一致", desc: "所持遺物種数でダメージ増"}, {name: "万象一掃", desc: "再起回数でダメージ増"}, {name: "天断の極意", desc: "常時追加ダメージ100%"}, {name: "極限一閃・無双", desc: "最終ダメージ倍率 x5.0"}]},
@@ -177,8 +181,21 @@ const RELIC_MASTER = [
     {id:1101, star:11, name:"終焉の福音", atk:1000000000000, hp:1000000000000, aP:10000000, hP:10000000, pIdx:4, w:1, mult:1000.0, desc:"全てを終わらせ、新たな世界を告げる響き"}
 ];
 
+function getPowerPoints() {
+    let pts = [0, 0, 0, 0, 0];
+    Object.entries(player.inventory).forEach(([id, count]) => {
+        const r = RELIC_MASTER.find(m => m.id == id);
+        if(r && r.pIdx >= 0) {
+            pts[r.pIdx] += (r.star * count);
+        }
+    });
+    return pts;
+}
+
 function getRelicBonus() {
     let atk = 0n, hp = 0n, mult = 1.0, atkPct = 0, hpPct = 0;
+    const pts = getPowerPoints();
+    
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
         if(r) { 
@@ -189,7 +206,7 @@ function getRelicBonus() {
             if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count); 
         }
     });
-    return { atk, hp, mult, atkPct, hpPct };
+    return { atk, hp, mult, atkPct, hpPct, pts };
 }
 
 function saveGame() {
@@ -228,13 +245,16 @@ function attack() {
     player.baseHP += (addHP * BigInt(addStep));
 
     const b = getRelicBonus();
-    let totalMult = 1.0;
+    let totalMult = b.mult;
     let relicTypes = Object.keys(player.inventory).length;
-    totalMult += (relicTypes * 0.2);
-    totalMult += (player.deathCount / 100);
+    
+    // 権能による倍率計算（解放されているスキルのみ）
+    let powerMult = 1.0;
+    powerMult += (relicTypes * 0.2);
+    powerMult += (player.deathCount / 100);
 
     let totalAtk = (player.baseAtk * 120n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n;
-    let dmg = totalAtk * BigInt(Math.floor(totalMult * 100)) / 100n;
+    let dmg = totalAtk * BigInt(Math.floor(powerMult * 100)) / 100n;
 
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
@@ -301,7 +321,7 @@ function refreshUI() {
     document.getElementById("boss-display-name").innerText = player.isEndless ? "虚無の残滓" : "魔神";
 
     const tabId = document.querySelector(".tab.active").id;
-    if(tabId === 'vow') renderVow(); if(tabId === 'power') renderPower(); if(tabId === 'relic') renderRelics(); if(tabId === 'status') renderStatus();
+    if(tabId === 'vow') renderVow(); if(tabId === 'power') renderPower(b.pts); if(tabId === 'relic') renderRelics(); if(tabId === 'status') renderStatus();
 }
 
 function renderVow() {
@@ -317,12 +337,27 @@ function renderVow() {
     `;
 }
 
-function renderPower() {
-    document.getElementById("power").innerHTML = POWERS.map(p => `
+function renderPower(pts) {
+    document.getElementById("power").innerHTML = POWERS.map((p, pIdx) => {
+        const curPt = pts[pIdx];
+        return `
         <div class="power-section">
-            <div class="power-head">${p.name}権能</div>
-            <div class="skill-list">${p.skills.map(s => `<div class="skill-row"><div class="skill-chip">${s.name}</div><span class="skill-effect">${s.desc}</span></div>`).join("")}</div>
-        </div>`).join("");
+            <div class="power-head">
+                <span>${p.name}権能</span>
+                <span style="font-size: 0.9em; color: var(--primary);">${curPt.toLocaleString()} pt</span>
+            </div>
+            <div class="skill-list">${p.skills.map((s, sIdx) => {
+                const req = POWER_UNLOCK_STEPS[sIdx];
+                const isLocked = curPt < req;
+                return `
+                <div class="skill-row ${isLocked ? 'locked' : ''}">
+                    <div class="skill-chip">${isLocked ? '未覚醒' : s.name}</div>
+                    <span class="skill-effect">${isLocked ? '？？？？？' : s.desc}</span>
+                    ${isLocked ? `<span class="lock-text">${req.toLocaleString()}ptで解放</span>` : ''}
+                </div>`;
+            }).join("")}</div>
+        </div>`;
+    }).join("");
 }
 
 function renderRelics() {
