@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.6 (Skill Integrated)</title>
+<title>RELICORE - v1.2.6 (Vow Restored)</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -125,7 +125,7 @@ let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, max
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 
-// スキルを50種から25種（各5個）に統廃合
+// 統合されたスキル25種（反映済み）
 const POWERS = [
     {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "天断", "奥義"], eff: "物理ダメージ・ATK増加系"},
     {name: "不滅", skills: ["守護", "再生", "鉄壁", "不屈", "不滅"], eff: "HP・生存・防御増加系"},
@@ -247,13 +247,32 @@ function refreshUI() {
     if(tab === 'vow') renderVow(); if(tab === 'power') renderPower(); if(tab === 'relic') renderRelics(); if(tab === 'status') renderStatus();
 }
 
+// 再起タブの復元（画像の状態を維持）
 function renderVow() {
-    let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
+    let dCount = 1;
+    [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
+
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">現在ボーナス：ATK 1 ～ ${(1 + player.deathCount).toLocaleString()}</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">現在ボーナス：HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">同時ドロップ数: ${dCount} 個</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div></div>
+        <div class="vow-item">
+            <div class="vow-name">不退転の力</div>
+            <div class="vow-val">現在ボーナス：<br>ATK 1 ～ ${(1 + player.deathCount).toLocaleString()} の範囲で上昇</div>
+            <div class="vow-desc">再起するたびにボーナス ATK 1 上昇</div>
+        </div>
+        <div class="vow-item">
+            <div class="vow-name">金剛の肉体</div>
+            <div class="vow-val">現在ボーナス：<br>HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()} の範囲で上昇</div>
+            <div class="vow-desc">再起するたびにボーナス HP 10 上昇</div>
+        </div>
+        <div class="vow-item">
+            <div class="vow-name">魂の研磨</div>
+            <div class="vow-val">同時ドロップ数: ${dCount} 個</div>
+            <div class="vow-desc">再起回数（1,000 / 5,000 / 25,000 / 100,000）に応じてドロップ数が増加します。（※倍率化対象外）</div>
+        </div>
+        <div class="vow-item">
+            <div class="vow-name">死を刻む</div>
+            <div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div>
+            <div class="vow-desc">死の経験をダメージに上乗せします。再起するたびに0.0004%を最終ダメージに追加します。</div>
+        </div>
     `;
 }
 
@@ -262,7 +281,6 @@ function renderPower() {
     document.getElementById("power").innerHTML = POWERS.map((p, idx) => {
         const pts = getPowerPoints(idx);
         let unlocked = 0; 
-        // スキル5つに合わせて最初の5つの閾値を使用
         for(let i=0; i<5; i++) { if(pts >= SKILL_THRESHOLDS[i]) unlocked++; }
         let nextText = unlocked < 5 ? `${SKILL_THRESHOLDS[unlocked].toLocaleString()} ptで解放` : "全解放";
         return `<div class="power-section">
