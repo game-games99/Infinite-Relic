@@ -43,6 +43,10 @@
     .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #f0f0f0; color: #ccc; border: 1px solid #ddd; }
     .skill-chip.unlocked { background: #e7f3ff; color: #007bff; border-color: #007bff; font-weight: bold; }
 
+    .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
+    #prob-list { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    #prob-list td { padding: 6px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 0.9em; }
+
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
 </style>
@@ -63,6 +67,7 @@
     <button onclick="showTab('vow')" id="nav-vow">再起</button>
     <button onclick="showTab('power')" id="nav-power">権能</button>
     <button onclick="showTab('relic')" id="nav-relic">遺物</button>
+    <button onclick="showTab('status')" id="nav-status">詳細</button>
 </div>
 
 <div id="content-area">
@@ -73,14 +78,26 @@
     <div id="vow" class="tab"><div id="vow-list"></div></div>
     <div id="power" class="tab"></div>
     <div id="relic" class="tab"><div class="relic-grid" id="relic-list"></div></div>
+    <div id="status" class="tab">
+        <div class="st-box">
+            最高ダメージ: <span id="st-maxdmg">0</span><br>
+            ドロップ資格: <span id="st-rank">-</span>
+        </div>
+        <div class="st-box">
+            <b>ドロップ率</b>
+            <table id="prob-list"></table>
+        </div>
+    </div>
 </div>
 
 <script>
 const SAVE_KEY = "infiniterelic_v7_relics";
 const BOSS_MAX_HP = 100000000000000000000n;
 const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
+const DROP_LIMITS = { 5: 1000000n };
+const BASE_PROBS = { 1: 81.88888, 2: 12, 3: 5, 4: 1, 5: 0.1, 11: 0 };
 
-let player = { inventory: {}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n };
+let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n };
 let currentBossHP = BOSS_MAX_HP;
 let attackInterval = null;
 
@@ -138,13 +155,12 @@ function loadGame() {
     if(saved) {
         const p = JSON.parse(saved);
         player.inventory = p.inventory || {0: 1};
+        if (!player.inventory[0]) player.inventory[0] = 1;
         player.deathCount = p.deathCount || 0;
         player.baseAtk = BigInt(p.baseAtk || "10");
         player.baseHP = BigInt(p.baseHP || "100");
         player.maxDmg = BigInt(p.maxDmg || "0");
         currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP.toString());
-    } else {
-        player.inventory = {0: 1};
     }
 }
 
@@ -173,6 +189,8 @@ function attack() {
         let rv = Math.random() * 100;
         let star = 1;
         if(rv < 0.1) star = 5; else if(rv < 1) star = 4; else if(rv < 5) star = 3; else if(rv < 17) star = 2; else star = 1;
+        if(star === 5 && dmg < DROP_LIMITS[5]) star = 1;
+
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let totalW = cands.reduce((s, m) => s + m.w, 0);
@@ -195,7 +213,6 @@ function renderVow() {
     const thresholds = [1000, 5000, 25000, 100000];
     for(let t of thresholds) { if(player.deathCount >= t) dCount++; }
     let nextT = dCount < 5 ? thresholds[dCount-1].toLocaleString() : "MAX";
-
     list.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">効率: 1 ～ ${player.deathCount.toLocaleString()}</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div></div>
@@ -213,7 +230,7 @@ function renderPower() {
         const pts = getPowerPoints(idx);
         let unlockedCount = 0;
         SKILL_THRESHOLDS.forEach(t => { if(pts >= t) unlockedCount++; });
-        let nextTarget = unlockedCount < 10 ? `${SKILL_THRESHOLDS[unlockedCount].toLocaleString()}ptでスキル解放` : "全スキル解放済み";
+        let nextTarget = unlockedCount < 10 ? `${SKILL_THRESHOLDS[unlockedCount].toLocaleString()}ptでスキル解放` : "全解放";
         return `
             <div class="power-section">
                 <div class="power-head">
@@ -229,22 +246,29 @@ function renderPower() {
 
 function renderRelics() {
     const list = document.getElementById("relic-list");
-    const items = Object.entries(player.inventory).filter(([id, count]) => count > 0);
-    list.innerHTML = items.map(([id, count]) => {
-        const r = RELIC_MASTER.find(m => m.id == id);
+    const items = Object.entries(player.inventory)
+        .filter(([id, count]) => count > 0)
+        .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count }))
+        .sort((a, b) => a.star - b.star); // ★1から並べる
+
+    list.innerHTML = items.map(r => {
         let eff = [];
-        if(r.atk > 0) eff.push(`ATK+${(r.atk * count).toLocaleString()}`);
-        if(r.hp > 0) eff.push(`HP+${(r.hp * count).toLocaleString()}`);
+        if(r.atk > 0) eff.push(`ATK+${(r.atk * r.count).toLocaleString()}`);
+        if(r.hp > 0) eff.push(`HP+${(r.hp * r.count).toLocaleString()}`);
         return `<div class="relic-card">
-            <b class="${r.star === 11 ? 'c11' : 'c'+r.star}">★${r.star} ${r.name}</b> x${count}<br>
+            <b class="${r.star === 11 ? 'c11' : 'c'+r.star}">★${r.star} ${r.name}</b> x${r.count}<br>
             <small style="color:#666;">${eff.join(" / ")}</small><br>
-            <small>権能pt: ${(r.star * count).toLocaleString()}</small>
+            <small>権能pt: ${(r.star * r.count).toLocaleString()}</small>
         </div>`;
-    }).sort((a,b)=> {
-        const idA = a.match(/★(\d+)/)[1];
-        const idB = b.match(/★(\d+)/)[1];
-        return idB - idA;
     }).join("");
+}
+
+function renderStatus() {
+    document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
+    document.getElementById("st-rank").innerText = player.maxDmg < DROP_LIMITS[5] ? "★4以下" : "★5解放済み";
+    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).map(([s,p])=>`
+        <tr><td class="c${s}">★${s}</td><td style="text-align:right;">${p}%</td></tr>
+    `).join("");
 }
 
 function showTab(id) {
@@ -255,6 +279,7 @@ function showTab(id) {
     if(id === 'vow') renderVow();
     if(id === 'power') renderPower();
     if(id === 'relic') renderRelics();
+    if(id === 'status') renderStatus();
 }
 
 function refreshUI() {
