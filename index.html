@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.9 (Color Fix & Test Mode)</title>
+<title>RELICORE - v1.3.0 (Scroll Fix)</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -42,6 +42,9 @@
     .vow-desc { font-size: 0.72em; color: #666; margin-top: 4px; line-height: 1.3; }
     
     .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    /* スクロール問題の解消 */
+    .power-section:last-child { margin-bottom: 120px; }
+    
     .power-head { background: #eee; padding: 8px; font-weight: bold; display: flex; flex-direction: column; font-size: 0.8em; }
     .power-title { display: flex; justify-content: space-between; margin-bottom: 2px; }
     .power-progress { font-size: 0.85em; color: var(--primary); font-family: monospace; }
@@ -104,7 +107,7 @@
             <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">v1.2.9</div>
+        <div class="version-info">v1.3.0</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -113,7 +116,6 @@
 const SAVE_KEY = "infiniterelic_player_data"; 
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
 const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; 
-const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 
 const DROP_DATA = {
     1: { p: "81.888879%", cond: 0n }, 2: { p: "12%", cond: 0n }, 3: { p: "5%", cond: 0n }, 4: { p: "1%", cond: 0n },
@@ -192,7 +194,7 @@ function attack() {
     player.baseAtk += BigInt(Math.floor(Math.random() * (player.deathCount + 1))) + 1n;
     player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
     const bonus = getRelicBonus();
-    let skillMult = 1.2 * 2.5 * 5.0 * 3.0; // テスト用全倍率
+    let skillMult = 1.2 * 2.5 * 5.0 * 3.0; 
     if(Math.random() < 0.2) skillMult *= 2.0; 
     let baseDmg = (player.baseAtk + bonus.atk);
     let relicTypes = Object.keys(player.inventory).length;
