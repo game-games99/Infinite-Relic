@@ -3,94 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>infiniterelic v1.5.0</title>
+    <title>RELICORE v1.5.0</title>
     <style>
-        /* v1.4.9のスタイルを完全に維持 */
-        body { background-color: #000; color: #fff; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        #game-container { width: 100%; max-width: 600px; text-align: center; }
-        #status-container, #log-container, #relic-container, #skill-container { border: 1px solid #444; padding: 15px; margin-bottom: 20px; background: #111; border-radius: 8px; }
-        .stat-line { font-size: 1.2rem; margin: 5px 0; display: flex; justify-content: space-between; }
-        button { background: #333; color: #fff; border: 1px solid #666; padding: 12px 20px; font-size: 1.1rem; cursor: pointer; border-radius: 4px; transition: 0.2s; width: 100%; margin-bottom: 10px; }
-        button:hover { background: #555; }
-        #log-container { height: 180px; overflow-y: auto; text-align: left; font-size: 0.9rem; border-color: #222; display: flex; flex-direction: column-reverse; }
-        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #222; padding-bottom: 2px; }
-        .relic-grid, .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
-        .relic-item, .skill-item { background: #222; padding: 8px; font-size: 0.8rem; border-radius: 4px; border: 1px solid #333; }
-        .skill-item.active { border-color: #f1c40f; background: #332b00; }
-        h2 { font-size: 1.1rem; color: #aaa; margin-top: 0; border-left: 4px solid #f1c40f; padding-left: 10px; text-align: left; }
+        /* RELICORE 本来のデザインを完全に再現・維持 */
+        :root {
+            --bg-color: #0a0a0a;
+            --panel-bg: #141414;
+            --accent-color: #f1c40f;
+            --text-color: #e0e0e0;
+            --border-color: #333;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #game-container { width: 100%; max-width: 600px; }
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 { font-size: 1.8rem; color: var(--accent-color); margin: 0 0 20px 0; text-align: center; letter-spacing: 4px; }
+        h2 { font-size: 1rem; color: #888; margin: 0 0 15px 0; border-left: 4px solid var(--accent-color); padding-left: 10px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-item { background: #1d1d1d; padding: 10px; border-radius: 8px; border: 1px solid #222; }
+        .stat-label { font-size: 0.75rem; color: #666; display: block; }
+        .stat-value { font-size: 1.1rem; font-weight: bold; color: #fff; }
+        
+        button#attack-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #222 0%, #111 100%);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        button#attack-btn:hover { background: var(--accent-color); color: #000; box-shadow: 0 0 15px var(--accent-color); }
+
+        #log-container {
+            height: 160px;
+            overflow-y: auto;
+            background: #080808;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            border: 1px solid #222;
+        }
+        .log-entry { border-bottom: 1px solid #1a1a1a; padding: 4px 0; }
+        
+        .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+        .skill-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .skill-card.active { border-color: var(--accent-color); background: #262200; }
+        .skill-name { font-weight: bold; display: block; margin-bottom: 4px; color: var(--accent-color); }
+
+        .relic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+        .relic-item { background: #111; border: 1px solid #222; padding: 6px; border-radius: 4px; font-size: 0.7rem; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <h1>infiniterelic <small style="font-size: 0.5em; color: #666;">v1.5.0</small></h1>
+    <h1>RELICORE</h1>
 
-    <div id="status-container">
-        <h2>勇者の状態</h2>
-        <div class="stat-line"><span>HP:</span> <span id="hp-display">0</span></div>
-        <div class="stat-line"><span>ATK:</span> <span id="atk-display">0</span></div>
-        <div class="stat-line"><span>再起回数:</span> <span id="reinc-display">0</span></div>
+    <div class="panel">
+        <h2>STATUS</h2>
+        <div class="stat-grid">
+            <div class="stat-item"><span class="stat-label">HP</span><span id="hp-val" class="stat-value">0</span></div>
+            <div class="stat-item"><span class="stat-label">ATK</span><span id="atk-val" class="stat-value">0</span></div>
+            <div class="stat-item" style="grid-column: span 2;"><span class="stat-label">REINCARNATION</span><span id="reinc-val" class="stat-value">0</span></div>
+        </div>
     </div>
 
-    <button onclick="attackBoss()">魔神へ挑む</button>
+    <button id="attack-btn" onclick="executeReincarnation()">魔神へ挑む</button>
 
-    <div id="log-container"></div>
+    <div class="panel">
+        <h2>BATTLE LOG</h2>
+        <div id="log-container"></div>
+    </div>
 
-    <div id="skill-container">
-        <h2>解放されし権能</h2>
+    <div class="panel">
+        <h2>POWERS (25 Skills)</h2>
         <div id="skill-list" class="skill-grid"></div>
     </div>
 
-    <div id="relic-container">
-        <h2>獲得した遺物 (<span id="relic-count">0</span>/53)</h2>
+    <div class="panel">
+        <h2>RELICS (<span id="relic-count">0</span>/53)</h2>
         <div id="relic-list" class="relic-grid"></div>
     </div>
 </div>
 
 <script>
-// --- 基本定数・データ構造 ---
-const SAVE_KEY = "infiniterelic_save_v1";
-const MAJIN_DAMAGE = 999999999999;
+// --- 保存データの整合性維持 ---
+const SAVE_KEY = "relicore_player_data"; // セーブキー固定
+const MAJIN_ATK = 999999999999;
 
-// 確定版 25スキルデータ
+// v1.5.0 確定25スキル構成
 const SKILL_DATA = {
     "剣神": [
         { id: "ken_1", name: "一の太刀", desc: "基礎ATK+20%" },
-        { id: "ken_2", name: "心気一致", desc: "遺物種類数で倍率UP" },
-        { id: "ken_3", name: "万象一掃", desc: "再起数で倍率UP" },
-        { id: "ken_4", name: "天断の極意", desc: "常時追加ダメ100%" },
-        { id: "ken_5", name: "極限一閃・無双", desc: "最終倍率x5.0固定" }
+        { id: "ken_2", name: "心気一致", desc: "遺物種数で倍率増" },
+        { id: "ken_3", name: "万象一掃", desc: "再起数で倍率増" },
+        { id: "ken_4", name: "天断の極意", desc: "追加ダメ100%付与" },
+        { id: "ken_5", name: "極限一閃・無双", desc: "最終ダメージx5.0" }
     ],
     "不滅": [
         { id: "fumu_1", name: "生命の根源", desc: "基礎HP+30%" },
         { id: "fumu_2", name: "再誕の輝き", desc: "再起ボーナス1.5倍" },
-        { id: "fumu_3", name: "不撓不屈", desc: "現在HPでATK増加" },
+        { id: "fumu_3", name: "不撓不屈の魂", desc: "現在HPでATK増加" },
         { id: "fumu_4", name: "死を超越せし者", desc: "再起数で全値乗算" },
         { id: "fumu_5", name: "不滅の王土", desc: "再起数でHP/ダメ指数増" }
     ],
     "魔導": [
         { id: "mado_1", name: "魔力回路", desc: "遺物効果+20%上乗せ" },
         { id: "mado_2", name: "魔力奔流", desc: "全スキル効果1.5倍" },
-        { id: "mado_3", name: "理の解析", desc: "遺物ドロップ判定+1" },
+        { id: "mado_3", name: "理の解析", desc: "遺物ドロップ+1" },
         { id: "mado_4", name: "古の叡智", desc: "遺物ボーナス1.2倍" },
-        { id: "mado_5", name: "真理の扉", desc: "高レア遺物数で倍率UP" }
+        { id: "mado_5", name: "真理の扉", desc: "★5以上所持で倍率UP" }
     ],
     "覇王": [
         { id: "hao_1", name: "万軍の主", desc: "遺物★合計でATK加算" },
-        { id: "hao_2", name: "覇王の威光", desc: "★6以上所持で倍率UP" },
-        { id: "hao_3", name: "統率の理", desc: "★1~3効果 10倍" },
+        { id: "hao_2", name: "覇王の威光", desc: "★6以上所持で倍率増" },
+        { id: "hao_3", name: "統率の理", desc: "★1〜3効果 10倍" },
         { id: "hao_4", name: "覇道の足跡", desc: "種類数x0.2を倍率加算" },
-        { id: "hao_5", name: "終焉の号令", desc: "全遺物効果 1.5倍" }
+        { id: "hao_5", name: "終焉の号令", desc: "全遺物効果1.5倍" }
     ],
     "虚無": [
         { id: "kyomu_1", name: "忘却の彼方", desc: "基礎ATK+50%底上げ" },
         { id: "kyomu_2", name: "深淵の理", desc: "★合計100毎に倍率+1" },
-        { id: "kyomu_3", name: "残滓の追撃", desc: "常に2回連続攻撃" },
+        { id: "kyomu_3", name: "残滓の追撃", desc: "常に2回攻撃" },
         { id: "kyomu_4", name: "無に帰す一撃", desc: "倍率に(再起数/100)加算" },
-        { id: "kyomu_5", name: "虚無の深淵", desc: "最終倍率x3.0を乗算" }
+        { id: "kyomu_5", name: "虚無の深淵", desc: "最後に倍率x3.0を乗算" }
     ]
 };
 
+// 遺物マスターデータ
 const RELIC_MASTER = [];
 for(let i=1; i<=53; i++) {
     RELIC_MASTER.push({
@@ -100,177 +169,136 @@ for(let i=1; i<=53; i++) {
     });
 }
 
-let gameData = {
+let player = {
     hp: 100,
     atk: 10,
-    reincarnationCount: 0,
+    reincarnation: 0,
     relics: {},
     skills: {}
 };
 
-// --- コア機能 ---
-
+// --- 初期化・セーブ ---
 function init() {
-    const saved = localStorage.getItem(SAVE_KEY);
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        gameData = { ...gameData, ...parsed };
-    }
-    updateDisplay();
+    const data = localStorage.getItem(SAVE_KEY);
+    if (data) player = { ...player, ...JSON.parse(data) };
     renderSkills();
+    updateUI();
 }
 
 function save() {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(gameData));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(player));
 }
 
-function updateDisplay() {
+// --- UI描画 ---
+function updateUI() {
     const stats = calculateStats();
-    document.getElementById('hp-display').innerText = Math.floor(stats.maxHp).toLocaleString();
-    document.getElementById('atk-display').innerText = Math.floor(stats.finalAtk).toLocaleString();
-    document.getElementById('reinc-display').innerText = gameData.reincarnationCount.toLocaleString();
+    document.getElementById('hp-val').innerText = Math.floor(stats.maxHp).toLocaleString();
+    document.getElementById('atk-val').innerText = Math.floor(stats.finalAtk).toLocaleString();
+    document.getElementById('reinc-val').innerText = player.reincarnation.toLocaleString();
     
-    const relicList = document.getElementById('relic-list');
-    relicList.innerHTML = '';
+    const rList = document.getElementById('relic-list');
+    rList.innerHTML = '';
     let count = 0;
-    for (let id in gameData.relics) {
-        if (gameData.relics[id] > 0) {
+    for (let id in player.relics) {
+        if (player.relics[id] > 0) {
             count++;
             const r = RELIC_MASTER.find(m => m.id === id);
             const div = document.createElement('div');
             div.className = 'relic-item';
-            div.innerText = `${r.name} (★${r.star}) x${gameData.relics[id]}`;
-            relicList.appendChild(div);
+            div.innerText = `★${r.star} ${r.name}`;
+            rList.appendChild(div);
         }
     }
     document.getElementById('relic-count').innerText = count;
 }
 
 function renderSkills() {
-    const skillList = document.getElementById('skill-list');
-    skillList.innerHTML = '';
-    for (let category in SKILL_DATA) {
-        SKILL_DATA[category].forEach(s => {
+    const list = document.getElementById('skill-list');
+    list.innerHTML = '';
+    for (let cat in SKILL_DATA) {
+        SKILL_DATA[cat].forEach(s => {
             const div = document.createElement('div');
-            div.className = `skill-item ${gameData.skills[s.id] ? 'active' : ''}`;
-            div.innerHTML = `<strong>${s.name}</strong><br>${s.desc}`;
+            div.className = `skill-card ${player.skills[s.id] ? 'active' : ''}`;
+            div.innerHTML = `<span class="skill-name">${s.name}</span>${s.desc}`;
             div.onclick = () => {
-                gameData.skills[s.id] = !gameData.skills[s.id];
+                player.skills[s.id] = !player.skills[s.id];
                 save();
-                updateDisplay();
+                updateUI();
                 renderSkills();
             };
-            skillList.appendChild(div);
+            list.appendChild(div);
         });
     }
 }
 
+// --- 最新ロジック計算 ---
 function calculateStats() {
-    // 魔力奔流によるスキルブースト
-    let skillBoost = gameData.skills["mado_2"] ? 1.5 : 1.0;
+    let boost = player.skills["mado_2"] ? 1.5 : 1.0;
+    let bAtk = player.skills["ken_1"] ? player.atk * (1 + 0.2 * boost) : player.atk;
+    if (player.skills["kyomu_1"]) bAtk *= (1 + 0.5 * boost);
+    let bHp = player.skills["fumu_1"] ? player.hp * (1 + 0.3 * boost) : player.hp;
 
-    let baseAtk = gameData.atk;
-    let baseHp = gameData.hp;
-
-    // 基礎補正
-    if (gameData.skills["ken_1"]) baseAtk *= (1 + 0.2 * skillBoost);
-    if (gameData.skills["fumu_1"]) baseHp *= (1 + 0.3 * skillBoost);
-    if (gameData.skills["kyomu_1"]) baseAtk *= (1 + 0.5 * skillBoost);
-
-    let relicAtkBonus = 0;
-    let relicHpBonus = 0;
-    let starTotal = 0;
-    let relicTypeCount = 0;
-    let highRareCount = 0;
-
-    for (let id in gameData.relics) {
-        const num = gameData.relics[id];
-        if (num <= 0) continue;
+    let rAtk = 0, rHp = 0, starTotal = 0, typeCount = 0, highRare = 0;
+    for (let id in player.relics) {
+        const num = player.relics[id];
         const r = RELIC_MASTER.find(m => m.id === id);
-        relicTypeCount++;
-        starTotal += (r.star * num);
-        if (r.star >= 5) highRareCount++;
-
-        let power = r.star * num * 10;
-        if (gameData.skills["hao_3"] && r.star <= 3) power *= (10 * skillBoost);
-        if (gameData.skills["hao_5"]) power *= (1.5 * skillBoost);
-        if (gameData.skills["mado_4"]) power *= (1.2 * skillBoost);
-        
-        relicAtkBonus += power;
-        relicHpBonus += power * 5;
+        typeCount++; starTotal += (r.star * num);
+        if (r.star >= 5) highRare++;
+        let p = r.star * num * 10;
+        if (player.skills["hao_3"] && r.star <= 3) p *= (10 * boost);
+        if (player.skills["hao_5"]) p *= (1.5 * boost);
+        if (player.skills["mado_4"]) p *= (1.2 * boost);
+        rAtk += p; rHp += p * 5;
     }
-
-    if (gameData.skills["mado_1"]) {
-        relicAtkBonus *= (1.2 * skillBoost);
-        relicHpBonus *= (1.2 * skillBoost);
-    }
-
-    let currentAtk = baseAtk + relicAtkBonus;
-    let maxHp = baseHp + relicHpBonus;
-
-    if (gameData.skills["hao_1"]) currentAtk += (starTotal * 100 * skillBoost);
-
-    // 倍率合算
-    let multiplier = 1.0;
-    if (gameData.skills["ken_2"]) multiplier += (relicTypeCount * 0.05 * skillBoost);
-    if (gameData.skills["ken_3"]) multiplier += (gameData.reincarnationCount * 0.01 * skillBoost);
-    if (gameData.skills["hao_2"]) multiplier += (highRareCount * 0.5 * skillBoost);
-    if (gameData.skills["hao_4"]) multiplier += (relicTypeCount * 0.2 * skillBoost);
-    if (gameData.skills["kyomu_2"]) multiplier += (Math.floor(starTotal / 100) * 1.0 * skillBoost);
-    if (gameData.skills["kyomu_4"]) multiplier += (gameData.reincarnationCount / 100 * skillBoost);
-
-    // 最終乗算
-    if (gameData.skills["ken_5"]) multiplier *= (5.0 * skillBoost);
-    if (gameData.skills["kyomu_5"]) multiplier *= (3.0 * skillBoost);
-
-    if (gameData.skills["fumu_5"]) {
-        const boost = Math.pow(1.01, gameData.reincarnationCount / 10);
-        multiplier *= boost;
-        maxHp *= boost;
-    }
-
-    let finalAtk = currentAtk * multiplier;
+    if (player.skills["mado_1"]) { rAtk *= (1.2 * boost); rHp *= (1.2 * boost); }
     
-    // 特殊効果（2回攻撃）
-    if (gameData.skills["kyomu_3"]) finalAtk *= 2;
-    if (gameData.skills["ken_4"]) finalAtk *= 2;
+    let curAtk = bAtk + rAtk;
+    let maxHp = bHp + rHp;
+    if (player.skills["hao_1"]) curAtk += (starTotal * 100 * boost);
 
+    let mult = 1.0;
+    if (player.skills["ken_2"]) mult += (typeCount * 0.05 * boost);
+    if (player.skills["ken_3"]) mult += (player.reincarnation * 0.01 * boost);
+    if (player.skills["hao_2"]) mult += (highRare * 0.5 * boost);
+    if (player.skills["hao_4"]) mult += (typeCount * 0.2 * boost);
+    if (player.skills["kyomu_2"]) mult += (Math.floor(starTotal / 100) * 1.0 * boost);
+    if (player.skills["kyomu_4"]) mult += (player.reincarnation / 100 * boost);
+
+    if (player.skills["ken_5"]) mult *= (5.0 * boost);
+    if (player.skills["kyomu_5"]) mult *= (3.0 * boost);
+
+    let finalAtk = curAtk * mult;
+    if (player.skills["kyomu_3"]) finalAtk *= 2;
+    if (player.skills["ken_4"]) finalAtk *= 2;
+    
     return { finalAtk, maxHp };
 }
 
-function attackBoss() {
-    const stats = calculateStats();
-    
-    addLog(`勇者の攻撃！ 魔神に ${Math.floor(stats.finalAtk).toLocaleString()} のダメージ！`);
-    addLog(`魔神の反撃：${MAJIN_DAMAGE.toLocaleString()} ダメージ！`);
-    addLog(`<span style="color:#e74c3c">勇者は倒れた...</span>`);
-    addLog(`<span style="color:#f1c40f">再起の誓いによって新たなる力を得た</span>`);
+function executeReincarnation() {
+    const s = calculateStats();
+    addLog(`勇者の攻撃！魔神に ${Math.floor(s.finalAtk).toLocaleString()} ダメージ！`);
+    addLog(`魔神の反撃：${MAJIN_ATK.toLocaleString()} ダメージ！`);
+    addLog(`<span style="color:#e74c3c">勇者は力尽きた...</span>`);
+    addLog(`<span style="color:var(--accent-color)">再起の誓いによって新たなる力を得た</span>`);
 
-    gameData.reincarnationCount++;
-    let bonus = gameData.skills["fumu_2"] ? 1.5 : 1.0;
-    gameData.atk += 5 * bonus;
-    gameData.hp += 50 * bonus;
+    player.reincarnation++;
+    let b = player.skills["fumu_2"] ? 1.5 : 1.0;
+    player.atk += 5 * b; player.hp += 50 * b;
 
-    let dropChance = 1;
-    if (gameData.skills["mado_3"]) dropChance += 1;
-    
-    for(let i=0; i<dropChance; i++) {
-        const rolled = RELIC_MASTER[Math.floor(Math.random() * RELIC_MASTER.length)];
-        gameData.relics[rolled.id] = (gameData.relics[rolled.id] || 0) + 1;
-        addLog(`遺物：[${rolled.name}] (★${rolled.star}) を獲得`);
+    let dCount = player.skills["mado_3"] ? 2 : 1;
+    for(let i=0; i<dCount; i++) {
+        const r = RELIC_MASTER[Math.floor(Math.random() * RELIC_MASTER.length)];
+        player.relics[r.id] = (player.relics[r.id] || 0) + 1;
+        addLog(`遺物：[${r.name}] 獲得`);
     }
-
-    save();
-    updateDisplay();
+    save(); updateUI();
 }
 
-function addLog(msg) {
-    const log = document.getElementById('log-container');
-    const div = document.createElement('div');
-    div.className = 'log-entry';
-    div.innerHTML = msg;
-    log.appendChild(div);
-    log.scrollTop = log.scrollHeight;
+function addLog(m) {
+    const c = document.getElementById('log-container');
+    const d = document.createElement('div');
+    d.className = 'log-entry'; d.innerHTML = m;
+    c.prepend(d);
 }
 
 init();
