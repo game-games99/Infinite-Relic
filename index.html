@@ -27,24 +27,22 @@
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
     #log { height: 280px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     
-    .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
-    .vow-name { font-weight: bold; font-size: 0.95em; }
-    .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
-    .vow-cond { font-size: 0.7em; color: #666; margin-top: 2px; }
-    
-    /* 遺物タブの2列表示設定 */
+    /* 遺物タブ 2列表示 */
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
     
-    .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
-    .rank-clickable { color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: bold; }
-    #prob-list { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    #prob-list td { padding: 6px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 0.9em; }
+    .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
+    .vow-name { font-weight: bold; font-size: 0.95em; }
+    .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
     
+    .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .power-head { background: #eee; padding: 8px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.85em; }
+    .skill-list { padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.7em; background: #f0f0f0; color: #ccc; border: 1px solid #ddd; }
+    .skill-chip.unlocked { background: #e7f3ff; color: #007bff; border-color: #007bff; font-weight: bold; }
+
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
-    .c6 { color: #fd7e14; } .c7 { color: #dc3545; } .c8 { color: #ffc107; text-shadow: 0 0 1px #000; } 
-    .c9 { color: #ffd700; text-shadow: 0 0 2px #000; }
-    .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+    .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
 </style>
 </head>
 <body>
@@ -63,7 +61,6 @@
     <button onclick="showTab('vow')" id="nav-vow">再起</button>
     <button onclick="showTab('power')" id="nav-power">権能</button>
     <button onclick="showTab('relic')" id="nav-relic">遺物</button>
-    <button onclick="showTab('status')" id="nav-status">詳細</button>
 </div>
 
 <div id="content-area">
@@ -72,44 +69,41 @@
         <div id="log"></div>
     </div>
     <div id="vow" class="tab"><div id="vow-list"></div></div>
-    <div id="power" class="tab"><div id="power-list"></div></div>
+    <div id="power" class="tab" id="power-list"></div>
     <div id="relic" class="tab"><div class="relic-grid" id="relic-list"></div></div>
-    <div id="status" class="tab">
-        <div class="st-box">
-            最高ダメージ: <span id="st-maxdmg">0</span><br>
-            ドロップ資格: <span id="st-rank" class="rank-clickable" onclick="showRankInfo()">-</span>
-        </div>
-        <div class="st-box">
-            <b style="font-size:0.9em;">ドロップ率一覧</b>
-            <table id="prob-list"></table>
-        </div>
-        <button style="width:100%; padding:12px; background:#dc3545; color:#fff; border:none; border-radius:6px; margin-top:10px;" onclick="resetGame()">プレイデータをリセット</button>
-    </div>
 </div>
 
 <script>
-// データの初期化を防ぐため、SAVE_KEYは固定（または指示があるまで変更禁止）
-const SAVE_KEY = "infiniterelic_v7_relics";
+const SAVE_KEY = "infiniterelic_v7_relics"; // セーブキー固定
 const BOSS_MAX_HP = 100000000000000000000n;
-const DROP_LIMITS = { 5: 1000000n, 6: 10000000n, 7: 100000000n, 8: 1000000000n, 9: 10000000000n, 10: 100000000000n };
-const BASE_PROBS = { 1: 81.88888, 2: 12, 3: 5, 4: 1, 5: 0.1, 6: 0.01, 7: 0.001, 8: 0.0001, 9: 0.00001, 10: 0.000001 };
+const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
 
-let player = { inventory: {}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, totalCounts: [0,0,0,0,0] };
+let player = { inventory: {}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n };
 let currentBossHP = BOSS_MAX_HP;
 let attackInterval = null;
 
+// ★11 復旧 + ★1~★5 30種 (pIdx 0:剣神, 1:不滅, 2:魔導, 3:覇王, 4:虚無)
 const RELIC_MASTER = [
-    {id:101, star:1, name:"勇者の木片", atk:1, hp:0, w:100}, {id:102, star:1, name:"戦士の砥石", atk:3, hp:0, w:80}, {id:103, star:1, name:"冒険の証", atk:5, hp:0, w:60},
-    {id:104, star:1, name:"野草の滴", atk:0, hp:7, w:100}, {id:105, star:1, name:"旅人の靴", atk:0, hp:13, w:80},
-    {id:201, star:2, name:"鉄の剣", atk:10, hp:0, w:100}, {id:202, star:2, name:"鋼の篭手", atk:16, hp:0, w:80}, {id:203, star:2, name:"熟練の証", atk:24, hp:0, w:60},
-    {id:204, star:2, name:"癒しの香油", atk:0, hp:50, w:100}, {id:205, star:2, name:"兵士の盾", atk:0, hp:84, w:80},
-    {id:301, star:3, name:"魔力剣", atk:99, hp:0, w:100}, {id:302, star:3, name:"英雄の鞘", atk:143, hp:0, w:80}, {id:303, star:3, name:"騎士の魂", atk:198, hp:0, w:60},
-    {id:304, star:3, name:"命の硬玉", atk:0, hp:520, w:100}, {id:305, star:3, name:"守護神の祈り", atk:0, hp:888, w:80},
-    {id:401, star:4, name:"王宮の秘宝", atk:4200, hp:0, w:100}, {id:402, star:4, name:"伝説の断片", atk:25002, hp:0, w:60}, {id:403, star:4, name:"破滅の引き金", atk:44444, hp:0, w:30},
-    {id:404, star:4, name:"聖樹の種", atk:0, hp:12000, w:100}, {id:405, star:4, name:"不死鳥の羽", atk:0, hp:44444, w:40},
-    {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, w:100}, {id:502, star:5, name:"天界の神剣", atk:599888, hp:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, w:40},
-    {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, w:10},
-    {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, w:100}, {id:510, star:5, name:"魔神の供物", atk:150000, hp:150000, w:70}
+    {id:0, star:11, name:"再起の誓い", atk:10, hp:100, pIdx:-1, w:0},
+    {id:101, star:1, name:"勇者の木片", atk:1, hp:0, pIdx:0, w:100}, {id:102, star:1, name:"戦士の砥石", atk:3, hp:0, pIdx:0, w:80},
+    {id:103, star:1, name:"冒険の証", atk:5, hp:0, pIdx:2, w:60}, {id:104, star:1, name:"野草の滴", atk:0, hp:7, pIdx:1, w:100}, {id:105, star:1, name:"旅人の靴", atk:0, hp:13, pIdx:1, w:80},
+    {id:201, star:2, name:"鉄の剣", atk:10, hp:0, pIdx:0, w:100}, {id:202, star:2, name:"鋼の篭手", atk:16, hp:0, pIdx:3, w:80}, {id:203, star:2, name:"熟練の証", atk:24, hp:0, pIdx:2, w:60},
+    {id:204, star:2, name:"癒しの香油", atk:0, hp:50, pIdx:2, w:100}, {id:205, star:2, name:"兵士の盾", atk:0, hp:84, pIdx:1, w:80},
+    {id:301, star:3, name:"魔力剣", atk:99, hp:0, pIdx:0, w:100}, {id:302, star:3, name:"英雄の鞘", atk:143, hp:0, pIdx:0, w:80}, {id:303, star:3, name:"騎士の魂", atk:198, hp:0, pIdx:3, w:60},
+    {id:304, star:3, name:"命の硬玉", atk:0, hp:520, pIdx:1, w:100}, {id:305, star:3, name:"守護神の祈り", atk:0, hp:888, pIdx:1, w:80},
+    {id:401, star:4, name:"王宮の秘宝", atk:4200, hp:0, pIdx:2, w:100}, {id:402, star:4, name:"伝説の断片", atk:25002, hp:0, pIdx:3, w:60}, {id:403, star:4, name:"破滅の引き金", atk:44444, hp:0, pIdx:4, w:30},
+    {id:404, star:4, name:"聖樹の種", atk:0, hp:12000, pIdx:3, w:100}, {id:405, star:4, name:"不死鳥の羽", atk:0, hp:44444, pIdx:4, w:40},
+    {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, pIdx:3, w:100}, {id:502, star:5, name:"天界の神剣", atk:599888, hp:0, pIdx:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, pIdx:4, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, pIdx:4, w:40},
+    {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, pIdx:3, w:10},
+    {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:150000, hp:150000, pIdx:4, w:70}
+];
+
+const POWERS = [
+    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "極意", "飛燕", "天断", "旋風", "残像", "奥義", "再臨"]},
+    {name: "不滅", skills: ["守護", "金剛", "再生", "鉄壁", "不屈", "楔", "波動", "逆鱗", "聖域", "不滅"]},
+    {name: "魔導", skills: ["回路", "知恵", "魔力", "共鳴", "詠唱", "門", "魔法", "等価", "因果", "真理"]},
+    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"]},
+    {name: "虚無", skills: ["忘却", "残響", "空虚", "深淵", "残滓", "否定", "消失", "無情", "零壊", "虚無"]}
 ];
 
 function getRelicBonus() {
@@ -121,9 +115,18 @@ function getRelicBonus() {
     return { atk, hp };
 }
 
+function getPowerPoints(pIdx) {
+    let pts = 0;
+    Object.entries(player.inventory).forEach(([id, count]) => {
+        const r = RELIC_MASTER.find(m => m.id == id);
+        if(r && r.pIdx === pIdx) { pts += (r.star * count); }
+    });
+    return pts;
+}
+
 function saveGame() {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-        inventory: player.inventory, deathCount: player.deathCount, totalCounts: player.totalCounts,
+        inventory: player.inventory, deathCount: player.deathCount,
         baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(),
         maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString()
     }));
@@ -133,17 +136,16 @@ function loadGame() {
     const saved = localStorage.getItem(SAVE_KEY);
     if(saved) {
         const p = JSON.parse(saved);
-        player.inventory = p.inventory || {};
+        player.inventory = p.inventory || {0: 1}; // 再起の誓い初期付与
         player.deathCount = p.deathCount || 0;
-        player.totalCounts = p.totalCounts || [0,0,0,0,0];
         player.baseAtk = BigInt(p.baseAtk || "10");
         player.baseHP = BigInt(p.baseHP || "100");
         player.maxDmg = BigInt(p.maxDmg || "0");
         currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP.toString());
+    } else {
+        player.inventory = {0: 1};
     }
 }
-
-function resetGame() { if(confirm("データを消去しますか？")){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
 
 function attack() {
     player.deathCount++;
@@ -170,9 +172,8 @@ function attack() {
         let rv = Math.random() * 100;
         let star = 1;
         if(rv < 0.1) star = 5; else if(rv < 1) star = 4; else if(rv < 5) star = 3; else if(rv < 17) star = 2; else star = 1;
-        for(let s=5; s<=5; s++) { if(star >= s && dmg < DROP_LIMITS[s]) star = 1; }
 
-        let cands = RELIC_MASTER.filter(m => m.star === star);
+        let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let totalW = cands.reduce((s, m) => s + m.w, 0);
             let rW = Math.random() * totalW;
@@ -188,59 +189,53 @@ function attack() {
     saveGame(); refreshUI();
 }
 
+function renderVow() {
+    const list = document.getElementById("vow-list");
+    let dCount = 1;
+    for(let t of [1000, 5000, 25000, 100000]) { if(player.deathCount >= t) dCount++; }
+    list.innerHTML = `
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">効率: 1 ～ ${player.deathCount.toLocaleString()}</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">ドロップ: ${dCount} 個</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力: +${(player.deathCount * 0.0004).toFixed(4)}%</div></div>
+    `;
+}
+
+function renderPower() {
+    const list = document.getElementById("power");
+    list.innerHTML = POWERS.map((p, idx) => {
+        const pts = getPowerPoints(idx);
+        let unlockedCount = 0;
+        SKILL_THRESHOLDS.forEach(t => { if(pts >= t) unlockedCount++; });
+        return `
+            <div class="power-section">
+                <div class="power-head"><span>${p.name}</span><span>${pts.toLocaleString()} pt</span></div>
+                <div class="skill-list">
+                    ${p.skills.map((s, si) => `<div class="skill-chip ${si < unlockedCount ? 'unlocked' : ''}">${s}</div>`).join("")}
+                </div>
+            </div>`;
+    }).join("");
+}
+
+function renderRelics() {
+    const list = document.getElementById("relic-list");
+    const items = Object.entries(player.inventory).filter(([id, count]) => count > 0);
+    list.innerHTML = items.map(([id, count]) => {
+        const r = RELIC_MASTER.find(m => m.id == id);
+        return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${count}<br><small>pt: ${(r.star * count).toLocaleString()}</small></div>`;
+    }).sort((a,b)=> {
+        const ra = RELIC_MASTER.find(m => m.id == a.split(' ')[0].match(/\d+/)); // 簡易ソート
+        return b.star - a.star;
+    }).join("");
+}
+
 function showTab(id) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
     document.getElementById(id).classList.add("active");
     document.getElementById("nav-" + id).classList.add("active");
     if(id === 'vow') renderVow();
+    if(id === 'power') renderPower();
     if(id === 'relic') renderRelics();
-    if(id === 'status') renderStatus();
-}
-
-function renderVow() {
-    const list = document.getElementById("vow-list");
-    let dCount = 1;
-    const thresholds = [1000, 5000, 25000, 100000];
-    for(let t of thresholds) { if(player.deathCount >= t) dCount++; }
-    let nextT = dCount < 5 ? thresholds[dCount-1].toLocaleString() : "MAX";
-
-    list.innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">加算効率: 1 ～ ${player.deathCount.toLocaleString()}</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">加算効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div></div>
-        <div class="vow-item">
-            <div class="vow-name">魂の研磨</div><div class="vow-val">遺物ドロップ数: ${dCount} 個</div>
-            <div class="vow-cond">解放条件: ${nextT} 回再起 (最大5個)</div>
-        </div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力増加: +${(player.deathCount * 0.0004).toFixed(4)}%</div></div>
-    `;
-}
-
-function renderRelics() {
-    const list = document.getElementById("relic-list");
-    const items = Object.entries(player.inventory).filter(([id, count]) => count > 0);
-    list.innerHTML = items.length ? items.map(([id, count]) => {
-        const r = RELIC_MASTER.find(m => m.id == id);
-        let eff = [];
-        if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`);
-        if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
-        return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${count}<br><small style="color:#666;">${eff.join(" / ")}</small></div>`;
-    }).sort((a,b)=>b.star-a.star).join("") : "遺物なし";
-}
-
-function renderStatus() {
-    document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-    let r = player.maxDmg < DROP_LIMITS[5] ? "★4以下" : "★5解放済み";
-    document.getElementById("st-rank").innerText = r;
-    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).map(([s,p])=>`
-        <tr><td class="c${s}">★${s}</td><td style="text-align:right;">${p}%</td></tr>
-    `).join("");
-}
-
-function showRankInfo() {
-    let msg = "【ドロップ解放条件】\n";
-    Object.entries(DROP_LIMITS).forEach(([s, v]) => msg += `★${s}: ${Number(v).toLocaleString()} dmg\n`);
-    alert(msg);
 }
 
 function refreshUI() {
@@ -254,7 +249,7 @@ function refreshUI() {
 function addLog(m) {
     const l = document.getElementById("log");
     const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 50) l.removeChild(l.lastChild);
+    l.prepend(d); if(l.childNodes.length > 30) l.removeChild(l.lastChild);
 }
 
 const btn = document.getElementById("attackBtn");
@@ -262,7 +257,6 @@ const start = (e) => { e.preventDefault(); if(!attackInterval) { attack(); attac
 const stop = () => { clearInterval(attackInterval); attackInterval = null; };
 btn.addEventListener("pointerdown", start);
 window.addEventListener("pointerup", stop);
-window.addEventListener("contextmenu", (e) => e.preventDefault());
 
 loadGame(); refreshUI();
 </script>
