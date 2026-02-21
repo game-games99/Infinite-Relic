@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.5.1</title>
+<title>RELICORE - v1.6.0</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -65,6 +65,9 @@
     .c6 { color: #ff4500; } .c7 { color: #d2691e; } .c8 { color: #000000; } .c9 { color: #4b0082; } .c10 { color: #ff00ff; }
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
     .c12 { color: #00ffff; text-shadow: 0 0 8px rgba(0,255,255,0.8); font-weight: bold; }
+
+    .clear-msg { color: #ffd700; font-weight: bold; border: 2px solid #ffd700; padding: 10px; margin: 10px 0; background: rgba(255, 215, 0, 0.1); border-radius: 8px; animation: glow 2s infinite alternate; }
+    @keyframes glow { from { box-shadow: 0 0 5px #ffd700; } to { box-shadow: 0 0 20px #ffd700; } }
 </style>
 </head>
 <body>
@@ -104,8 +107,12 @@
             ドロップ資格: <span id="st-rank" class="clickable" onclick="toggleConds()">確認中...</span>
             <div id="cond-display" class="cond-list"></div>
         </div>
+        <div class="st-box" style="border: 1px solid gold; background: #fffdf0;">
+            <span style="font-size: 0.75em; color: #b8860b;">★最終目標のヒント★</span><br>
+            <span style="font-size: 0.85em;">「★10遺物を手にし、魔神を一撃で葬る時、真の再起が訪れる……」</span>
+        </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.5.1</div>
+        <div class="version-info">RELICORE v1.6.0</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -113,6 +120,7 @@
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
+const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; 
 
 const DROP_DATA = {
     1: { p: "81.888879%", cond: 0n }, 2: { p: "12%", cond: 0n }, 3: { p: "5%", cond: 0n }, 4: { p: "1%", cond: 0n },
@@ -127,7 +135,7 @@ let attackInterval = null;
 
 const POWERS = [
     { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +20%"}, {name: "心気一致", desc: "所持遺物種数でダメージ増"}, {name: "万象一掃", desc: "再起回数でダメージ増"}, {name: "天断の極意", desc: "常時追加ダメージ100%"}, {name: "極限一閃・無双", desc: "最終ダメージ倍率 x5.0"}]},
-    { name: "不滅", skills: [{name: "生命の根源", desc: "基礎HP +30%"}, {name: "再誕の輝き", desc: "再起ボーナス 1.5倍"}, {name: "不撓不屈の魂", desc: "現在HP割合に応じてATK増"}, {name: "死を超越せし者", desc: "再起数で全ステータス乗算"}, {name: "不滅の王土", desc: "再起数で最終ダメ/HP指数増"}]},
+    { name: "不滅", skills: [{name: "生命の根源", desc: "基礎HP +30%"}, {name: "再誕の輝き", desc: "再起ボーナス 1.5倍"}, {name: "不撓不屈の魂", desc: "現在HP割合に応じてATK増"}, {name: "死を超越せし者", desc: "再起数で全ステータス乗算"}, {name: "不滅 of 王土", desc: "再起数で最終ダメ/HP指数増"}]},
     { name: "魔導", skills: [{name: "魔力回路", desc: "遺物効果 +20%上乗せ"}, {name: "魔力奔流", desc: "全スキル効果 1.5倍"}, {name: "理の解析", desc: "遺物ドロップ判定 +1回"}, {name: "古の叡智", desc: "遺物ボーナス 1.2倍計算"}, {name: "真理の扉", desc: "★5以上所持数で特大乗算"}]},
     { name: "覇王", skills: [{name: "万軍の主", desc: "遺物★合計に応じてATK加算"}, {name: "覇王の威光", desc: "★6以上1つ毎に倍率UP"}, {name: "統率の理", desc: "★1〜3遺物効果 10倍補正"}, {name: "覇道の足跡", desc: "遺物種類数 × 0.2 倍率加算"}, {name: "終焉の号令", desc: "全遺物効果 1.5倍"}]},
     { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
@@ -208,24 +216,22 @@ function loadGame() {
 function resetData() { if(confirm("全データを削除します。よろしいですか？")) { localStorage.clear(); location.reload(); } }
 
 function attack() {
-    // 魂の研磨による再起数加速
+    const startHP = currentBossHP;
+    const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
+
     let addStep = 1;
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) addStep++; });
-
     const addAtk = BigInt(Math.floor(Math.random() * (player.deathCount + 1))) + 1n;
     const addHP = BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
-    
     player.deathCount += addStep;
     player.baseAtk += (addAtk * BigInt(addStep));
     player.baseHP += (addHP * BigInt(addStep));
 
     const b = getRelicBonus();
     let totalMult = 1.0;
-    
-    // デバッグ用の固定倍率は削除。実際の仕様に基づく計算。
     let relicTypes = Object.keys(player.inventory).length;
-    totalMult += (relicTypes * 0.2); // 覇道の足跡
-    totalMult += (player.deathCount / 100); // 無に帰す
+    totalMult += (relicTypes * 0.2);
+    totalMult += (player.deathCount / 100);
 
     let totalAtk = (player.baseAtk * 120n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n;
     let dmg = totalAtk * BigInt(Math.floor(totalMult * 100)) / 100n;
@@ -234,10 +240,35 @@ function attack() {
     currentBossHP -= dmg;
     addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージ！</span>`);
     
+    // 討伐判定
     if(currentBossHP <= 0n) {
-        addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`); 
-        currentBossHP = BOSS_MAX_HP_BASE;
+        // 一撃クリア判定（HP100%から一気に削ったか）
+        if (startHP === maxHP) {
+            const hasPandora = player.inventory[1001] > 0;
+            if (hasPandora && !player.isEndless) {
+                // 真のクリア
+                addLog(`
+                    <div class="clear-msg">
+                        【神域到達】魔神を塵も残さず消滅させた。<br>
+                        呪縛は断ち切られ、最強の勇者は真に再起した。
+                    </div>
+                `);
+                player.isEndless = true;
+                currentBossHP = BOSS_MAX_HP_ENDLESS;
+                document.getElementById("boss-display-name").innerText = "真・魔神";
+            } else if (!hasPandora) {
+                addLog(`<span style="color:#e83e8c; font-weight:bold;">圧倒的な一撃！…だが、魔神の根源を断つための「匣」が足りない。</span>`);
+                currentBossHP = maxHP;
+            } else {
+                addLog(`<span style="color:#ffd700; font-weight:bold;">真・魔神を圧倒した！</span>`);
+                currentBossHP = maxHP;
+            }
+        } else {
+            addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`); 
+            currentBossHP = maxHP;
+        }
     }
+    
     addLog(`<span style="color:#dc3545;">9,99,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     
     handleDrop();
@@ -267,9 +298,12 @@ function refreshUI() {
     let dispHP = BigInt(Math.floor(Number((player.baseHP + b.hp) * BigInt(100 + b.hpPct) / 100n) * b.mult));
     document.getElementById("p-atk").innerText = dispAtk.toLocaleString();
     document.getElementById("p-hp").innerText = dispHP.toLocaleString();
-    const pct = (Number(currentBossHP * 10000n / BOSS_MAX_HP_BASE) / 100);
+    const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
+    const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
+    document.getElementById("boss-display-name").innerText = player.isEndless ? "真・魔神" : "魔神";
+
     const tabId = document.querySelector(".tab.active").id;
     if(tabId === 'vow') renderVow(); if(tabId === 'power') renderPower(); if(tabId === 'relic') renderRelics(); if(tabId === 'status') renderStatus();
 }
