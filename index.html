@@ -146,7 +146,7 @@ const RELIC_MASTER = [
     {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:150000, hp:150000, pIdx:4, w:70},
     {id:601, star:6, name:"極限の魔剣", atk:6000000, hp:0, pIdx:0, w:1, mult:1.1}, {id:602, star:6, name:"極限の魔盾", atk:0, hp:12000000, pIdx:1, w:1, mult:1.1}, {id:603, star:6, name:"極限の魔導書", atk:3000000, hp:6000000, pIdx:2, w:1, mult:1.1}, {id:604, star:6, name:"極限の王冠", atk:0, hp:0, pIdx:3, w:1, mult:1.1}, {id:605, star:6, name:"極限の虚珠", atk:1000000, hp:1000000, pIdx:4, w:1, mult:1.1},
     {id:701, star:7, name:"天啓の戦斧", atk:70000000, hp:0, pIdx:0, w:1, mult:1.4}, {id:702, star:7, name:"天啓の聖鎧", atk:0, hp:150000000, pIdx:1, w:1, mult:1.4}, {id:703, star:7, name:"天啓の指輪", atk:30000000, hp:60000000, pIdx:2, w:1, mult:1.3}, {id:704, star:7, name:"天啓の翼", atk:10000000, hp:10000000, pIdx:3, w:1, mult:1.2}, {id:705, star:7, name:"天啓の瞳", atk:50000000, hp:50000000, pIdx:4, w:1, mult:1.5},
-    {id:801, star:8, name:"輪廻の滅刃", atk:800000000, hp:0, pIdx:0, w:1, mult:2.0}, {id:802, star:8, name:"輪廻の守護像", atk:0, hp:1800000000, pIdx:1, w:1, mult:2.0}, {id:803, star:8, name:"輪廻の天秤", atk:400000000, hp:400000000, pIdx:2, w:1, mult:1.8}, {id:804, star:8, name:"輪廻の錫杖", atk:200000000, hp:200000000, pIdx:3, w:1, mult:2.5}, {id:805, star:8, name:"輪廻の魂灯", atk:500000000, hp:500000000, pIdx:4, w:1, mult:3.0},
+    {id:801, star:8, name:"輪廻의 滅刃", atk:800000000, hp:0, pIdx:0, w:1, mult:2.0}, {id:802, star:8, name:"輪廻の守護像", atk:0, hp:1800000000, pIdx:1, w:1, mult:2.0}, {id:803, star:8, name:"輪廻の天秤", atk:400000000, hp:400000000, pIdx:2, w:1, mult:1.8}, {id:804, star:8, name:"輪廻の錫杖", atk:200000000, hp:200000000, pIdx:3, w:1, mult:2.5}, {id:805, star:8, name:"輪廻の魂灯", atk:500000000, hp:500000000, pIdx:4, w:1, mult:3.0},
     {id:901, star:9, name:"創世の心臓", atk:10000000000, hp:20000000000, pIdx:2, w:1, mult:5.0}, {id:902, star:9, name:"創世の理", atk:5000000000, hp:5000000000, pIdx:4, w:1, mult:4.0}, {id:903, star:9, name:"創世の牙", atk:15000000000, hp:0, pIdx:0, w:1, mult:3.5}, {id:904, star:9, name:"創世の盾", atk:0, hp:30000000000, pIdx:1, w:1, mult:3.5}, {id:905, star:9, name:"創世の楔", atk:10000000000, hp:10000000000, pIdx:3, w:1, mult:10.0},
     {id:1001, star:10, name:"インフィニットレリック", atk:0, hp:0, pIdx:-1, w:1, mult:1.0} 
 ];
@@ -213,12 +213,16 @@ function resetData() {
 }
 
 function attack() {
+    // 再起による基礎ステータスの加算（永続化対象）
     player.deathCount++;
-    player.baseAtk += 1n;
-    player.baseHP += 10n;
+    player.baseAtk += 1n; // 死ぬ度にATK+1
+    player.baseHP += 10n; // 死ぬ度にHP+10
+    
     const bonus = getRelicBonus();
+    // 最終的なダメージ計算 (基礎 + 遺物加算) * 補正
     let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
     dmg = BigInt(Math.floor(Number(dmg) * bonus.mult));
+    
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
 
@@ -238,6 +242,7 @@ function attack() {
     }
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     
+    // ドロップ処理
     let dropCount = 1;
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
     for(let i=0; i<dropCount; i++) {
@@ -254,7 +259,10 @@ function attack() {
             addLog(`<span class="c${selected.star}">【獲得】★${selected.star} ${selected.name}</span>`);
         }
     }
-    saveGame(); refreshUI();
+    
+    // 状態を保存してからUI更新
+    saveGame(); 
+    refreshUI();
 }
 
 function renderPower() {
@@ -284,8 +292,8 @@ function renderVow() {
     thresholds.forEach(t => { if(player.deathCount >= t) dCount++; });
     let nextT = dCount < 5 ? thresholds[dCount-1].toLocaleString() : "MAX";
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">効率: 1 ～ ${player.deathCount.toLocaleString()}</div><div class="vow-desc">死ぬ度にATK基礎値 +1</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">死ぬ度にHP基礎値 +10</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">効率: 1 ～ ${player.deathCount.toLocaleString()}</div><div class="vow-desc">死ぬ度にATK基礎値 +1 (現在合計: +${player.deathCount})</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">死ぬ度にHP基礎値 +10 (現在合計: +${player.deathCount * 10})</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">ドロップ: ${dCount} 個</div><div class="vow-desc">条件: 次回 ${nextT} 回再起で増加</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力: +${(player.deathCount * 0.0004).toFixed(4)}%</div><div class="vow-desc">死ぬ度に最終ダメージ増加 0.0004%</div></div>
     `;
@@ -298,10 +306,8 @@ function renderRelics() {
         let eff = []; if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
         if(r.mult && r.mult > 1) eff.push(`倍率x${r.mult}`);
         let effStr = eff.length > 0 ? `(${eff.join(" / ")})` : "";
-        
         let powerName = r.pIdx !== -1 ? POWERS[r.pIdx].name : "特殊";
         let powerStr = r.pIdx !== -1 ? `${powerName}権能pt: ${(r.star * r.count).toLocaleString()}` : "固有遺物";
-        
         return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small style="color:#666;">${effStr}</small><br><small>${powerStr}</small></div>`;
     }).join("");
 }
@@ -331,15 +337,22 @@ function showTab(id) {
 
 function refreshUI() {
     const bonus = getRelicBonus();
+    // 基礎値に再起ボーナスが加算されているかを表示に反映
     const totalAtk = BigInt(Math.floor(Number(player.baseAtk + bonus.atk) * bonus.mult));
     const totalHp = BigInt(Math.floor(Number(player.baseHP + bonus.hp) * bonus.mult));
+    
     document.getElementById("p-atk").innerText = totalAtk.toLocaleString();
     document.getElementById("p-hp").innerText = totalHp.toLocaleString();
+    
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
     document.getElementById("boss-display-name").innerText = player.isEndless ? "真・魔神" : "魔神";
+    
     const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
+    
+    // 再起タブを開いている場合は数値の増分をリアルタイム反映
+    if(document.getElementById("vow").classList.contains("active")) renderVow();
 }
 
 function addLog(m) {
@@ -351,7 +364,9 @@ const btn = document.getElementById("attackBtn");
 const start = (e) => { e.preventDefault(); if(!attackInterval) { attack(); attackInterval = setInterval(attack, 120); } };
 const stop = () => { clearInterval(attackInterval); attackInterval = null; };
 btn.addEventListener("pointerdown", start); window.addEventListener("pointerup", stop);
-loadGame(); refreshUI();
+
+loadGame(); 
+refreshUI();
 </script>
 </body>
 </html>
