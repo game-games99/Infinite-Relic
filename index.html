@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.3.1 (Rare Drop Highlight)</title>
+<title>RELICORE - v1.3.2 (Passive Overhaul)</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -105,7 +105,7 @@
             <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">v1.3.1</div>
+        <div class="version-info">v1.3.2</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -127,11 +127,11 @@ let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 
 const POWERS = [
-    { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +10%"}, {name: "心眼", desc: "クリティカル率上昇"}, {name: "剣気", desc: "最終ダメージ倍率 x1.2"}, {name: "天断", desc: "確率でダメージ2倍"}, {name: "奥義", desc: "最終ダメージ倍率 x2.5"}] },
-    { name: "不滅", skills: [{name: "守護", desc: "基礎HP +15%"}, {name: "再生", desc: "再起時のHP上昇量強化"}, {name: "鉄壁", desc: "被ダメージ軽減(表示)"}, {name: "不屈", desc: "低HP時にATK上昇"}, {name: "不滅", desc: "基礎HP +100% ＆ 再起ボーナス強化"}] },
-    { name: "魔導", skills: [{name: "回路", desc: "権能pt獲得量 +10%"}, {name: "魔力", desc: "スキル倍率全体 +10%"}, {name: "詠唱", desc: "攻撃の安定化"}, {name: "魔法", desc: "全遺物の基礎効果 +15%"}, {name: "真理", desc: "全スキル効果倍率 2倍"}] },
-    { name: "覇王", skills: [{name: "軍勢", desc: "遺物1種毎にATK +1%"}, {name: "威圧", desc: "ボスの最大HP 1%減少"}, {name: "凱旋", desc: "討伐時ドロップ率微増"}, {name: "号令", desc: "ATK加算効果 1.3倍"}, {name: "終焉", desc: "最終ダメージ倍率 x5.0"}] },
-    { name: "虚無", skills: [{name: "忘却", desc: "再起ダメージ補正 1.5倍"}, {name: "空虚", desc: "敵防御無視"}, {name: "残滓", desc: "稀に追撃発生"}, {name: "消失", desc: "稀にボスのHP 0.1%消失"}, {name: "虚無", desc: "最終ダメージ倍率 x3.0"}] }
+    { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +10%"}, {name: "極意", desc: "遺物の所持種類数に応じて最終ダメージ上昇"}, {name: "剣気", desc: "最終ダメージ倍率 x1.2"}, {name: "天断", desc: "低確率でダメージが跳ね上がる"}, {name: "奥義", desc: "最終ダメージ倍率 x2.5"}] },
+    { name: "不滅", skills: [{name: "守護", desc: "基礎HP +15%"}, {name: "再生", desc: "再起時のHP上昇量強化"}, {name: "魂の器", desc: "再起時のHP上昇値の1%をATKに加算"}, {name: "不撓", desc: "再起100回ごとにダメージ倍率微増"}, {name: "不滅", desc: "基礎HP +100% ＆ 再起ボーナス強化"}] },
+    { name: "魔導", skills: [{name: "回路", desc: "権能pt獲得量 +10%"}, {name: "魔力", desc: "スキル倍率全体 +10%"}, {name: "安定化", desc: "攻撃ダメージのバラつきを抑える"}, {name: "魔法", desc: "全遺物の基礎効果 +15%"}, {name: "真理", desc: "全スキル効果倍率 2倍"}] },
+    { name: "覇王", skills: [{name: "軍勢", desc: "遺物1種毎にATK +1%"}, {name: "威光", desc: "★6以上の遺物1つにつき最終ダメ+5%"}, {name: "統率", desc: "★1〜3遺物のATK加算値を1.1倍に補正"}, {name: "号令", desc: "ATK加算効果 1.3倍"}, {name: "終焉", desc: "最終ダメージ倍率 x5.0"}] },
+    { name: "虚無", skills: [{name: "忘却", desc: "再起ダメージ補正 1.5倍"}, {name: "深淵", desc: "遺物の★合計数に応じてダメージ倍率微増"}, {name: "残滓", desc: "稀に同じ威力の追撃が発生"}, {name: "無に帰す", desc: "再起1000回ごとにダメージ倍率+0.01x"}, {name: "虚無", desc: "最終ダメージ倍率 x3.0"}] }
 ];
 
 const RELIC_MASTER = [
@@ -159,7 +159,13 @@ function getRelicBonus() {
     let atk = 0n, hp = 0n, mult = 1.0;
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
-        if(r) { atk += BigInt(Math.floor(r.atk * count)); hp += BigInt(Math.floor(r.hp * count)); if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count); }
+        if(r) { 
+            let a = BigInt(Math.floor(r.atk * count));
+            if(r.star <= 3) a = a * 110n / 100n; // 統率
+            atk += a; 
+            hp += BigInt(Math.floor(r.hp * count)); 
+            if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count); 
+        }
     });
     return { atk, hp, mult };
 }
@@ -188,17 +194,26 @@ function loadGame() {
 function resetData() { if(confirm("全データを削除します。よろしいですか？")) { localStorage.clear(); location.reload(); } }
 
 function attack() {
+    const addAtk = BigInt(Math.floor(Math.random() * (player.deathCount + 1))) + 1n;
+    const addHP = BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
     player.deathCount++;
-    player.baseAtk += BigInt(Math.floor(Math.random() * (player.deathCount + 1))) + 1n;
-    player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
+    player.baseAtk += addAtk + (addHP / 100n); // 魂の器
+    player.baseHP += addHP;
+
     const bonus = getRelicBonus();
     let skillMult = 1.2 * 2.5 * 5.0 * 3.0; 
-    if(Math.random() < 0.2) skillMult *= 2.0; 
+    skillMult += (player.deathCount / 1000) * 0.01; // 無に帰す
+    
+    let starTotal = 0; Object.entries(player.inventory).forEach(([id, c]) => { const r = RELIC_MASTER.find(m => m.id == id); if(r) starTotal += r.star * c; });
+    skillMult *= (1 + (starTotal * 0.0001)); // 深淵
+
     let baseDmg = (player.baseAtk + bonus.atk);
     let relicTypes = Object.keys(player.inventory).length;
     baseDmg = baseDmg * BigInt(100 + relicTypes) / 100n;
+    
     let dmg = baseDmg * (1000000n + BigInt(player.deathCount * 6)) / 1000000n;
     dmg = BigInt(Math.floor(Number(dmg) * bonus.mult * skillMult));
+    
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
     addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージを与えた！</span>`);
@@ -220,7 +235,6 @@ function handleDrop() {
         if(cands.length > 0) {
             let selected = cands[Math.floor(Math.random() * cands.length)];
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
-            // ★5以上は太字で強調
             const isRare = selected.star >= 5 ? "font-weight:bold;" : "";
             addLog(`<span class="c${selected.star}" style="${isRare}">【獲得】★${selected.star} ${selected.name}</span>`);
         }
@@ -254,7 +268,7 @@ function renderVow() {
 function renderPower() {
     document.getElementById("power").innerHTML = POWERS.map((p) => {
         return `<div class="power-section">
-            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>ALL UNLOCKED</span></div><div class="power-progress">テストモード: 全解放中</div></div>
+            <div class="power-head"><div class="power-title"><span>${p.name}権能 (ALL PASSIVE)</span><span>ALL UNLOCKED</span></div><div class="power-progress">パッシブ化完了</div></div>
             <div class="skill-list">${p.skills.map((s) => {
                 return `<div class="skill-row"><div class="skill-chip unlocked">${s.name}</div><span class="skill-effect">効果: ${s.desc}</span></div>`;
             }).join("")}</div>
