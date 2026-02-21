@@ -30,6 +30,7 @@
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
     .vow-name { font-weight: bold; font-size: 0.95em; }
     .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
+    .vow-cond { font-size: 0.7em; color: #666; margin-top: 2px; }
     
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; margin-bottom: 4px; }
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
@@ -37,10 +38,10 @@
     #prob-list { width: 100%; border-collapse: collapse; margin-top: 10px; }
     #prob-list td { padding: 6px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 0.9em; }
     
-    /* レアリティカラー設定 */
+    /* レアリティカラー */
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
-    .c6 { color: #fd7e14; } .c7 { color: #dc3545; } .c8 { color: #ffc107; text-shadow: 0 0 2px #000; } 
-    .c9 { color: #ffd700; text-shadow: 0 0 3px #daa520; }
+    .c6 { color: #fd7e14; } .c7 { color: #dc3545; } .c8 { color: #ffc107; text-shadow: 0 0 1px #000; } 
+    .c9 { color: #ffd700; text-shadow: 0 0 2px #000; }
     .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
 </style>
 </head>
@@ -85,7 +86,7 @@
 </div>
 
 <script>
-const SAVE_KEY = "infiniterelic_v4_final";
+const SAVE_KEY = "infiniterelic_v5_strict";
 const BOSS_MAX_HP = 100000000000000000000n;
 const DROP_LIMITS = { 5: 1000000n, 6: 10000000n, 7: 100000000n, 8: 1000000000n, 9: 10000000000n, 10: 100000000000n };
 const BASE_PROBS = { 1: 81.88888, 2: 12, 3: 5, 4: 1, 5: 0.1, 6: 0.01, 7: 0.001, 8: 0.0001, 9: 0.00001, 10: 0.000001 };
@@ -103,10 +104,22 @@ const SKILL_DATA = [
 ];
 
 const RELIC_MASTER = [
-    {id:0, star:1, pIdx:0, name:"錆びた剣片", desc:"ATK+100"}, {id:1, star:1, pIdx:1, name:"欠けた甲殻", desc:"HP+100"}, {id:2, star:1, pIdx:2, name:"魔力の滓", desc:"ATK+100"}, {id:3, star:1, pIdx:3, name:"折れた旗竿", desc:"HP+100"}, {id:4, star:1, pIdx:4, name:"虚無の塵", desc:"ATK+100"},
-    {id:10, star:3, pIdx:0, name:"剣神の象徴", desc:"ATK+300"}, {id:11, star:3, pIdx:1, name:"不滅の象徴", desc:"HP+300"}, {id:12, star:3, pIdx:2, name:"魔導の象徴", desc:"ATK+300"}, {id:13, star:3, pIdx:3, name:"覇王の象徴", desc:"HP+300"}, {id:14, star:3, pIdx:4, name:"虚無の象徴", desc:"ATK+300"},
-    {id:20, star:5, pIdx:0, name:"剣神の双子星", desc:"ATK+500"}, {id:22, star:5, pIdx:1, name:"不滅の霊亀", desc:"HP+500"}, {id:24, star:5, pIdx:2, name:"魔導の天球", desc:"ATK+500"}, {id:26, star:5, pIdx:3, name:"覇王の印章", desc:"HP+500"}, {id:28, star:5, pIdx:4, name:"虚無の境界線", desc:"ATK+500"}
+    {id:0, star:1, pIdx:0, name:"錆びた剣片", type:"ATK", val:100}, {id:1, star:1, pIdx:1, name:"欠けた甲殻", type:"HP", val:100}, {id:2, star:1, pIdx:2, name:"魔力の滓", type:"ATK", val:100}, {id:3, star:1, pIdx:3, name:"折れた旗竿", type:"HP", val:100}, {id:4, star:1, pIdx:4, name:"虚無の塵", type:"ATK", val:100},
+    {id:10, star:3, pIdx:0, name:"剣神の象徴", type:"ATK", val:300}, {id:11, star:3, pIdx:1, name:"不滅の象徴", type:"HP", val:300}, {id:12, star:3, pIdx:2, name:"魔導の象徴", type:"ATK", val:300}, {id:13, star:3, pIdx:3, name:"覇王の象徴", type:"HP", val:300}, {id:14, star:3, pIdx:4, name:"虚無の象徴", type:"ATK", val:300},
+    {id:20, star:5, pIdx:0, name:"剣神の双子星", type:"ATK", val:500}, {id:22, star:5, pIdx:1, name:"不滅の霊亀", type:"HP", val:500}, {id:24, star:5, pIdx:2, name:"魔導の天球", type:"ATK", val:500}, {id:26, star:5, pIdx:3, name:"覇王の印章", type:"HP", val:500}, {id:28, star:5, pIdx:4, name:"虚無の境界線", type:"ATK", val:500}
 ];
+
+function getRelicBonus() {
+    let atk = 0n, hp = 0n;
+    Object.entries(player.inventory).forEach(([id, count]) => {
+        const r = RELIC_MASTER.find(m => m.id == id);
+        if(r) {
+            if(r.type === "ATK") atk += BigInt(r.val * count);
+            if(r.type === "HP") hp += BigInt(r.val * count);
+        }
+    });
+    return { atk, hp };
+}
 
 function saveGame() {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -130,16 +143,21 @@ function loadGame() {
     }
 }
 
-function resetGame() { if(confirm("データを消去しますか？")){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
+function resetGame() { if(confirm("データを全て消去しますか？")){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
 
 function attack() {
     player.deathCount++;
-    player.baseAtk += BigInt(Math.floor(Math.random() * 2) + 1); // 基礎成長を緩やかに
-    player.baseHP += BigInt(Math.floor(Math.random() * 10) + 1);
+    // 不退転・金剛の加算処理 (1〜再起数 / 1〜再起数*10)
+    player.baseAtk += BigInt(Math.floor(Math.random() * player.deathCount) + 1);
+    player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10)) + 1);
 
-    // ダメージ計算: ATK × (1 + 再起数*0.001)
-    let bonusMult = 1000n + BigInt(player.deathCount);
-    let dmg = (player.baseAtk * bonusMult) / 1000n;
+    const bonus = getRelicBonus();
+    const totalAtk = player.baseAtk + bonus.atk;
+    
+    // ダメージ計算: (Base + Relic) × (1 + 再起数 × 0.000004) ※0.0004%
+    // 整数計算のため 1,000,000を分母にする
+    let death刻倍率 = 1000000n + BigInt(Math.floor(player.deathCount * 4));
+    let dmg = (totalAtk * death刻倍率) / 1000000n;
 
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
@@ -148,18 +166,26 @@ function attack() {
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
-    let rv = Math.random() * 100;
-    let star = 1;
-    if(rv < 0.1) star = 5; else if(rv < 5) star = 3; else star = 1;
+    // ドロップ数判定 (魂の研磨)
+    let dropCount = 1;
+    if(player.deathCount >= 3125000) dropCount = 5;
+    else if(player.deathCount >= 625000) dropCount = 4;
+    else if(player.deathCount >= 125000) dropCount = 3;
+    else if(player.deathCount >= 25000) dropCount = 2; // 5倍ずつ増加の例
 
-    for(let s=5; s<=5; s++) { if(star >= s && dmg < DROP_LIMITS[s]) star = 1; }
+    for(let i=0; i<dropCount; i++) {
+        let rv = Math.random() * 100;
+        let star = 1;
+        if(rv < 0.1) star = 5; else if(rv < 5) star = 3; else star = 1;
+        for(let s=5; s<=5; s++) { if(star >= s && dmg < DROP_LIMITS[s]) star = 1; }
 
-    let cands = RELIC_MASTER.filter(m => m.star === star);
-    if(cands.length > 0) {
-        let r = cands[Math.floor(Math.random() * cands.length)];
-        player.inventory[r.id] = (player.inventory[r.id] || 0) + 1;
-        if(r.pIdx !== undefined) player.totalCounts[r.pIdx]++;
-        addLog(`<span style="color:blue;">【獲得】★${r.star} ${r.name}</span>`);
+        let cands = RELIC_MASTER.filter(m => m.star === star);
+        if(cands.length > 0) {
+            let r = cands[Math.floor(Math.random() * cands.length)];
+            player.inventory[r.id] = (player.inventory[r.id] || 0) + 1;
+            if(r.pIdx !== undefined) player.totalCounts[r.pIdx]++;
+            addLog(`<span style="color:blue;">【獲得】★${r.star} ${r.name}</span>`);
+        }
     }
     saveGame(); refreshUI();
 }
@@ -177,11 +203,20 @@ function showTab(id) {
 
 function renderVow() {
     const list = document.getElementById("vow-list");
+    let dCount = 1;
+    if(player.deathCount >= 25000) dCount = 2;
+    if(player.deathCount >= 125000) dCount = 3;
+    if(player.deathCount >= 625000) dCount = 4;
+    if(player.deathCount >= 3125000) dCount = 5;
+
     list.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">加算効率: 1 ～ ${player.deathCount.toLocaleString()}</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">加算効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">遺物ドロップ数: 1 個</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力増加: +${(player.deathCount * 0.1).toFixed(1)}%</div></div>
+        <div class="vow-item">
+            <div class="vow-name">魂の研磨</div><div class="vow-val">遺物ドロップ数: ${dCount} 個</div>
+            <div class="vow-cond">次段階: ${dCount < 5 ? (25000 * Math.pow(5, dCount-1)).toLocaleString() : "MAX"} 回再起</div>
+        </div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力増加: +${(player.deathCount * 0.0004).toFixed(4)}%</div></div>
     `;
 }
 
@@ -200,11 +235,12 @@ function renderRelics() {
     const items = Object.entries(player.inventory).filter(([id, count]) => count > 0);
     list.innerHTML = items.length ? items.map(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
-        return `<div class="relic-card"><b>★${r.star} ${r.name}</b> x${count}<br><small style="color:#666;">${r.desc}</small></div>`;
+        return `<div class="relic-card"><b>★${r.star} ${r.name}</b> x${count}<br><small style="color:#666;">${r.type}+${r.val}</small></div>`;
     }).join("") : "遺物なし";
 }
 
 function renderStatus() {
+    const bonus = getRelicBonus();
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
     let r = "★4以下"; if(player.maxDmg >= DROP_LIMITS[5]) r = "★5解放済み";
     document.getElementById("st-rank").innerText = r;
@@ -220,8 +256,9 @@ function showRankInfo() {
 }
 
 function refreshUI() {
-    document.getElementById("p-atk").innerText = player.baseAtk.toLocaleString();
-    document.getElementById("p-hp").innerText = player.baseHP.toLocaleString();
+    const bonus = getRelicBonus();
+    document.getElementById("p-atk").innerText = (player.baseAtk + bonus.atk).toLocaleString();
+    document.getElementById("p-hp").innerText = (player.baseHP + bonus.hp).toLocaleString();
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
     document.getElementById("bosshp-pct").innerText = (Number(currentBossHP * 10000n / BOSS_MAX_HP) / 100).toFixed(4);
 }
