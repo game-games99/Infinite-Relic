@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.9.9</title>
+<title>RELICORE - v2.0.0</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -15,24 +15,25 @@
     .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
 
-    #header { background: var(--dark); color: #fff; padding: 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
-    .boss-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+    #header { background: var(--dark); color: #fff; padding: 10px 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
+    .boss-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
     .boss-name { font-size: 1.1em; font-weight: bold; color: var(--hp); letter-spacing: 1px; }
-    .hp-bar-container { background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+    .hp-bar-container { background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
     #hp-bar-fill { height: 100%; background: var(--hp); width: 100%; transition: width 0.1s; }
     .hp-pct-display { font-size: 0.85em; color: var(--hp); font-weight: bold; font-family: monospace; }
     
-    .status-box { display: flex; gap: 8px; margin-top: 8px; }
-    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; border-left: 3px solid var(--primary); }
+    /* ステータス表示の2段レイアウト改善 */
+    .status-box { display: flex; gap: 8px; }
+    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; }
     .stat-card.hp-card { border-left-color: var(--hp); }
-    .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
-    .stat-val { font-size: 1.1em; font-weight: bold; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; margin-bottom: 1px; }
+    .stat-val { font-size: 0.95em; font-weight: bold; font-family: monospace; color: #fff; overflow-x: auto; white-space: nowrap; }
     
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
 
-    #content-area { flex-grow: 1; overflow-y: auto; background: #fff; padding-bottom: 20px; }
+    #content-area { flex-grow: 1; overflow-y: auto; background: #fff; }
     .tab { display: none; padding: 10px; height: 100%; }
     .tab.active { display: block; overflow-y: auto; } /* スクロール修正 */
 
@@ -64,6 +65,7 @@
     .skill-effect { font-size: 0.7em; color: #666; }
     
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
+    .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
     .clickable-stat { color: var(--primary); text-decoration: underline; cursor: pointer; }
     .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 80px; }
     
@@ -99,8 +101,14 @@
     </div>
     <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
     <div class="status-box">
-        <div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div>
-        <div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div>
+        <div class="stat-card">
+            <span class="stat-label">ATK</span>
+            <div class="stat-val" id="p-atk">0</div>
+        </div>
+        <div class="stat-card hp-card">
+            <span class="stat-label">HP</span>
+            <div class="stat-val" id="p-hp">0</div>
+        </div>
     </div>
 </div>
 
@@ -127,10 +135,13 @@
             ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span>
         </div>
         <div class="st-box">
-            <b>遺物出現率</b>
+            <div class="st-title-flex">
+                <span>遺物出現率</span>
+                <span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span>
+            </div>
             <table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table>
         </div>
-        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v1.9.9</div>
+        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.0.0</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -263,8 +274,7 @@ function handleDrop(isKill) {
     let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
     if(isKill) dCount += 5;
 
-    // 魂の研磨: 再起した経験も同じ数だけ+する
-    player.deathCount += dCount;
+    player.deathCount += dCount; // 魂の研磨
 
     for(let i=0; i<dCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
@@ -325,6 +335,11 @@ function renderStatus() {
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
     let r = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放`; break; } }
     document.getElementById("st-rank").innerText = r;
+    
+    // 遺物種類数の計算
+    const colCount = Object.keys(player.inventory).length;
+    document.getElementById("st-collection").innerText = `${colCount}/53`;
+    
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join("");
 }
 
