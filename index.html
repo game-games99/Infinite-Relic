@@ -17,11 +17,12 @@
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-    #content-area { flex-grow: 1; overflow-y: auto; background: #fff; padding-bottom: 30px; } /* 余白を削減 */
+    #content-area { flex-grow: 1; overflow-y: auto; background: #fff; padding-bottom: 20px; }
     .tab { display: none; padding: 10px; }
     .tab.active { display: block; }
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
-    #log { height: 450px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; } /* 高さを拡張 */
+    /* ログサイズを画面に収まるよう調整 */
+    #log { height: 380px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
@@ -32,9 +33,11 @@
     .power-head { background: #eee; padding: 8px; font-weight: bold; display: flex; flex-direction: column; font-size: 0.8em; }
     .power-title { display: flex; justify-content: space-between; margin-bottom: 2px; }
     .power-progress { font-size: 0.85em; color: var(--primary); font-family: monospace; }
-    .skill-list { padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
-    .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #f0f0f0; color: #ccc; border: 1px solid #ddd; }
+    .skill-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .skill-row { display: flex; align-items: center; gap: 8px; }
+    .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #f0f0f0; color: #ccc; border: 1px solid #ddd; min-width: 70px; text-align: center; }
     .skill-chip.unlocked { background: #e7f3ff; color: #007bff; border-color: #007bff; font-weight: bold; }
+    .skill-effect { font-size: 0.7em; color: #666; }
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .clickable { cursor: pointer; color: var(--primary); text-decoration: underline; font-weight: bold; }
     .cond-list { margin-top: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; display: none; }
@@ -123,11 +126,11 @@ const RELIC_MASTER = [
 ];
 
 const POWERS = [
-    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "極意", "飛燕", "天断", "旋風", "残像", "奥義", "再臨"]},
-    {name: "不滅", skills: ["守護", "金剛", "再生", "鉄壁", "不屈", "楔", "波動", "逆鱗", "聖域", "不滅"]},
-    {name: "魔導", skills: ["回路", "知恵", "魔力", "共鳴", "詠唱", "門", "魔法", "等価", "因果", "真理"]},
-    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"]},
-    {name: "虚無", skills: ["忘却", "残響", "空虚", "深淵", "残滓", "否定", "消失", "無情", "零壊", "虚無"]}
+    {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "極意", "飛燕", "天断", "旋風", "残像", "奥義", "再臨"], eff: "物理ダメージ・ATK増加系"},
+    {name: "不滅", skills: ["守護", "金剛", "再生", "鉄壁", "不屈", "楔", "波動", "逆鱗", "聖域", "不滅"], eff: "HP・生存・防御増加系"},
+    {name: "魔導", skills: ["回路", "知恵", "魔力", "共鳴", "詠唱", "門", "魔法", "等価", "因果", "真理"], eff: "倍率・効率・特殊効果系"},
+    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"], eff: "総合力・ドロップ・全体強化系"},
+    {name: "虚無", skills: ["忘却", "残響", "空虚", "深淵", "残滓", "否定", "消失", "無情", "零壊", "虚無"], eff: "デバフ・割合ダメージ・特殊系"}
 ];
 
 function getRelicBonus() {
@@ -237,7 +240,15 @@ function renderPower() {
         let next = unlocked < 10 ? `${SKILL_THRESHOLDS[unlocked].toLocaleString()}ptで解放` : "全解放";
         return `<div class="power-section">
             <div class="power-head"><div class="power-title"><span>${p.name}</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${next}</div></div>
-            <div class="skill-list">${p.skills.map((s, si) => `<div class="skill-chip ${si < unlocked ? 'unlocked' : ''}">${s}</div>`).join("")}</div>
+            <div class="skill-list">${p.skills.map((s, si) => {
+                const isUnlocked = si < unlocked;
+                // 解放済みスキルの場合のみ、効果説明を表示
+                const effectText = isUnlocked ? `<span class="skill-effect">効果: ${p.eff} (${si + 1})</span>` : "";
+                return `<div class="skill-row">
+                    <div class="skill-chip ${isUnlocked ? 'unlocked' : ''}">${s}</div>
+                    ${effectText}
+                </div>`;
+            }).join("")}</div>
         </div>`;
     }).join("");
 }
@@ -287,7 +298,7 @@ function refreshUI() {
 
 function addLog(m) {
     const l = document.getElementById("log"); const d = document.createElement("div"); d.innerHTML = m;
-    l.prepend(d); if(l.childNodes.length > 50) l.removeChild(l.lastChild); // ログ保存数も少し拡張
+    l.prepend(d); if(l.childNodes.length > 50) l.removeChild(l.lastChild);
 }
 
 const btn = document.getElementById("attackBtn");
