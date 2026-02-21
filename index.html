@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.1</title>
+<title>RELICORE - v1.2.2</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -103,7 +103,7 @@
             <b>遺物出現率</b>
             <table class="prob-table" id="prob-list"></table>
         </div>
-        <div class="version-info">v1.2.1</div>
+        <div class="version-info">v1.2.2</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -168,8 +168,8 @@ function getRelicBonus() {
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
         if(r) { 
-            atk += BigInt(r.atk * count); 
-            hp += BigInt(r.hp * count);
+            atk += BigInt(Math.floor(r.atk * count)); 
+            hp += BigInt(Math.floor(r.hp * count));
             if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count);
         }
     });
@@ -242,7 +242,6 @@ function attack() {
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
 
-    // ダメージログの表示を復元
     addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージを与えた！</span>`);
 
     if(currentBossHP <= 0n) {
@@ -326,7 +325,7 @@ function renderVow() {
         <div class="vow-item">
             <div class="vow-name">魂の研磨</div>
             <div class="vow-val">同時ドロップ数: ${dCount} 個</div>
-            <div class="vow-desc">再起回数に応じてドロップ数が増加します。（※倍率化対象外）</div>
+            <div class="vow-desc">再起回数（1,000 / 5,000 / 25,000 / 100,000）に応じてドロップ数が増加します。（※倍率化対象外）</div>
         </div>
         <div class="vow-item">
             <div class="vow-name">死を刻む</div>
@@ -362,7 +361,7 @@ function renderRelics() {
         if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); 
         if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
         if(r.mult && r.mult > 1) eff.push(`全効果x${r.mult}`);
-        let powerStr = r.pIdx !== -1 ? `${POWERS[r.pIdx].name}権能pt: ${(r.star * r.count).toLocaleString()}` : (r.desc || "固有遺物");
+        let powerStr = r.pIdx !== -1 ? `${POWERS[r.pIdx].name}権能pt: ${(r.star * r.count).toLocaleString()}` : r.desc;
         return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>(${eff.join(" / ")})</small><br><small>${powerStr}</small></div>`;
     }).join("");
 }
