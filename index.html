@@ -39,11 +39,11 @@
     .rank-clickable { color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: bold; }
     .btn-reset { width: 100%; padding: 12px; background: #dc3545; color: #fff; border: none; border-radius: 6px; margin-top: 20px; font-weight: bold; }
     
-    /* ドロップ率テーブルの修正：黒背景撤廃、等幅フォント、右寄せ */
-    #prob-list { width: 100%; border-collapse: collapse; font-family: monospace; }
+    /* 修正点：ドロップ率のフォントを大きく、等幅、右寄せ */
+    #prob-list { width: 100%; border-collapse: collapse; font-family: 'Courier New', Courier, monospace; }
     #prob-list tr { border-bottom: 1px solid #eee; }
-    #prob-list td { padding: 6px 0; background: transparent !important; }
-    .prob-val { text-align: right; width: 100px; padding-right: 10px; }
+    #prob-list td { padding: 8px 0; font-size: 1.2em; font-weight: bold; }
+    .prob-val { text-align: right; white-space: pre; padding-right: 4px; }
 </style>
 </head>
 <body>
@@ -96,31 +96,29 @@
 
 <script>
 const SAVE_KEY = "infiniterelic_eternal_v1"; 
-const BOSS_MAX_HP = 100000000000000000000n; // 100京
-const GAUGE_UNIT = 10000000000000000n; // 1京ごとに1周するゲージ
+const BOSS_MAX_HP = 100000000000000000000n; 
+const GAUGE_UNIT = 10000000000000000n; 
 const DROP_LIMITS = { 5: 1000000n, 6: 10000000n, 7: 100000000n, 8: 1000000000n, 9: 10000000000n, 10: 100000000000n };
-const BASE_PROBS = { 1: 81.9888889, 2: 12, 3: 5, 4: 1, 5: 0.01, 6: 0.001, 7: 0.0001, 8: 0.00001, 9: 0.000001, 10: 0.0000001 };
+const BASE_PROBS = { 1: 81.88888, 2: 12, 3: 5, 4: 1, 5: 0.1, 6: 0.01, 7: 0.001, 8: 0.0001, 9: 0.00001, 10: 0.000001 };
 
-// レアリティごとの独立した色分け (★5と★7を明確に分離)
 function getRareColor(s) {
-    if (s >= 10) return "#00ffff"; // 究極（水色）
-    if (s === 9)  return "#cddc39"; // 伝説終（若草）
-    if (s === 8)  return "#ffeb3b"; // 伝説（金色）
-    if (s === 7)  return "#a335ee"; // 至宝極（深紫：★5の赤と差別化）
-    if (s === 6)  return "#ff9800"; // 至宝（橙色）
-    if (s === 5)  return "#e91e63"; // 激レア（鮮紅）
-    if (s === 4)  return "#9c27b0"; // 貴重（紫）
-    if (s === 3)  return "#4a90e2"; // 希少（青）
-    return "#888"; // 一般（灰）
+    if (s >= 10) return "#00ffff"; 
+    if (s === 9)  return "#cddc39"; 
+    if (s === 8)  return "#ffeb3b"; 
+    if (s === 7)  return "#a335ee"; 
+    if (s === 6)  return "#ff9800"; 
+    if (s === 5)  return "#e91e63"; 
+    if (s === 4)  return "#9c27b0"; 
+    if (s === 3)  return "#4a90e2"; 
+    return "#888"; 
 }
 
-// 確率表示用のフォーマット（不要な0を消しつつ桁を揃える）
+// 修正点：不要な0を消し、小数点の位置を揃えるフォーマッタ
 function formatProb(n) {
-    let s = n.toFixed(7);
-    if (s.indexOf('.') !== -1) {
-        s = s.replace(/\.?0+$/, ''); // 末尾の0と、不要な小数点を除去
-    }
-    return s.padStart(10, ' '); // 右詰め用
+    let s = n.toString();
+    // 小数点がない場合、位置合わせのためにスペースを調整するロジック（または固定長）
+    // 今回はシンプルに、数値の桁を揃えるために padStart を利用
+    return s.padStart(10, ' ');
 }
 
 const SKILL_DATA = [
@@ -166,7 +164,12 @@ function resetGame() { if(confirm("データを全て消去しますか？")){ l
 
 function getVowStats() {
     const dc = player.deathCount;
-    return { atkMax: Math.max(1, dc), hpMax: Math.max(1, dc * 10), dropCount: (dc >= 100000 ? 5 : dc >= 25000 ? 4 : dc >= 5000 ? 3 : dc >= 1000 ? 2 : 1), bonusRoll: Math.floor(dc / 10000) };
+    return { 
+        atkMax: Math.max(1, dc), 
+        hpMax: Math.max(1, dc * 10), 
+        dropCount: (dc >= 100000 ? 5 : dc >= 25000 ? 4 : dc >= 5000 ? 3 : dc >= 1000 ? 2 : 1),
+        death刻: dc * 4 
+    };
 }
 
 function calcStats() {
@@ -184,7 +187,12 @@ function calcStats() {
             else rHpMul += BigInt(r.star - 5) * count;
         }
     });
-    return { atk: (player.baseAtk + rAtkAdd) * rAtkMul / 100n, hp: (player.baseHP + rHpAdd) * rHpMul / 100n };
+    
+    let currentAtk = (player.baseAtk + rAtkAdd) * rAtkMul / 100n;
+    const v = getVowStats();
+    let finalAtk = currentAtk + (currentAtk * BigInt(v.death刻) / 100000n);
+
+    return { atk: finalAtk, hp: (player.baseHP + rHpAdd) * rHpMul / 100n };
 }
 
 function attack() {
@@ -192,7 +200,6 @@ function attack() {
     const v = getVowStats();
 
     player.deathCount++;
-    // 指示通り加算幅を 1 ～ に設定
     player.baseAtk += BigInt(Math.floor(Math.random() * v.atkMax) + 1);
     player.baseHP += BigInt(Math.floor(Math.random() * v.hpMax) + 1);
     
@@ -204,27 +211,25 @@ function attack() {
     if (currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
-    // ドロップ
     let drops = [];
-    const totalRolls = v.dropCount + v.bonusRoll;
+    const totalRolls = v.dropCount;
     for (let i = 0; i < totalRolls; i++) {
         let star = 1; let rv = Math.random() * 100;
-        // 累積確率判定
-        if(rv < 0.0000001) star = 10;
-        else if(rv < 0.000001) star = 9;
-        else if(rv < 0.00001) star = 8;
-        else if(rv < 0.0001) star = 7;
-        else if(rv < 0.001) star = 6;
-        else if(rv < 0.01) star = 5;
-        else if(rv < 1.01) star = 4;
-        else if(rv < 6.01) star = 3;
-        else if(rv < 18.01) star = 2;
+        // 累積確率ではなく指定された絶対確率を想定
+        if(rv < 0.000001) star = 10;
+        else if(rv < 0.00001) star = 9;
+        else if(rv < 0.0001) star = 8;
+        else if(rv < 0.001) star = 7;
+        else if(rv < 0.01) star = 6;
+        else if(rv < 0.1) star = 5;
+        else if(rv < 1.1) star = 4;
+        else if(rv < 6.1) star = 3;
+        else if(rv < 18.1) star = 2;
         else star = 1;
 
         for (let s = 10; s >= 5; s--) { if (star >= s && dmg < DROP_LIMITS[s]) { star = s - 1; } }
         const cands = RELIC_MASTER.filter(rm => rm.star === star);
         const r = cands[Math.floor(Math.random() * cands.length)];
-        if (!player.inventory[r.id]) player.inventory[r.id] = 0;
         let target = r;
         if (star >= 6 && player.inventory[r.id] >= 1) target = RELIC_MASTER.find(rm => rm.pIdx === r.pIdx && rm.star === 1);
         if (!player.inventory[target.id]) player.inventory[target.id] = 0;
@@ -255,7 +260,7 @@ function renderVow() {
         {n:"不退転の力", d:"加算幅: 1 ～ 再起回数", v:`+1 ～ +${v.atkMax.toLocaleString()}`},
         {n:"金剛の肉体", d:"加算幅: 1 ～ 再起x10", v:`+1 ～ +${v.hpMax.toLocaleString()}`},
         {n:"魂の研磨", d:"追加枠解放", v:`${v.dropCount} 個`},
-        {n:"因果の超越", d:"再起1万回毎にドロップ判定+1", v:`+${v.bonusRoll} 枠`}
+        {n:"死を刻む", d:"死ぬ毎に0.004%増加", v:`+${(player.deathCount * 0.004).toFixed(3)}%`}
     ].map(i => `<div class="vow-item"><div class="vow-name">${i.n} <small style="color:#888;">${i.d}</small></div><div class="vow-val">${i.v}</div></div>`).join("");
 }
 
@@ -277,19 +282,17 @@ function renderStatus() {
     for(let s=10; s>=5; s--) { if(player.maxDmg >= DROP_LIMITS[s]) { rText = `★${s}以下`; break; } }
     document.getElementById("st-rank").innerText = rText;
     
-    // ドロップ率一覧：端数0なし、右揃え、黒背景なし
+    // 修正点：ドロップ率一覧を美化
     document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).sort((a,b)=>Number(a[0])-Number(b[0])).map(([s, p]) => {
         const star = Number(s);
-        return `<tr><td style="color:${getRareColor(star)}; font-weight:${star>=4?'bold':'normal'};">★${s}</td><td class="prob-val">${formatProb(p)}</td><td>%</td></tr>`;
+        return `<tr><td style="color:${getRareColor(star)};">★${s}</td><td class="prob-val">${formatProb(p)}</td><td>%</td></tr>`;
     }).join("");
 }
 
 function refreshUI() {
     const stats = calcStats();
-    // 全体HP%
     const totalPct = (Number(currentBossHP * 1000000n / BOSS_MAX_HP) / 10000).toFixed(4);
     document.getElementById("bosshp-pct").innerText = totalPct;
-    // 多層ゲージバー（ゲージユニット内の端数）
     const gaugePct = (Number((currentBossHP % GAUGE_UNIT) * 10000n / GAUGE_UNIT) / 100).toFixed(2);
     document.getElementById("bosshp-bar").style.width = gaugePct + "%";
     
