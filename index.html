@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.0.0</title>
+<title>RELICORE - v2.0.1</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -22,7 +22,6 @@
     #hp-bar-fill { height: 100%; background: var(--hp); width: 100%; transition: width 0.1s; }
     .hp-pct-display { font-size: 0.85em; color: var(--hp); font-weight: bold; font-family: monospace; }
     
-    /* ステータス表示の2段レイアウト改善 */
     .status-box { display: flex; gap: 8px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; }
     .stat-card.hp-card { border-left-color: var(--hp); }
@@ -35,7 +34,7 @@
 
     #content-area { flex-grow: 1; overflow-y: auto; background: #fff; }
     .tab { display: none; padding: 10px; height: 100%; }
-    .tab.active { display: block; overflow-y: auto; } /* スクロール修正 */
+    .tab.active { display: block; overflow-y: auto; }
 
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
     #log { height: 350px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
@@ -141,7 +140,7 @@
             </div>
             <table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table>
         </div>
-        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.0.0</div>
+        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.0.1</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -264,7 +263,7 @@ function attack() {
         if(player.inventory[1001] > 0 && !player.isEndless) player.isEndless = true;
         handleDrop(true); isModalOpen = true; document.getElementById("clear-modal").style.display = "flex";
     } else {
-        addLog(`<span style="color:#dc3545;">999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
+        addLog(`<span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
         handleDrop(false);
     }
     saveGame(); refreshUI();
@@ -274,7 +273,7 @@ function handleDrop(isKill) {
     let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
     if(isKill) dCount += 5;
 
-    player.deathCount += dCount; // 魂の研磨
+    player.deathCount += dCount;
 
     for(let i=0; i<dCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
@@ -309,11 +308,18 @@ function refreshUI() {
 }
 
 function renderVow() {
-    let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
+    const steps = [1000, 5000, 25000, 100000];
+    let dCount = 1;
+    let nextStep = "最大段階";
+    for(let s of steps) {
+        if(player.deathCount >= s) dCount++;
+        else { nextStep = `次は ${s.toLocaleString()} 回で増加`; break; }
+    }
+
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">現在ボーナス：<br>ATK 1 ～ ${player.deathCount.toLocaleString()} の範囲で上昇</span><div class="vow-desc">再起するたびにボーナス ATK 1 上昇</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">現在ボーナス：<br>HP 10 ～ ${(player.deathCount * 10).toLocaleString()} の範囲で上昇</span><div class="vow-desc">再起するたびにボーナス HP 10 上昇</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数：${dCount} 個</span><div class="vow-desc">再起回数に応じてドロップ数が増加。また再起の経験が追加で蓄積されます。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">現在ボーナス：<br>ATK 1 ～ ${player.deathCount.toLocaleString()} の範囲で上昇</span><div class="vow-desc">再起するたびにボーナス ATK 1 上せて上昇</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">現在ボーナス：<br>HP 10 ～ ${(player.deathCount * 10).toLocaleString()} の範囲で上昇</span><div class="vow-desc">再起するたびにボーナス HP 10 上せて上昇</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数：${dCount} 個</span><div class="vow-desc">再起回数に応じてドロップ数が増加（${nextStep}）。また再起の経験が追加で蓄積されます。</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起する度に最終ダメージに0.0004%追加。死の経験をダメージに上乗せします。</div></div>
     `;
 }
@@ -335,11 +341,8 @@ function renderStatus() {
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
     let r = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放`; break; } }
     document.getElementById("st-rank").innerText = r;
-    
-    // 遺物種類数の計算
     const colCount = Object.keys(player.inventory).length;
     document.getElementById("st-collection").innerText = `${colCount}/53`;
-    
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join("");
 }
 
