@@ -40,6 +40,7 @@
     .cond-list { margin-top: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; display: none; }
     .prob-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9em; }
     .prob-table td { padding: 6px; border-bottom: 1px solid #eee; }
+    .btn-reset { width: 100%; padding: 12px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
     .c6 { color: #ff4500; } .c7 { color: #d2691e; } .c8 { color: #000000; } .c9 { color: #4b0082; } .c10 { color: #ff00ff; }
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
@@ -82,6 +83,7 @@
             <b>遺物出現率</b>
             <table class="prob-table" id="prob-list"></table>
         </div>
+        <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
 
@@ -113,15 +115,10 @@ const RELIC_MASTER = [
     {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, pIdx:3, w:100}, {id:502, star:5, name:"天界の神剣", atk:599888, hp:0, pIdx:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, pIdx:4, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, pIdx:4, w:40},
     {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, pIdx:3, w:10},
     {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:150000, hp:150000, pIdx:4, w:70},
-    // ★6 (加算+権能)
     {id:601, star:6, name:"極限の魔剣", atk:6000000, hp:0, pIdx:0, w:1, mult:1}, {id:602, star:6, name:"極限の魔盾", atk:0, hp:12000000, pIdx:1, w:1, mult:1}, {id:603, star:6, name:"極限の魔導書", atk:3000000, hp:6000000, pIdx:2, w:1, mult:1}, {id:604, star:6, name:"極限の王冠", atk:0, hp:0, pIdx:3, w:1, mult:1.1}, {id:605, star:6, name:"極限の虚珠", atk:1000000, hp:1000000, pIdx:4, w:1, mult:1.05},
-    // ★7 (乗算融合)
     {id:701, star:7, name:"天啓の戦斧", atk:70000000, hp:0, pIdx:0, w:1, mult:1.4}, {id:702, star:7, name:"天啓の聖鎧", atk:0, hp:150000000, pIdx:1, w:1, mult:1.4}, {id:703, star:7, name:"天啓の指輪", atk:30000000, hp:60000000, pIdx:2, w:1, mult:1.3}, {id:704, star:7, name:"天啓の翼", atk:10000000, hp:10000000, pIdx:3, w:1, mult:1.2}, {id:705, star:7, name:"天啓の瞳", atk:50000000, hp:50000000, pIdx:4, w:1, mult:1.5},
-    // ★8 (暴力と守護)
     {id:801, star:8, name:"輪廻の滅刃", atk:800000000, hp:0, pIdx:0, w:1, mult:2.0}, {id:802, star:8, name:"輪廻の守護像", atk:0, hp:1800000000, pIdx:1, w:1, mult:2.0}, {id:803, star:8, name:"輪廻の天秤", atk:400000000, hp:400000000, pIdx:2, w:1, mult:1.8}, {id:804, star:8, name:"輪廻の錫杖", atk:200000000, hp:200000000, pIdx:3, w:1, mult:2.5}, {id:805, star:8, name:"輪廻の魂灯", atk:500000000, hp:500000000, pIdx:4, w:1, mult:3.0},
-    // ★9 (神器)
-    {id:901, star:9, name:"創世の心臓", atk:10000000000, hp:20000000000, pIdx:2, w:1, mult:5.0}, {id:902, star:9, name:"創世の理", atk:5000000000, hp:5000000000, pIdx:4, w:1, mult:4.0}, {id:903, star:9, name:"創世の牙", atk:15000000000, hp:0, pIdx:0, w:1, mult:3.5}, {id:904, star:9, name:"創世の盾", atk:0, hp:30000000000, pIdx:1, w:1, mult:3.5}, {id:905, star:9, name:"創世の楔", atk:10000000000, hp:10000000000, pIdx:3, w:1, mult:10.0},
-    // ★10 (究極)
+    {id:901, star:9, name:"創世의心臓", atk:10000000000, hp:20000000000, pIdx:2, w:1, mult:5.0}, {id:902, star:9, name:"創世의理", atk:5000000000, hp:5000000000, pIdx:4, w:1, mult:4.0}, {id:903, star:9, name:"創世의牙", atk:15000000000, hp:0, pIdx:0, w:1, mult:3.5}, {id:904, star:9, name:"創世의盾", atk:0, hp:30000000000, pIdx:1, w:1, mult:3.5}, {id:905, star:9, name:"創世의楔", atk:10000000000, hp:10000000000, pIdx:3, w:1, mult:10.0},
     {id:1001, star:10, name:"インフィニットレリック", atk:0, hp:0, pIdx:-1, w:1, mult:1, kill:true}
 ];
 
@@ -176,36 +173,32 @@ function loadGame() {
     }
 }
 
+function resetData() {
+    if(confirm("全てのプレイデータを初期化しますか？")) {
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+    }
+}
+
 function attack() {
     player.deathCount++;
     player.baseAtk += BigInt(Math.floor(Math.random() * player.deathCount) + 1);
     player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10)) + 1);
-
     const bonus = getRelicBonus();
     let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
     dmg = BigInt(Math.floor(Number(dmg) * bonus.mult));
-
     if(dmg > player.maxDmg) player.maxDmg = dmg;
-    
-    // ★10 インフィニットレリック 即死効果
-    const hasInfiniteRelic = player.inventory[1001] > 0;
-    if (hasInfiniteRelic) {
+    if (player.inventory[1001] > 0) {
         currentBossHP = 0n;
         addLog(`<span style="color:#ff00ff; font-weight:bold;">究極の力！インフィニットレリックが魔神を滅ぼした！</span>`);
     } else {
         currentBossHP -= dmg;
     }
-
-    if(currentBossHP <= 0n) {
-        currentBossHP = BOSS_MAX_HP;
-    }
-
+    if(currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
-
     let dropCount = 1;
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
-
     for(let i=0; i<dropCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
         for(let s in DROP_DATA) {
@@ -213,11 +206,9 @@ function attack() {
             if(rv <= curP) { star = parseInt(s); break; }
         }
         if (player.maxDmg < DROP_DATA[star].cond) continue;
-
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let selected = cands[Math.floor(Math.random() * cands.length)];
-            // ★6以上は1点もの
             if(star >= 6 && (player.inventory[selected.id] || 0) >= 1) continue;
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
             addLog(`<span class="c${selected.star}">【獲得】★${selected.star} ${selected.name}</span>`);
@@ -255,11 +246,8 @@ function renderRelics() {
     const items = Object.entries(player.inventory).filter(([id, count]) => count > 0)
         .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count })).sort((a, b) => a.star - b.star);
     document.getElementById("relic-list").innerHTML = items.map(r => {
-        let eff = []; 
-        if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); 
-        if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
-        if(r.mult && r.mult > 1) eff.push(`倍率x${r.mult}`);
-        if(r.kill) eff.push(`魔神即死`);
+        let eff = []; if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
+        if(r.mult && r.mult > 1) eff.push(`倍率x${r.mult}`); if(r.kill) eff.push(`魔神即死`);
         let effStr = eff.length > 0 ? `(${eff.join(" / ")})` : "";
         return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small style="color:#666;">${effStr}</small><br><small>権能pt: ${(r.star * r.count).toLocaleString()}</small></div>`;
     }).join("");
