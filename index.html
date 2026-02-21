@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.5.0</title>
+<title>RELICORE - v1.5.1</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -105,7 +105,7 @@
             <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.5.0</div>
+        <div class="version-info">RELICORE v1.5.1</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -113,7 +113,6 @@
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
-const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; 
 
 const DROP_DATA = {
     1: { p: "81.888879%", cond: 0n }, 2: { p: "12%", cond: 0n }, 3: { p: "5%", cond: 0n }, 4: { p: "1%", cond: 0n },
@@ -176,7 +175,7 @@ function getRelicBonus() {
         const r = RELIC_MASTER.find(m => m.id == id);
         if(r) { 
             let a = BigInt(Math.floor(r.atk * count));
-            if(r.star <= 3) a = a * 10n; // 覇王: 統率の理
+            if(r.star <= 3) a = a * 10n;
             atk += a; hp += BigInt(Math.floor(r.hp * count)); 
             if(r.aP) atkPct += r.aP * count; if(r.hP) hpPct += r.hP * count;
             if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count); 
@@ -209,42 +208,41 @@ function loadGame() {
 function resetData() { if(confirm("全データを削除します。よろしいですか？")) { localStorage.clear(); location.reload(); } }
 
 function attack() {
-    // デバッグ終了: 全スキル強制ONを解除
+    // 魂の研磨による再起数加速
+    let addStep = 1;
+    [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) addStep++; });
+
     const addAtk = BigInt(Math.floor(Math.random() * (player.deathCount + 1))) + 1n;
     const addHP = BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
-    player.deathCount++;
-    player.baseAtk += addAtk;
-    player.baseHP += addHP;
+    
+    player.deathCount += addStep;
+    player.baseAtk += (addAtk * BigInt(addStep));
+    player.baseHP += (addHP * BigInt(addStep));
 
     const b = getRelicBonus();
     let totalMult = 1.0;
+    
+    // デバッグ用の固定倍率は削除。実際の仕様に基づく計算。
     let relicTypes = Object.keys(player.inventory).length;
-    let starTotal = 0;
-    let highRare = 0;
-    Object.entries(player.inventory).forEach(([id, c]) => { 
-        const r = RELIC_MASTER.find(m => m.id == id); 
-        if(r) { starTotal += r.star * c; if(r.star >= 6) highRare += c; }
-    });
-
-    // パッシブ計算
     totalMult += (relicTypes * 0.2); // 覇道の足跡
     totalMult += (player.deathCount / 100); // 無に帰す
-    totalMult *= 5.0; // 極限一閃
-    totalMult *= 3.0; // 虚無の深淵
 
-    let totalAtk = (player.baseAtk * 150n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n;
+    let totalAtk = (player.baseAtk * 120n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n;
     let dmg = totalAtk * BigInt(Math.floor(totalMult * 100)) / 100n;
-    dmg = dmg * 2n * 2n; // 追撃系
 
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
-    addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージを与えた！</span>`);
+    addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージ！</span>`);
+    
     if(currentBossHP <= 0n) {
         addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`); 
-        currentBossHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
+        currentBossHP = BOSS_MAX_HP_BASE;
     }
-    addLog(`<span style="color:#dc3545; font-weight:bold;">9,99,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
-    handleDrop(); saveGame(); refreshUI();
+    addLog(`<span style="color:#dc3545;">9,99,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
+    
+    handleDrop();
+    saveGame();
+    refreshUI();
 }
 
 function handleDrop() {
@@ -258,19 +256,18 @@ function handleDrop() {
             let selected = cands[Math.floor(Math.random() * cands.length)];
             if(selected.star >= 6 && selected.star <= 10 && player.inventory[selected.id] >= 1) continue;
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
-            addLog(`<span class="c${selected.star}" style="${selected.star >= 5 ? 'font-weight:bold;' : ''}">【獲得】★${selected.star} ${selected.name}</span>`);
+            addLog(`<span class="c${selected.star}">【獲得】★${selected.star} ${selected.name}</span>`);
         }
     }
 }
 
 function refreshUI() {
     const b = getRelicBonus();
-    let dispAtk = BigInt(Math.floor(Number((player.baseAtk * 150n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n) * b.mult * 1.5));
-    let dispHP = BigInt(Math.floor(Number((player.baseHP + b.hp) * BigInt(100 + b.hpPct) / 100n) * b.mult * 2.0));
+    let dispAtk = BigInt(Math.floor(Number((player.baseAtk * 120n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n) * b.mult));
+    let dispHP = BigInt(Math.floor(Number((player.baseHP + b.hp) * BigInt(100 + b.hpPct) / 100n) * b.mult));
     document.getElementById("p-atk").innerText = dispAtk.toLocaleString();
     document.getElementById("p-hp").innerText = dispHP.toLocaleString();
-    const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
-    const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
+    const pct = (Number(currentBossHP * 10000n / BOSS_MAX_HP_BASE) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
     const tabId = document.querySelector(".tab.active").id;
@@ -278,11 +275,14 @@ function refreshUI() {
 }
 
 function renderVow() {
-    let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
+    let step = 1; let dCount = 1; 
+    const thresholds = [1000, 5000, 25000, 100000];
+    thresholds.forEach(t => { if(player.deathCount >= t) { step++; dCount++; } });
+    
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">ATKボーナス: 1 ～ ${(1 + player.deathCount).toLocaleString()}</div><div class="vow-desc">再起するたびに成長の余地が広がります。</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">HPボーナス: 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">再起するたびに肉体が強固になります。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">同時ドロップ数: ${dCount} 個</div><div class="vow-desc">再起回数に応じてドロップ数が増加します。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">加速: +${step} / ドロップ: ${dCount}個</div><div class="vow-desc">再起1,000/5,000/25,000/100,000回でさらに強化。</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力補正: +${(player.deathCount * 0.01).toFixed(2)}%</div><div class="vow-desc">再起の歴史が刃に宿ります。</div></div>
     `;
 }
