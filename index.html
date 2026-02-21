@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.4</title>
+<title>RELICORE - v1.2.5</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -29,7 +29,7 @@
     #content-area { 
         flex-grow: 1; 
         overflow-y: auto; 
-        -webkit-overflow-scrolling: touch; /* スクロール改善 */
+        -webkit-overflow-scrolling: touch; 
         background: #fff; 
         padding-bottom: 20px; 
     }
@@ -111,7 +111,7 @@
             <b>遺物出現率</b>
             <table class="prob-table" id="prob-list"></table>
         </div>
-        <div class="version-info">v1.2.4</div>
+        <div class="version-info">v1.2.5</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -336,7 +336,7 @@ function renderVow() {
         <div class="vow-item">
             <div class="vow-name">死を刻む</div>
             <div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div>
-            <div class="vow-desc">死の経験をダメージに上乗せします。</div>
+            <div class="vow-desc">死の経験をダメージに上乗せします。再起するたびに0.0004%を最終ダメージに追加します。</div>
         </div>
     `;
 }
