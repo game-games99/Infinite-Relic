@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.6.0</title>
+<title>RELICORE - v1.7.0</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -66,7 +66,7 @@
     .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
     .c12 { color: #00ffff; text-shadow: 0 0 8px rgba(0,255,255,0.8); font-weight: bold; }
 
-    .clear-msg { color: #ffd700; font-weight: bold; border: 2px solid #ffd700; padding: 10px; margin: 10px 0; background: rgba(255, 215, 0, 0.1); border-radius: 8px; animation: glow 2s infinite alternate; }
+    .clear-msg { color: #ffd700; font-weight: bold; border: 2px solid #ffd700; padding: 10px; margin: 10px 0; background: rgba(0,0,0,0.8); border-radius: 8px; animation: glow 2s infinite alternate; text-align: center; line-height: 1.6; }
     @keyframes glow { from { box-shadow: 0 0 5px #ffd700; } to { box-shadow: 0 0 20px #ffd700; } }
 </style>
 </head>
@@ -112,7 +112,7 @@
             <span style="font-size: 0.85em;">「★10遺物を手にし、魔神を一撃で葬る時、真の再起が訪れる……」</span>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.6.0</div>
+        <div class="version-info">RELICORE v1.7.0</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -240,36 +240,32 @@ function attack() {
     currentBossHP -= dmg;
     addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージ！</span>`);
     
-    // 討伐判定
     if(currentBossHP <= 0n) {
-        // 一撃クリア判定（HP100%から一気に削ったか）
         if (startHP === maxHP) {
             const hasPandora = player.inventory[1001] > 0;
             if (hasPandora && !player.isEndless) {
-                // 真のクリア
                 addLog(`
                     <div class="clear-msg">
-                        【神域到達】魔神を塵も残さず消滅させた。<br>
-                        呪縛は断ち切られ、最強の勇者は真に再起した。
+                        【神域到達】魔神を一撃で粉砕しました。<br>
+                        全ての呪縛は霧散し、かつての力を取り戻した。
                     </div>
                 `);
                 player.isEndless = true;
                 currentBossHP = BOSS_MAX_HP_ENDLESS;
-                document.getElementById("boss-display-name").innerText = "真・魔神";
             } else if (!hasPandora) {
                 addLog(`<span style="color:#e83e8c; font-weight:bold;">圧倒的な一撃！…だが、魔神の根源を断つための「匣」が足りない。</span>`);
                 currentBossHP = maxHP;
             } else {
-                addLog(`<span style="color:#ffd700; font-weight:bold;">真・魔神を圧倒した！</span>`);
+                addLog(`<span style="color:#ffd700; font-weight:bold;">虚無の残滓を圧倒した！</span>`);
                 currentBossHP = maxHP;
             }
         } else {
-            addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐！</span>`); 
+            addLog(`<span style="color:#ffd700; font-weight:bold;">討伐成功！</span>`); 
             currentBossHP = maxHP;
         }
     }
     
-    addLog(`<span style="color:#dc3545;">9,99,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
+    addLog(`<span style="color:#dc3545;">999,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     
     handleDrop();
     saveGame();
@@ -302,7 +298,7 @@ function refreshUI() {
     const pct = (Number(currentBossHP * 10000n / maxHP) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
-    document.getElementById("boss-display-name").innerText = player.isEndless ? "真・魔神" : "魔神";
+    document.getElementById("boss-display-name").innerText = player.isEndless ? "虚無の残滓" : "魔神";
 
     const tabId = document.querySelector(".tab.active").id;
     if(tabId === 'vow') renderVow(); if(tabId === 'power') renderPower(); if(tabId === 'relic') renderRelics(); if(tabId === 'status') renderStatus();
@@ -314,10 +310,10 @@ function renderVow() {
     thresholds.forEach(t => { if(player.deathCount >= t) { step++; dCount++; } });
     
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">ATKボーナス: 1 ～ ${(1 + player.deathCount).toLocaleString()}</div><div class="vow-desc">再起するたびに成長の余地が広がります。</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">HPボーナス: 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">再起するたびに肉体が強固になります。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">加速: +${step} / ドロップ: ${dCount}個</div><div class="vow-desc">再起1,000/5,000/25,000/100,000回でさらに強化。</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力補正: +${(player.deathCount * 0.01).toFixed(2)}%</div><div class="vow-desc">再起の歴史が刃に宿ります。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">ATKボーナス: 1 ～ ${(1 + player.deathCount).toLocaleString()}</div><div class="vow-desc">再起するたびに基礎ATKが +1 加算され、成長の最大値が広がります。</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">HPボーナス: 10 ～ ${(10 + player.deathCount * 10).toLocaleString()}</div><div class="vow-desc">再起するたびに基礎HPが +10 加算され、肉体が強固になります。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">再起加速: +${step} / ドロップ: ${dCount}個</div><div class="vow-desc">再起1,000/5,000/25,000/100,000回で再起加算数アップ。</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">最終ダメージ: +${(player.deathCount * 0.004).toFixed(3)}%</div><div class="vow-desc">再起するたびに最終ダメージが +0.004% 蓄積されます。</div></div>
     `;
 }
 
