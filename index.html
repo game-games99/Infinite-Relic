@@ -3,19 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.9.6</title>
+<title>RELICORE - v1.9.7</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* ストーリーモーダル */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 1.8; }
     .story-text { margin-bottom: 30px; font-size: 0.95em; color: #ddd; text-align: left; border-left: 2px solid gold; padding-left: 15px; }
     .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; }
-    .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
-    .story-btn:active { background: gold; color: #000; }
+    .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
 
     #header { background: var(--dark); color: #fff; padding: 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .boss-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
@@ -27,7 +25,7 @@
     .status-box { display: flex; gap: 8px; margin-top: 8px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; border-left: 3px solid var(--primary); }
     .stat-card.hp-card { border-left-color: var(--hp); }
-    .stat-label { font-size: 0.65em; color: #aaa; }
+    .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
     .stat-val { font-size: 1.1em; font-weight: bold; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -45,17 +43,18 @@
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     .modal-title { color: gold; font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
 
+    /* 再起タブ UIの修正 */
+    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 12px 12px 20px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: gold; border-radius: 8px 0 0 8px; }
+    .vow-name { font-weight: bold; font-size: 1em; color: #333; margin-bottom: 4px; }
+    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 1.05em; margin-bottom: 4px; display: block; }
+    .vow-desc { font-size: 0.75em; color: #777; line-height: 1.4; }
+
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 80px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
     .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; line-height: 1.2; }
     .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
     .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
-    
-    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 10px 10px 18px; margin-bottom: 10px; }
-    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: gold; }
-    .vow-name { font-weight: bold; font-size: 0.85em; color: #555; }
-    .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin: 2px 0; }
-    .vow-desc { font-size: 0.72em; color: #888; line-height: 1.3; }
     
     .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .power-head { background: #eee; padding: 8px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; }
@@ -144,7 +143,7 @@
             <b>遺物出現率</b>
             <table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table>
         </div>
-        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v1.9.6</div>
+        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v1.9.7</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -244,9 +243,12 @@ function attack() {
     player.baseHP += BigInt(Math.floor(Math.random() * player.deathCount * 10 + 10)) * BigInt(step);
 
     const b = getRelicBonus();
-    let powerMult = 1.0 + (Object.keys(player.inventory).length * 0.2) + (player.deathCount / 100);
-    let totalAtk = (player.baseAtk * 120n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n;
-    let dmg = totalAtk * BigInt(Math.floor(powerMult * 100)) / 100n;
+    // 死を刻む: 再起1回につき +0.0004% = 再起100回で +0.04%
+    let deathDmgBonus = 1.0 + (player.deathCount * 0.000004); 
+    let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgBonus;
+    
+    let totalAtk = (player.baseAtk * 120n / 100n + b.atk) * BigInt(Math.floor((100 + b.atkPct))) / 100n;
+    let dmg = totalAtk * BigInt(Math.floor(powerMult * 10000)) / 10000n;
 
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
@@ -264,7 +266,11 @@ function attack() {
 
 function handleDrop(isKill) {
     let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
-    if(isKill) dCount += 5; // 魔神討伐ボーナス
+    if(isKill) dCount += 5;
+
+    // 魂の研磨: 再起した経験も同じ数だけ+する
+    player.deathCount += dCount;
+
     for(let i=0; i<dCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
         for(let s in DROP_DATA) { curP += parseFloat(DROP_DATA[s].p); if(rv <= curP) { star = parseInt(s); break; } }
@@ -281,8 +287,10 @@ function handleDrop(isKill) {
 
 function refreshUI() {
     const b = getRelicBonus();
-    let dispAtk = BigInt(Math.floor(Number((player.baseAtk * 120n / 100n + b.atk) * BigInt(100 + b.atkPct) / 100n) * b.mult));
-    let dispHP = BigInt(Math.floor(Number((player.baseHP + b.hp) * BigInt(100 + b.hpPct) / 100n) * b.mult));
+    let deathDmgBonus = 1.0 + (player.deathCount * 0.000004);
+    let dispAtk = BigInt(Math.floor(Number((player.baseAtk * 120n / 100n + b.atk) * BigInt(Math.floor(100 + b.atkPct)) / 100n) * b.mult * deathDmgBonus));
+    let dispHP = BigInt(Math.floor(Number((player.baseHP + b.hp) * BigInt(Math.floor(100 + b.hpPct)) / 100n) * b.mult));
+    
     document.getElementById("p-atk").innerText = dispAtk.toLocaleString();
     document.getElementById("p-hp").innerText = dispHP.toLocaleString();
     const maxHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
@@ -298,10 +306,10 @@ function refreshUI() {
 function renderVow() {
     let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力 (ATK)</div><div class="vow-val">+${player.baseAtk.toLocaleString()}</div><div class="vow-desc">死を繰り返すたびに基礎攻撃力が増大する。</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体 (HP)</div><div class="vow-val">+${player.baseHP.toLocaleString()}</div><div class="vow-desc">死の淵から戻るたびに生存能力が強化される。</div></div>
-        <div class="vow-item"><div class="vow-name">理の解析 (Drop)</div><div class="vow-val">判定回数: ${dCount}回</div><div class="vow-desc">再起回数が一定値を超えるたび、一度に得られる遺物が増える。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の共鳴 (Skill)</div><div class="vow-val">倍率: x${(1.0 + (player.deathCount / 100)).toFixed(2)}</div><div class="vow-desc">死の経験値がスキルの威力に変換される。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">現在ボーナス：<br>ATK 1 ～ ${player.deathCount.toLocaleString()} の範囲で上昇</span><div class="vow-desc">再起するたびにボーナス ATK 1 上昇</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">現在ボーナス：<br>HP 10 ～ ${(player.deathCount * 10).toLocaleString()} の範囲で上昇</span><div class="vow-desc">再起するたびにボーナス HP 10 上昇</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数：${dCount} 個</span><div class="vow-desc">再起回数（1,000 / 5,000 / 25,000 / 100,000）に応じてドロップ数と再起経験値が増加します。</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起する度に最終ダメージに0.0004%追加。死の経験をダメージに上乗せします。</div></div>
     `;
 }
 
