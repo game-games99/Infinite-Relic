@@ -5,36 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>infiniterelic -Eternal-</title>
 <style>
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --rare: #ffc107; --dark: #343a40; }
+    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #343a40; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    
     #header { background: var(--dark); color: #fff; padding: 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .status-box { display: flex; gap: 8px; margin-top: 4px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 6px 8px; border-radius: 6px; border-left: 3px solid var(--primary); }
     .stat-card.hp-card { border-left-color: var(--hp); }
     .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
     .stat-val { font-size: 1.1em; font-weight: bold; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-    
     #content-area { flex-grow: 1; overflow-y: auto; background: #fff; padding-bottom: 80px; }
     .tab { display: none; padding: 10px; }
     .tab.active { display: block; }
-    
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
-    #log { height: 280px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
-    
+    #log { height: 260px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
-    
     .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 5px solid gold; }
     .vow-name { font-weight: bold; font-size: 0.95em; }
     .vow-val { font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 4px; }
     .vow-cond { font-size: 0.7em; color: #666; margin-top: 2px; }
-    
     .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .power-head { background: #eee; padding: 8px; font-weight: bold; display: flex; flex-direction: column; font-size: 0.8em; }
     .power-title { display: flex; justify-content: space-between; margin-bottom: 2px; }
@@ -42,13 +35,11 @@
     .skill-list { padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
     .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #f0f0f0; color: #ccc; border: 1px solid #ddd; }
     .skill-chip.unlocked { background: #e7f3ff; color: #007bff; border-color: #007bff; font-weight: bold; }
-
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     #prob-list { width: 100%; border-collapse: collapse; margin-top: 10px; }
     #prob-list td { padding: 6px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 0.9em; }
-
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
-    .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
+    .c6,.c7,.c8,.c9,.c10 { color: #ff4500; font-weight: bold; } .c11 { color: #ffd700; text-shadow: 0 0 3px rgba(255,215,0,0.5); font-weight: bold; }
 </style>
 </head>
 <body>
@@ -79,30 +70,23 @@
     <div id="power" class="tab"></div>
     <div id="relic" class="tab"><div class="relic-grid" id="relic-list"></div></div>
     <div id="status" class="tab">
-        <div class="st-box">
-            最高ダメージ: <span id="st-maxdmg">0</span><br>
-            ドロップ資格: <span id="st-rank">-</span>
-        </div>
-        <div class="st-box">
-            <b>ドロップ率</b>
-            <table id="prob-list"></table>
-        </div>
+        <div class="st-box">最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank">-</span></div>
+        <div class="st-box"><b>ドロップ率</b><table id="prob-list"></table></div>
     </div>
 </div>
 
 <script>
-const SAVE_KEY = "infiniterelic_v7_relics";
+const SAVE_KEY = "infiniterelic_v7_final_base";
 const BOSS_MAX_HP = 100000000000000000000n;
 const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
-const DROP_LIMITS = { 5: 1000000n };
-const BASE_PROBS = { 1: 81.88888, 2: 12, 3: 5, 4: 1, 5: 0.1, 11: 0 };
+const BASE_PROBS = { 1: 80, 2: 12, 3: 5, 4: 2.5, 5: 0.45, 6: 0.02, 7: 0.015, 8: 0.01, 9: 0.004, 10: 0.001 };
 
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n };
 let currentBossHP = BOSS_MAX_HP;
 let attackInterval = null;
 
 const RELIC_MASTER = [
-    {id:0, star:11, name:"再起の誓い", atk:10, hp:100, pIdx:-1, w:0},
+    {id:0, star:11, name:"再起の誓い", atk:0, hp:0, pIdx:-1, w:0},
     {id:101, star:1, name:"勇者の木片", atk:1, hp:0, pIdx:0, w:100}, {id:102, star:1, name:"戦士の砥石", atk:3, hp:0, pIdx:0, w:80},
     {id:103, star:1, name:"冒険の証", atk:5, hp:0, pIdx:2, w:60}, {id:104, star:1, name:"野草の滴", atk:0, hp:7, pIdx:1, w:100}, {id:105, star:1, name:"旅人の靴", atk:0, hp:13, pIdx:1, w:80},
     {id:201, star:2, name:"鉄の剣", atk:10, hp:0, pIdx:0, w:100}, {id:202, star:2, name:"鋼の篭手", atk:16, hp:0, pIdx:3, w:80}, {id:203, star:2, name:"熟練の証", atk:24, hp:0, pIdx:2, w:60},
@@ -113,7 +97,12 @@ const RELIC_MASTER = [
     {id:404, star:4, name:"聖樹の種", atk:0, hp:12000, pIdx:3, w:100}, {id:405, star:4, name:"不死鳥の羽", atk:0, hp:44444, pIdx:4, w:40},
     {id:501, star:5, name:"神殺しの刃", atk:355000, hp:0, pIdx:3, w:100}, {id:502, star:5, name:"天界の神剣", atk:599888, hp:0, pIdx:0, w:80}, {id:503, star:5, name:"虚空の魔眼", atk:652254, hp:0, pIdx:4, w:60}, {id:504, star:5, name:"終焉の刻印", atk:824816, hp:0, pIdx:4, w:40},
     {id:505, star:5, name:"真理の到達者", atk:999999, hp:1999998, pIdx:3, w:10},
-    {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:150000, hp:150000, pIdx:4, w:70}
+    {id:506, star:5, name:"慈愛の聖杯", atk:0, hp:292929, pIdx:2, w:100}, {id:507, star:5, name:"世界樹の根", atk:0, hp:642466, pIdx:1, w:80}, {id:508, star:5, name:"神格の心臓", atk:0, hp:1000000, pIdx:3, w:50}, {id:509, star:5, name:"不死の霊薬", atk:0, hp:158234, pIdx:2, w:100}, {id:510, star:5, name:"魔神の供物", atk:150000, hp:150000, pIdx:4, w:70},
+    {id:601, star:6, name:"断罪の剣", atk:5000000, hp:0, pIdx:0, w:1},
+    {id:701, star:7, name:"不朽の盾", atk:0, hp:10000000, pIdx:1, w:1},
+    {id:801, star:8, name:"賢者の石", atk:2000000, hp:2000000, pIdx:2, w:1},
+    {id:901, star:9, name:"覇道の王冠", atk:15000000, hp:15000000, pIdx:3, w:1},
+    {id:1001, star:10, name:"虚空の門", atk:50000000, hp:50000000, pIdx:4, w:1}
 ];
 
 const POWERS = [
@@ -170,10 +159,7 @@ function attack() {
     player.baseHP += BigInt(Math.floor(Math.random() * (player.deathCount * 10)) + 1);
 
     const bonus = getRelicBonus();
-    const totalAtk = player.baseAtk + bonus.atk;
-    let deathMult = 1000000n + BigInt(Math.floor(player.deathCount * 4));
-    let dmg = (totalAtk * deathMult) / 1000000n;
-
+    let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
     if(currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
@@ -182,24 +168,22 @@ function attack() {
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
 
     let dropCount = 1;
-    const thresholds = [1000, 5000, 25000, 100000];
-    for(let t of thresholds) { if(player.deathCount >= t) dropCount++; }
+    [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
 
     for(let i=0; i<dropCount; i++) {
-        let rv = Math.random() * 100;
-        let star = 1;
-        if(rv < 0.1) star = 5; else if(rv < 1) star = 4; else if(rv < 5) star = 3; else if(rv < 17) star = 2; else star = 1;
-        if(star === 5 && dmg < DROP_LIMITS[5]) star = 1;
-
+        let rv = Math.random() * 100, star = 1, currentProb = 0;
+        for(let s in BASE_PROBS) {
+            currentProb += BASE_PROBS[s];
+            if(rv <= currentProb) { star = parseInt(s); break; }
+        }
+        
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let totalW = cands.reduce((s, m) => s + m.w, 0);
-            let rW = Math.random() * totalW;
-            let currentW = 0, selected = cands[0];
-            for(let m of cands) {
-                currentW += m.w;
-                if(rW <= currentW) { selected = m; break; }
-            }
+            let rW = Math.random() * totalW, curW = 0, selected = cands[0];
+            for(let m of cands) { curW += m.w; if(rW <= curW) { selected = m; break; } }
+            
+            if(star >= 6 && (player.inventory[selected.id] || 0) >= 1) continue; // ★6-10は1つまで
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
             addLog(`<span class="c${selected.star}">【獲得】★${selected.star} ${selected.name}</span>`);
         }
@@ -208,78 +192,50 @@ function attack() {
 }
 
 function renderVow() {
-    const list = document.getElementById("vow-list");
     let dCount = 1;
     const thresholds = [1000, 5000, 25000, 100000];
-    for(let t of thresholds) { if(player.deathCount >= t) dCount++; }
+    thresholds.forEach(t => { if(player.deathCount >= t) dCount++; });
     let nextT = dCount < 5 ? thresholds[dCount-1].toLocaleString() : "MAX";
-    list.innerHTML = `
+    document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">効率: 1 ～ ${player.deathCount.toLocaleString()}</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">効率: 1 ～ ${(player.deathCount * 10).toLocaleString()}</div></div>
-        <div class="vow-item">
-            <div class="vow-name">魂の研磨</div><div class="vow-val">ドロップ: ${dCount} 個</div>
-            <div class="vow-cond">条件: 次回 ${nextT} 回再起で増加</div>
-        </div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">ドロップ: ${dCount} 個</div><div class="vow-cond">条件: 次回 ${nextT} 回再起で増加</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力: +${(player.deathCount * 0.0004).toFixed(4)}%</div></div>
     `;
 }
 
 function renderPower() {
-    const list = document.getElementById("power");
-    list.innerHTML = POWERS.map((p, idx) => {
+    document.getElementById("power").innerHTML = POWERS.map((p, idx) => {
         const pts = getPowerPoints(idx);
-        let unlockedCount = 0;
-        SKILL_THRESHOLDS.forEach(t => { if(pts >= t) unlockedCount++; });
-        let nextTarget = unlockedCount < 10 ? `${SKILL_THRESHOLDS[unlockedCount].toLocaleString()}ptでスキル解放` : "全解放";
-        return `
-            <div class="power-section">
-                <div class="power-head">
-                    <div class="power-title"><span>${p.name}</span><span>${pts.toLocaleString()} pt</span></div>
-                    <div class="power-progress">${nextTarget}</div>
-                </div>
-                <div class="skill-list">
-                    ${p.skills.map((s, si) => `<div class="skill-chip ${si < unlockedCount ? 'unlocked' : ''}">${s}</div>`).join("")}
-                </div>
-            </div>`;
+        let unlocked = 0; SKILL_THRESHOLDS.forEach(t => { if(pts >= t) unlocked++; });
+        let next = unlocked < 10 ? `${SKILL_THRESHOLDS[unlocked].toLocaleString()}ptで解放` : "全解放";
+        return `<div class="power-section">
+            <div class="power-head"><div class="power-title"><span>${p.name}</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${next}</div></div>
+            <div class="skill-list">${p.skills.map((s, si) => `<div class="skill-chip ${si < unlocked ? 'unlocked' : ''}">${s}</div>`).join("")}</div>
+        </div>`;
     }).join("");
 }
 
 function renderRelics() {
-    const list = document.getElementById("relic-list");
-    const items = Object.entries(player.inventory)
-        .filter(([id, count]) => count > 0)
-        .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count }))
-        .sort((a, b) => a.star - b.star); // ★1から並べる
-
-    list.innerHTML = items.map(r => {
-        let eff = [];
-        if(r.atk > 0) eff.push(`ATK+${(r.atk * r.count).toLocaleString()}`);
-        if(r.hp > 0) eff.push(`HP+${(r.hp * r.count).toLocaleString()}`);
-        return `<div class="relic-card">
-            <b class="${r.star === 11 ? 'c11' : 'c'+r.star}">★${r.star} ${r.name}</b> x${r.count}<br>
-            <small style="color:#666;">${eff.join(" / ")}</small><br>
-            <small>権能pt: ${(r.star * r.count).toLocaleString()}</small>
-        </div>`;
+    const items = Object.entries(player.inventory).filter(([id, count]) => count > 0)
+        .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count })).sort((a, b) => a.star - b.star);
+    document.getElementById("relic-list").innerHTML = items.map(r => {
+        let eff = []; if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
+        return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small style="color:#666;">${eff.join(" / ")}</small><br><small>権能pt: ${(r.star * r.count).toLocaleString()}</small></div>`;
     }).join("");
 }
 
 function renderStatus() {
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-    document.getElementById("st-rank").innerText = player.maxDmg < DROP_LIMITS[5] ? "★4以下" : "★5解放済み";
-    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).map(([s,p])=>`
-        <tr><td class="c${s}">★${s}</td><td style="text-align:right;">${p}%</td></tr>
-    `).join("");
+    document.getElementById("st-rank").innerText = player.maxDmg < 1000000n ? "★4以下" : "★5以上解放";
+    document.getElementById("prob-list").innerHTML = Object.entries(BASE_PROBS).map(([s,p])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${p}%</td></tr>`).join("");
 }
 
 function showTab(id) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-    document.getElementById("nav-" + id).classList.add("active");
-    if(id === 'vow') renderVow();
-    if(id === 'power') renderPower();
-    if(id === 'relic') renderRelics();
-    if(id === 'status') renderStatus();
+    document.getElementById(id).classList.add("active"); document.getElementById("nav-" + id).classList.add("active");
+    if(id === 'vow') renderVow(); if(id === 'power') renderPower(); if(id === 'relic') renderRelics(); if(id === 'status') renderStatus();
 }
 
 function refreshUI() {
@@ -291,17 +247,14 @@ function refreshUI() {
 }
 
 function addLog(m) {
-    const l = document.getElementById("log");
-    const d = document.createElement("div"); d.innerHTML = m;
+    const l = document.getElementById("log"); const d = document.createElement("div"); d.innerHTML = m;
     l.prepend(d); if(l.childNodes.length > 30) l.removeChild(l.lastChild);
 }
 
 const btn = document.getElementById("attackBtn");
 const start = (e) => { e.preventDefault(); if(!attackInterval) { attack(); attackInterval = setInterval(attack, 120); } };
 const stop = () => { clearInterval(attackInterval); attackInterval = null; };
-btn.addEventListener("pointerdown", start);
-window.addEventListener("pointerup", stop);
-
+btn.addEventListener("pointerdown", start); window.addEventListener("pointerup", stop);
 loadGame(); refreshUI();
 </script>
 </body>
