@@ -42,7 +42,6 @@
     .cond-list { margin-top: 10px; padding: 8px; background: #f0f0f0; border-radius: 6px; display: none; }
     .prob-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9em; }
     .prob-table td { padding: 6px; border-bottom: 1px solid #eee; }
-    /* データ削除ボタンの改善 */
     .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 20px; margin-bottom: 80px; box-shadow: 0 4px 0 #a71d2a; }
     .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6f42c1; } .c5 { color: #e83e8c; }
     .c6 { color: #ff4500; } .c7 { color: #d2691e; } .c8 { color: #000000; } .c9 { color: #4b0082; } .c10 { color: #ff00ff; }
@@ -92,7 +91,8 @@
 
 <script>
 const SAVE_KEY = "infiniterelic_v7_relics";
-const BOSS_MAX_HP = 100000000000000000000n;
+const BOSS_MAX_HP_BASE = 100000000000000000000n; // 通常HP（1万京）
+const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; // 那由他級
 const SKILL_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000];
 
 const DROP_DATA = {
@@ -102,7 +102,7 @@ const DROP_DATA = {
 };
 
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n };
-let currentBossHP = BOSS_MAX_HP;
+let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 
 const RELIC_MASTER = [
@@ -122,7 +122,7 @@ const RELIC_MASTER = [
     {id:701, star:7, name:"天啓の戦斧", atk:70000000, hp:0, pIdx:0, w:1, mult:1.4}, {id:702, star:7, name:"天啓の聖鎧", atk:0, hp:150000000, pIdx:1, w:1, mult:1.4}, {id:703, star:7, name:"天啓の指輪", atk:30000000, hp:60000000, pIdx:2, w:1, mult:1.3}, {id:704, star:7, name:"天啓の翼", atk:10000000, hp:10000000, pIdx:3, w:1, mult:1.2}, {id:705, star:7, name:"天啓の瞳", atk:50000000, hp:50000000, pIdx:4, w:1, mult:1.5},
     {id:801, star:8, name:"輪廻の滅刃", atk:800000000, hp:0, pIdx:0, w:1, mult:2.0}, {id:802, star:8, name:"輪廻の守護像", atk:0, hp:1800000000, pIdx:1, w:1, mult:2.0}, {id:803, star:8, name:"輪廻の天秤", atk:400000000, hp:400000000, pIdx:2, w:1, mult:1.8}, {id:804, star:8, name:"輪廻の錫杖", atk:200000000, hp:200000000, pIdx:3, w:1, mult:2.5}, {id:805, star:8, name:"輪廻の魂灯", atk:500000000, hp:500000000, pIdx:4, w:1, mult:3.0},
     {id:901, star:9, name:"創世の心臓", atk:10000000000, hp:20000000000, pIdx:2, w:1, mult:5.0}, {id:902, star:9, name:"創世の理", atk:5000000000, hp:5000000000, pIdx:4, w:1, mult:4.0}, {id:903, star:9, name:"創世の牙", atk:15000000000, hp:0, pIdx:0, w:1, mult:3.5}, {id:904, star:9, name:"創世の盾", atk:0, hp:30000000000, pIdx:1, w:1, mult:3.5}, {id:905, star:9, name:"創世の楔", atk:10000000000, hp:10000000000, pIdx:3, w:1, mult:10.0},
-    {id:1001, star:10, name:"インフィニットレリック", atk:0, hp:0, pIdx:-1, w:1, mult:1, kill:true}
+    {id:1001, star:10, name:"インフィニットレリック", atk:0, hp:0, pIdx:-1, w:1, mult:100.0}
 ];
 
 const POWERS = [
@@ -172,7 +172,7 @@ function loadGame() {
         player.baseAtk = BigInt(p.baseAtk || "10");
         player.baseHP = BigInt(p.baseHP || "100");
         player.maxDmg = BigInt(p.maxDmg || "0");
-        currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP.toString());
+        currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString());
     }
 }
 
@@ -191,15 +191,24 @@ function attack() {
     let dmg = (player.baseAtk + bonus.atk) * (1000000n + BigInt(player.deathCount * 4)) / 1000000n;
     dmg = BigInt(Math.floor(Number(dmg) * bonus.mult));
     if(dmg > player.maxDmg) player.maxDmg = dmg;
-    if (player.inventory[1001] > 0) {
-        currentBossHP = 0n;
-        addLog(`<span style="color:#ff00ff; font-weight:bold;">究極の力！インフィニットレリックが魔神を滅ぼした！</span>`);
-    } else {
-        currentBossHP -= dmg;
+    
+    currentBossHP -= dmg;
+
+    // 現在の最大HP（★10の有無で判定）
+    const maxHP = (player.inventory[1001] > 0) ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
+
+    if(currentBossHP <= 0n) {
+        if (player.inventory[1001] > 0) {
+            addLog(`<span style="color:#ff00ff; font-weight:bold;">因果の果てに魔神を消滅させた！しかし虚空から新たな気配が…</span>`);
+        } else {
+            addLog(`<span style="color:#ffd700; font-weight:bold;">魔神を討伐した！真の試練が幕を開ける。</span>`);
+        }
+        currentBossHP = maxHP;
     }
-    if(currentBossHP <= 0n) currentBossHP = BOSS_MAX_HP;
+
     addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     addLog(`魔神に ${dmg.toLocaleString()} ダメージ！`);
+    
     let dropCount = 1;
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
     for(let i=0; i<dropCount; i++) {
@@ -257,7 +266,7 @@ function renderRelics() {
         .map(([id, count]) => ({ ...RELIC_MASTER.find(m => m.id == id), count })).sort((a, b) => a.star - b.star);
     document.getElementById("relic-list").innerHTML = items.map(r => {
         let eff = []; if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
-        if(r.mult && r.mult > 1) eff.push(`倍率x${r.mult}`); if(r.kill) eff.push(`魔神即死`);
+        if(r.mult && r.mult > 1) eff.push(`倍率x${r.mult}`);
         let effStr = eff.length > 0 ? `(${eff.join(" / ")})` : "";
         return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small style="color:#666;">${effStr}</small><br><small>権能pt: ${(r.star * r.count).toLocaleString()}</small></div>`;
     }).join("");
@@ -292,7 +301,10 @@ function refreshUI() {
     document.getElementById("p-atk").innerText = totalAtk.toLocaleString();
     document.getElementById("p-hp").innerText = totalHp.toLocaleString();
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
-    document.getElementById("bosshp-pct").innerText = (Number(currentBossHP * 10000n / BOSS_MAX_HP) / 100).toFixed(4);
+
+    // 那由他級HPにも対応した%表示
+    const maxHP = (player.inventory[1001] > 0) ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
+    document.getElementById("bosshp-pct").innerText = (Number(currentBossHP * 10000n / maxHP) / 100).toFixed(4);
 }
 
 function addLog(m) {
