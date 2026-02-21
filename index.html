@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.4.0 (25 Skills & Rename)</title>
+<title>RELICORE - v1.4.1 (Fix Vow Display)</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -36,7 +36,9 @@
     .relic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 120px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-size: 0.72em; background: #fff; }
     
-    .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; border-left: 5px solid gold; }
+    /* 再起タブのデザイン修正: 左線の突き抜けを防止 */
+    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 10px 10px 18px; margin-bottom: 10px; overflow: hidden; }
+    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: gold; }
     .vow-name { font-weight: bold; font-size: 0.9em; }
     .vow-val { font-size: 0.95em; font-weight: bold; color: var(--primary); margin-top: 4px; line-height: 1.3; }
     .vow-desc { font-size: 0.72em; color: #666; margin-top: 4px; line-height: 1.3; }
@@ -105,7 +107,7 @@
             <div id="cond-display" class="cond-list"></div>
         </div>
         <div class="st-box"><b>遺物出現率</b><table class="prob-table" id="prob-list"></table></div>
-        <div class="version-info">RELICORE v1.4.0</div>
+        <div class="version-info">RELICORE v1.4.1</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -192,7 +194,7 @@ function getRelicBonus() {
         const r = RELIC_MASTER.find(m => m.id == id);
         if(r) { 
             let a = BigInt(Math.floor(r.atk * count));
-            if(r.star <= 3) a = a * 110n / 100n; // 統率スキル効果
+            if(r.star <= 3) a = a * 110n / 100n;
             atk += a; 
             hp += BigInt(Math.floor(r.hp * count)); 
             if(r.mult && r.mult > 1) mult *= Math.pow(r.mult, count); 
@@ -229,16 +231,13 @@ function attack() {
     const addHP = BigInt(Math.floor(Math.random() * (player.deathCount * 10 + 10))) + 10n;
     
     player.deathCount++;
-    player.baseAtk += addAtk + (addHP / 100n); // 魂の器
+    player.baseAtk += addAtk + (addHP / 100n);
     player.baseHP += addHP;
 
     const bonus = getRelicBonus();
-    let skillMult = 1.2 * 2.5 * 5.0 * 3.0; // 極限一閃・不滅の魂・終焉の号令・虚無の深淵・真理の扉(統合)
-    
-    // 無に帰す / 不撓 効果
+    let skillMult = 1.2 * 2.5 * 5.0 * 3.0; 
     skillMult += (player.deathCount / 1000) * 0.02; 
     
-    // 心気 / 万軍の主 / 深淵 効果
     let relicTypes = Object.keys(player.inventory).length;
     let starTotal = 0; Object.entries(player.inventory).forEach(([id, c]) => { const r = RELIC_MASTER.find(m => m.id == id); if(r) starTotal += r.star * c; });
     skillMult *= (1 + (relicTypes * 0.015) + (starTotal * 0.0001));
@@ -290,10 +289,12 @@ function refreshUI() {
     if(tab === 'vow') renderVow(); if(tab === 'power') renderPower(); if(tab === 'relic') renderRelics(); if(tab === 'status') renderStatus();
 }
 
+/* 再起タブの表示復元: 金剛の肉体を復活 */
 function renderVow() {
     let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">現在ボーナス：<br>ATK 1 ～ ${(1 + player.deathCount).toLocaleString()} の範囲で上昇</div><div class="vow-desc">再起するたびに成長の余地が広がります。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><div class="vow-val">現在ボーナス：<br>ATK 1 ～ ${(1 + player.deathCount).toLocaleString()} の範囲</div><div class="vow-desc">再起するたびに成長の余地が広がります。</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><div class="vow-val">現在ボーナス：<br>HP 10 ～ ${(10 + player.deathCount * 10).toLocaleString()} の範囲</div><div class="vow-desc">再起するたびに肉体が強固になります。</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><div class="vow-val">同時ドロップ数: ${dCount} 個</div><div class="vow-desc">再起回数に応じてドロップ数が増加します。</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div><div class="vow-desc">再起の歴史が刃に宿ります。</div></div>
     `;
