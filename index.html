@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2.0</title>
+<title>RELICORE - v1.2.1</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -103,7 +103,7 @@
             <b>遺物出現率</b>
             <table class="prob-table" id="prob-list"></table>
         </div>
-        <div class="version-info">v1.2.0</div>
+        <div class="version-info">v1.2.1</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -138,12 +138,12 @@ const POWERS = [
     {name: "剣神", skills: ["一の太刀", "心眼", "剣気", "極意", "飛燕", "天断", "旋風", "残像", "奥義", "再臨"], eff: "物理ダメージ・ATK増加系"},
     {name: "不滅", skills: ["守護", "金剛", "再生", "鉄壁", "不屈", "楔", "波動", "逆鱗", "聖域", "不滅"], eff: "HP・生存・防御増加系"},
     {name: "魔導", skills: ["回路", "知恵", "魔力", "共鳴", "詠唱", "門", "魔法", "等価", "因果", "真理"], eff: "倍率・効率・特殊効果系"},
-    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"], eff: "総合力・全体強化系"}, // 覇王は総合
+    {name: "覇王", skills: ["軍勢", "統率", "威圧", "玉座", "凱旋", "覇道", "号令", "略奪", "君臨", "終焉"], eff: "総合力・全体強化系"},
     {name: "虚無", skills: ["忘却", "残響", "空虚", "深淵", "残滓", "否定", "消失", "無情", "零壊", "虚無"], eff: "デバフ・割合ダメージ・特殊系"}
 ];
 
 const RELIC_MASTER = [
-    {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, w:0, mult:1},
+    {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, w:0, mult:1, desc:"死を力に変える勇者の証"},
     {id:101, star:1, name:"勇者の木片", atk:1, hp:0, pIdx:0, w:100}, {id:102, star:1, name:"戦士の砥石", atk:3, hp:0, pIdx:0, w:80},
     {id:103, star:1, name:"冒険の証", atk:5, hp:0, pIdx:2, w:60}, {id:104, star:1, name:"野草の滴", atk:0, hp:7, pIdx:1, w:100}, {id:105, star:1, name:"旅人の靴", atk:0, hp:13, pIdx:1, w:80},
     {id:201, star:2, name:"鉄の剣", atk:10, hp:0, pIdx:0, w:100}, {id:202, star:2, name:"鋼の篭手", atk:16, hp:0, pIdx:3, w:80}, {id:203, star:2, name:"熟練の証", atk:24, hp:0, pIdx:2, w:60},
@@ -242,8 +242,10 @@ function attack() {
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
 
+    // ダメージログの表示を復元
+    addLog(`<span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージを与えた！</span>`);
+
     if(currentBossHP <= 0n) {
-        // パンドラの箱所持時のみ「神格・無窮の魔神」へ
         if (player.inventory[1001] > 0) {
             if (!player.isEndless) {
                 addLog(`<span style="color:#ffd700; font-weight:bold;">神格・無窮の魔神、顕現...</span>`);
@@ -256,7 +258,7 @@ function attack() {
         }
     }
 
-    addLog(`<span style="color:#dc3545; font-weight:bold;">9,999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
+    addLog(`<span style="color:#dc3545; font-weight:bold;">9,99,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`);
     
     handleDrop();
     saveGame(); 
@@ -266,7 +268,6 @@ function attack() {
 function handleDrop() {
     let dropCount = 1;
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dropCount++; });
-    // ドロップ数にはスキル倍率を適用しない
     for(let i=0; i<dropCount; i++) {
         let rv = Math.random() * 100, star = 1, curP = 0;
         for(let s in DROP_DATA) {
@@ -308,15 +309,29 @@ function refreshUI() {
 function renderVow() {
     let dCount = 1;
     [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
+    const addedAtk = player.baseAtk - 10n;
+    const addedHp = player.baseHP - 100n;
+
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item">
             <div class="vow-name">不退転の力</div>
-            <div class="vow-val">ボーナス: +${(player.baseAtk - 10n).toLocaleString()} ATK</div>
+            <div class="vow-val">現在ボーナス: +${addedAtk.toLocaleString()} ATK</div>
+            <div class="vow-desc">死ぬ度に「1 ～ ${ (1 + player.deathCount).toLocaleString() }」の範囲で基礎ATKが上昇します。</div>
+        </div>
+        <div class="vow-item">
+            <div class="vow-name">金剛の肉体</div>
+            <div class="vow-val">現在ボーナス: +${addedHp.toLocaleString()} HP</div>
+            <div class="vow-desc">死ぬ度に「10 ～ ${ (10 + player.deathCount * 10).toLocaleString() }」の範囲で基礎HPが上昇します。</div>
         </div>
         <div class="vow-item">
             <div class="vow-name">魂の研磨</div>
             <div class="vow-val">同時ドロップ数: ${dCount} 個</div>
-            <div class="vow-desc">※このスキルは遺物による倍率化の対象外です</div>
+            <div class="vow-desc">再起回数に応じてドロップ数が増加します。（※倍率化対象外）</div>
+        </div>
+        <div class="vow-item">
+            <div class="vow-name">死を刻む</div>
+            <div class="vow-val">威力補正: +${(player.deathCount * 0.0004).toFixed(4)}%</div>
+            <div class="vow-desc">死の経験をダメージに上乗せします。</div>
         </div>
     `;
 }
@@ -326,12 +341,13 @@ function renderPower() {
     document.getElementById("power").innerHTML = POWERS.map((p, idx) => {
         const pts = getPowerPoints(idx);
         let unlocked = 0; SKILL_THRESHOLDS.forEach(t => { if(pts >= t) unlocked++; });
+        let next = unlocked < 10 ? `${p.name}権能pt: ${SKILL_THRESHOLDS[unlocked].toLocaleString()}で解放` : "全解放";
         return `<div class="power-section">
-            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>${pts.toLocaleString()} pt</span></div></div>
+            <div class="power-head"><div class="power-title"><span>${p.name}権能</span><span>${pts.toLocaleString()} pt</span></div><div class="power-progress">${next}</div></div>
             <div class="skill-list">${p.skills.map((s, si) => {
                 const isUnlocked = si < unlocked;
                 const effectValue = (si + 1) * skillMult;
-                const effectText = isUnlocked ? `<span class="skill-effect">効果倍率: x${effectValue.toLocaleString()}</span>` : "";
+                const effectText = isUnlocked ? `<span class="skill-effect">効果: ${p.eff} (倍率: x${effectValue.toLocaleString()})</span>` : "";
                 return `<div class="skill-row"><div class="skill-chip ${isUnlocked ? 'unlocked' : ''}">${s}</div>${effectText}</div>`;
             }).join("")}</div>
         </div>`;
@@ -346,7 +362,8 @@ function renderRelics() {
         if(r.atk > 0) eff.push(`ATK+${r.atk.toLocaleString()}`); 
         if(r.hp > 0) eff.push(`HP+${r.hp.toLocaleString()}`);
         if(r.mult && r.mult > 1) eff.push(`全効果x${r.mult}`);
-        return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>(${eff.join(" / ")})</small></div>`;
+        let powerStr = r.pIdx !== -1 ? `${POWERS[r.pIdx].name}権能pt: ${(r.star * r.count).toLocaleString()}` : (r.desc || "固有遺物");
+        return `<div class="relic-card"><b class="c${r.star}">★${r.star} ${r.name}</b> x${r.count}<br><small>(${eff.join(" / ")})</small><br><small>${powerStr}</small></div>`;
     }).join("");
 }
 
