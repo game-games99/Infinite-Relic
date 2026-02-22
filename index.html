@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.1</title>
+<title>RELICORE - v2.2.2</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -68,7 +68,7 @@
 <div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 <div id="header"><div class="boss-info"><div class="boss-name" id="boss-display-name">魔神</div><div class="hp-pct-display"><span id="bosshp-pct">100.0000</span>%</div></div><div class="hp-bar-container"><div id="hp-bar-fill"></div></div><div class="status-box"><div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div><div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div></div></div>
 <div class="nav"><button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button><button onclick="showTab('vow')" id="nav-vow">再起</button><button onclick="showTab('power')" id="nav-power">権能</button><button onclick="showTab('relic')" id="nav-relic">遺物</button><button onclick="showTab('status')" id="nav-status">詳細</button></div>
-<div id="content-area"><div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div><div id="vow" class="tab"><div id="vow-list"></div></div><div id="power" class="tab"></div><div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div><div id="status" class="tab"><div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.2.1</div><button class="btn-reset" onclick="resetData()">全データリセット</button></div></div>
+<div id="content-area"><div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div><div id="vow" class="tab"><div id="vow-list"></div></div><div id="power" class="tab"></div><div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div><div id="status" class="tab"><div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.2.2</div><button class="btn-reset" onclick="resetData()">全データリセット</button></div></div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -134,25 +134,33 @@ function closeClearModal() { document.getElementById("clear-modal").style.displa
 function handleDrop(isKill) {
     let bonus = 0;
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+    
+    // 基本判定1 + 魂の研磨ボーナス(bonus)
     let targetDrops = 1 + bonus; 
     if(isKill) targetDrops += 5;
     
     let obtainedCount = 0;
     let attempts = 0;
-    const maxAttempts = 200; 
+    const maxTotalAttempts = 500; 
 
-    while(obtainedCount < targetDrops && attempts < maxAttempts) {
+    // targetDropsを満たすまで確実に回す
+    while(obtainedCount < targetDrops && attempts < maxTotalAttempts) {
         attempts++;
         let rv = Math.random() * 100, star = 1, curP = 0;
         for(let s in DROP_DATA) {
             curP += parseFloat(DROP_DATA[s].p);
             if(rv <= curP) { star = parseInt(s); break; }
         }
+        
+        // ダメージ条件未達なら再抽選
         if (player.maxDmg < DROP_DATA[star].cond) continue;
+
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
-        cands = cands.filter(m => !(m.star >= 10 && player.inventory[m.id] >= 1));
-        if(cands.length > 0) {
-            let sel = cands[Math.floor(Math.random() * cands.length)];
+        // ★10以上制限
+        let filteredCands = cands.filter(m => !(m.star >= 10 && player.inventory[m.id] >= 1));
+        
+        if(filteredCands.length > 0) {
+            let sel = filteredCands[Math.floor(Math.random() * filteredCands.length)];
             player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
             addLog(`<span class="c${sel.star}">【獲得】★${sel.star} ${sel.name}</span>`);
             obtainedCount++;
