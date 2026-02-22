@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.8</title>
+<title>RELICORE - v2.2.9</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
+    /* 遺物レアリティカラー */
     .c1 { color: #888888; font-weight: bold; }
     .c2 { color: #28a745; font-weight: bold; }
     .c3 { color: #007bff; font-weight: bold; }
@@ -16,9 +17,6 @@
     .c5 { color: #e83e8c; font-weight: bold; }
     .c6 { color: #fd7e14; font-weight: bold; }
     .c7 { color: #d9534f; font-weight: bold; }
-    .c8 { color: #1a1a1a; font-weight: bold; }
-    .c9 { color: #6f42c1; font-weight: bold; }
-    .c10 { color: #ff00ff; font-weight: bold; }
     .c11 { color: #ffc107; font-weight: bold; text-shadow: 0 0 1px rgba(0,0,0,0.2); }
     .c12 { color: gold; font-weight: bold; }
 
@@ -28,16 +26,16 @@
     .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
     
-    /* ヘッダー修正：現在HP特大表示 */
-    #header { background: var(--dark); color: #fff; padding: 15px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
+    /* ヘッダー：HP表示バランス調整 */
+    #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .boss-area { text-align: center; width: 100%; }
-    .boss-name { font-size: 1.1em; font-weight: bold; color: #aaa; letter-spacing: 2px; margin-bottom: 4px; }
-    .hp-bar-container { background: #333; height: 12px; border-radius: 6px; overflow: hidden; margin: 0 auto 10px auto; width: 100%; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+    .boss-name { font-size: 1.0em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
+    .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 0 auto 8px auto; width: 100%; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
     #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.15s ease-out; }
-    /* 現在HP数値のみを特大化。長い場合は折り返しを許可 */
-    .hp-val-display { font-size: 1.8em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.1; text-shadow: 0 0 10px rgba(220, 53, 69, 0.3); }
+    /* 現在HP数値：デカすぎず読みやすく調整 */
+    .hp-val-display { font-size: 1.45em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.2; letter-spacing: -1px; }
     
-    .status-box { display: flex; gap: 8px; margin-top: 12px; }
+    .status-box { display: flex; gap: 8px; margin-top: 10px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; overflow: hidden; }
     .stat-card.hp-card { border-left-color: var(--hp); }
     .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; margin-bottom: 1px; }
@@ -87,7 +85,7 @@
 </style>
 </head>
 <body>
-<div id="story-modal"><div class="story-content"><div class="story-text">「……覚えていないのか。<br>お前が世界を救う盾となり、その身を捧げたあの日を。」</div><div class="story-sys">[ 警告：生命活動の停止、および全能力の喪失を確認 ]<br>[ システム：魂に刻まれた『再起の誓い』を検知……強制起動 ]</div><div class="story-text" style="border-left-color: #00ffff;"><b>灰の中から、何度でも立ち上がれ。</b></div><button class="story-btn" onclick="closeStory()">運命を受け入れる</button></div></div>
+<div id="story-modal"><div class="story-content"><div class="story-text">「……覚えていないのか。<br>お前が世界を救う盾となり、その身を捧げたあの日を。」</div><div class="story-sys">[ 警告：生命活動の停止、および全能力の喪失を確認 ]<br>[ システム：魂に刻まれた『再起の誓い』を検知……強制起動 ]</div><div class="story-text" style="border-left-color: #00ffff;"><b>灰の中から、何度でも立ち上がれ.</b></div><button class="story-btn" onclick="closeStory()">運命を受け入れる</button></div></div>
 <div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 
 <div id="header">
@@ -114,24 +112,24 @@
     <div id="battle" class="tab active">
         <button class="btn-attack" id="attackBtn">こうげき</button>
         <div id="log"></div>
-        <div class="ver-footer">RELICORE v2.2.8</div>
+        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="vow" class="tab">
         <div id="vow-list"></div>
-        <div class="ver-footer">RELICORE v2.2.8</div>
+        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="power" class="tab">
         <div id="power-content"></div>
-        <div class="ver-footer">RELICORE v2.2.8</div>
+        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="relic" class="tab">
         <div class="relic-list-container" id="relic-list"></div>
-        <div class="ver-footer">RELICORE v2.2.8</div>
+        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
         <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
-        <div class="ver-footer">RELICORE v2.2.8</div>
+        <div class="ver-footer">RELICORE v2.2.9</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -228,12 +226,12 @@ function attack() {
     if(isModalOpen) return;
     let bonus = 0;
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-    let experienceGain = 1 + bonus;
-    for(let i = 0; i < experienceGain; i++) {
-        player.deathCount += 1;
-        player.baseAtk += getRandomRange(1, player.deathCount);
-        player.baseHP += getRandomRange(10, player.deathCount * 10);
-    }
+    
+    // ロジック修正：ステータス上昇は1回分に制限
+    player.deathCount += (1 + bonus); // 回数（カウント）はボーナス分加算
+    player.baseAtk += getRandomRange(1, player.deathCount); // 上昇判定は1回のみ
+    player.baseHP += getRandomRange(10, player.deathCount * 10);
+    
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
@@ -245,19 +243,21 @@ function attack() {
     let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
     if(b.flags.doubleDmg) baseDmg += totalAtk;
     if(b.flags.digitBomb > 0) { for(let i=0; i<b.flags.digitBomb; i++) baseDmg *= 10n; }
+    
     for(let h=0; h < b.flags.multiHit; h++) {
         if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
         currentBossHP -= baseDmg;
         addLog(`<span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span>`);
         if(currentBossHP <= 0n) break;
     }
+    
     if(currentBossHP <= 0n) { 
-        handleDrop(5 + experienceGain);
+        handleDrop(5 + bonus); // ドロップ効率はボーナスを反映
         isModalOpen = true; 
         document.getElementById("clear-modal").style.display = "flex"; 
     } else { 
         addLog(`<span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`); 
-        handleDrop(experienceGain);
+        handleDrop(1 + bonus);
     }
     saveGame(); refreshUI();
 }
@@ -286,7 +286,7 @@ function renderVow() {
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">ATK 1 〜 ${player.deathCount.toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにATK+1</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP+10</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起経験数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>`;
 }
 
