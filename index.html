@@ -43,29 +43,30 @@
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
     
     #content-area { flex-grow: 1; overflow: hidden; background: #fff; position: relative; }
-    /* 修正：padding-bottomを追加して最下部までスクロール可能に */
-    .tab { display: none; padding: 10px 10px 60px 10px; height: 100%; width: 100%; }
-    .tab.active { display: block; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
-    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
-    #log { height: 350px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    /* 修正：flex導入とスクロールの改善 */
+    .tab { display: none; padding: 10px; height: 100%; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .tab.active { display: flex; flex-direction: column; }
+    
+    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; }
+    #log { height: 350px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; flex-shrink: 0; }
     
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     .modal-title { color: gold; font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
 
-    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0; }
     .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
     .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
     .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; line-height: 1.3; }
     .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
 
-    .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 10px; }
+    .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 10px; flex-shrink: 0; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
     .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; line-height: 1.2; }
     .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
     .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
 
-    .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
     .power-head { background: #eee; padding: 8px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; }
     .skill-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
     .skill-row { display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
@@ -75,12 +76,13 @@
     .skill-req { font-size: 0.6em; color: #999; font-weight: normal; }
     .skill-effect { font-size: 0.7em; color: #666; padding-left: 2px; }
 
-    .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
+    .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; flex-shrink: 0; }
     .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
     .clickable-stat { color: var(--primary); text-decoration: underline; cursor: pointer; }
-    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 40px; }
-    /* 修正：表示を安定させるためpaddingを調整 */
-    .ver-footer { text-align: center; color: #999; font-size: 0.85em; padding: 20px 0 40px 0; width: 100%; clear: both; }
+    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; flex-shrink: 0; }
+
+    /* 修正：最下部の余白を大幅に確保 */
+    .ver-footer { text-align: center; color: #999; font-size: 0.85em; padding: 30px 0 100px 0; width: 100%; margin-top: auto; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -128,8 +130,8 @@
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
         <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
-        <div class="ver-footer">RELICORE v2.2.9</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
+        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
 </div>
 
