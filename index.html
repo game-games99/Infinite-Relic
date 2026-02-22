@@ -72,7 +72,7 @@
     <div id="battle" class="tab active">
         <button class="btn-attack" id="attackBtn">こうげき</button>
         <div id="log"></div>
-        <div style="text-align:right; color:#bbb; font-size:0.7em; margin-top:4px; font-family:monospace;">RELICORE v2.2.3</div>
+        <div style="text-align:center; color:#999; font-size:0.85em; margin-top:10px;">RELICORE v2.2.3</div>
     </div>
     <div id="vow" class="tab"><div id="vow-list"></div></div>
     <div id="power" class="tab"></div>
@@ -80,7 +80,7 @@
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
         <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
-        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.2.3</div>
+        <div style="text-align:center; color:#999; font-size:0.85em; margin:20px 0;">RELICORE v2.2.3</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -113,7 +113,7 @@ const RELIC_MASTER = [
     {id:501, star:5, name:"天界の神剣", atk:677777, hp:0, pIdx:0}, {id:502, star:5, name:"神殺しの刃", atk:1333337, hp:0, pIdx:0}, {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:654321, pIdx:1}, {id:504, star:5, name:"神格の心臓", atk:0, hp:1888888, pIdx:1}, {id:505, star:5, name:"魔力回路の核", atk:987654, hp:1500000, pIdx:2}, {id:506, star:5, name:"真理の到達者", atk:2178281, hp:3000000, pIdx:2}, {id:507, star:5, name:"王者の刻印", atk:3333333, hp:4500000, pIdx:3}, {id:508, star:5, name:"大号令の旗", atk:5555555, hp:7777777, pIdx:3}, {id:509, star:5, name:"虚空の魔眼", atk:6666666, hp:8888888, pIdx:4}, {id:510, star:5, name:"魔神の供物", atk:9999999, hp:12000000, pIdx:4}, {id:511, star:5, name:"失われた聖典", atk:1234567, hp:2000000, pIdx:2},
     {id:601, star:6, name:"【絶】の小太刀", atk:12345678, hp:0, pIdx:0, mult:1.1}, {id:602, star:6, name:"【永】の古盾", atk:0, hp:24242424, pIdx:1, mult:1.1}, {id:603, star:6, name:"【叡】の頁", atk:9988776, hp:15000000, pIdx:2, mult:1.1}, {id:604, star:6, name:"【凱】の徴", atk:18181818, hp:25000000, pIdx:3, mult:1.1}, {id:605, star:6, name:"【零】の塵", atk:44444444, hp:60000000, pIdx:4, mult:1.1},
     {id:701, star:7, name:"【絶】の長剣", atk:150000000, hp:0, pIdx:0, mult:1.2}, {id:702, star:7, name:"【永】の鉄壁", atk:0, hp:300000000, pIdx:1, mult:1.2}, {id:703, star:7, name:"【叡】の魔導書", atk:120000000, hp:180000000, pIdx:2, mult:1.2}, {id:704, star:7, name:"【凱】の軍旗", atk:200000000, hp:300000000, pIdx:3, mult:1.2}, {id:705, star:7, name:"【零】の裂け目", atk:250000000, hp:400000000, pIdx:4, mult:1.2},
-    {id:801, star:8, name:"【絶】界の神滅", atk:1000000000, hp:0, pIdx:0, mult:1.5, type:"剣神★8"}, {id:802, star:8, name:"【永】劫の聖域", atk:0, hp:2000000000, pIdx:1, mult:1.5, type:"不滅★8"}, {id:803, star:8, name:"【叡】智の真理", atk:888888888, hp:1200000000, pIdx:2, mult:1.5, type:"魔導★8"}, {id:804, star:8, name:"【凱】旋の覇道", atk:1500000000, hp:2500000000, pIdx:3, mult:1.5, type:"覇王★8"}, {id:805, star:8, name:"【零】の侵食", atk:2500000000, hp:4000000000, pIdx:4, mult:1.5, type:"虚無★8"},
+    {id:801, star:8, name:"【絶】界의 神滅", atk:1000000000, hp:0, pIdx:0, mult:1.5, type:"剣神★8"}, {id:802, star:8, name:"【永】劫の聖域", atk:0, hp:2000000000, pIdx:1, mult:1.5, type:"不滅★8"}, {id:803, star:8, name:"【叡】智の真理", atk:888888888, hp:1200000000, pIdx:2, mult:1.5, type:"魔導★8"}, {id:804, star:8, name:"【凱】旋の覇道", atk:1500000000, hp:2500000000, pIdx:3, mult:1.5, type:"覇王★8"}, {id:805, star:8, name:"【零】の侵食", atk:2500000000, hp:4000000000, pIdx:4, mult:1.5, type:"虚無★8"},
     {id:901, star:9, name:"【絶】界・多重定義", atk:10000000000, hp:0, pIdx:0, mult:2.0, type:"剣神★9"}, {id:902, star:9, name:"【永】死生超越の理", atk:0, hp:20000000000, pIdx:1, mult:2.0, type:"不滅★9"}, {id:903, star:9, name:"【叡】真理の法典", atk:9999999999, hp:15000000000, pIdx:2, mult:2.0, type:"魔導★9"}, {id:904, star:9, name:"【凱】覇道の極致", atk:15000000000, hp:25000000000, pIdx:3, mult:2.0, type:"覇王★9"}, {id:905, star:9, name:"【零】無窮の深淵", atk:25000000000, hp:40000000000, pIdx:4, mult:2.0, type:"虚無★9"},
     {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:88888888888, pIdx:3, mult:100.0, type:"LEGEND10"},
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, pIdx:4, mult:1000.0, type:"GOD11"}
