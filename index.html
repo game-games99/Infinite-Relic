@@ -9,7 +9,6 @@
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* レアリティ別カラーコード設定 */
     .c1 { color: #888888; font-weight: bold; }
     .c2 { color: #28a745; font-weight: bold; }
     .c3 { color: #007bff; font-weight: bold; }
@@ -29,11 +28,13 @@
     .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
     #header { background: var(--dark); color: #fff; padding: 10px 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
-    .boss-info { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .boss-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
     .boss-name { font-size: 1.1em; font-weight: bold; color: var(--hp); letter-spacing: 1px; }
+    .hp-display-group { text-align: right; }
+    .hp-val-display { font-size: 0.7em; color: #ccc; font-family: monospace; display: block; }
+    .hp-pct-display { font-size: 0.85em; color: var(--hp); font-weight: bold; font-family: monospace; display: block; }
     .hp-bar-container { background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
     #hp-bar-fill { height: 100%; background: var(--hp); width: 100%; transition: width 0.1s; }
-    .hp-pct-display { font-size: 0.85em; color: var(--hp); font-weight: bold; font-family: monospace; }
     .status-box { display: flex; gap: 8px; }
     .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; }
     .stat-card.hp-card { border-left-color: var(--hp); }
@@ -77,7 +78,20 @@
 <body>
 <div id="story-modal"><div class="story-content"><div class="story-text">「……覚えていないのか。<br>お前が世界を救う盾となり、その身を捧げたあの日を。」</div><div class="story-sys">[ 警告：生命活動の停止、および全能力の喪失を確認 ]<br>[ システム：魂に刻まれた『再起の誓い』を検知……強制起動 ]</div><div class="story-text" style="border-left-color: #00ffff;"><b>灰の中から、何度でも立ち上がれ。</b></div><button class="story-btn" onclick="closeStory()">運命を受け入れる</button></div></div>
 <div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
-<div id="header"><div class="boss-info"><div class="boss-name" id="boss-display-name">魔神</div><div class="hp-pct-display"><span id="bosshp-pct">100.0000</span>%</div></div><div class="hp-bar-container"><div id="hp-bar-fill"></div></div><div class="status-box"><div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div><div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div></div></div>
+<div id="header">
+    <div class="boss-info">
+        <div class="boss-name" id="boss-display-name">魔神</div>
+        <div class="hp-display-group">
+            <span class="hp-val-display"><span id="bosshp-cur">0</span> / <span id="bosshp-max">0</span></span>
+            <span class="hp-pct-display"><span id="bosshp-pct">100.0000</span>%</span>
+        </div>
+    </div>
+    <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
+    <div class="status-box">
+        <div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div>
+        <div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div>
+    </div>
+</div>
 <div class="nav"><button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button><button onclick="showTab('vow')" id="nav-vow">再起</button><button onclick="showTab('power')" id="nav-power">権能</button><button onclick="showTab('relic')" id="nav-relic">遺物</button><button onclick="showTab('status')" id="nav-status">詳細</button></div>
 <div id="content-area">
     <div id="battle" class="tab active">
@@ -235,11 +249,15 @@ function refreshUI() {
     let dispHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
     document.getElementById("p-atk").innerText = dispAtk.toLocaleString();
     document.getElementById("p-hp").innerText = dispHP.toLocaleString();
+    
     const maxH = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
     const pct = (Number(currentBossHP * 10000n / maxH) / 100);
     document.getElementById("bosshp-pct").innerText = pct.toFixed(4);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
+    document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
+    document.getElementById("bosshp-max").innerText = maxH.toLocaleString();
     document.getElementById("boss-display-name").innerText = player.isEndless ? "虚無の残滓" : "魔神";
+    
     const tid = document.querySelector(".tab.active").id;
     if(tid === 'vow') renderVow(); else if(tid === 'power') renderPower(b.pts); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
 }
