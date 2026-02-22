@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.9</title>
+<title>RELICORE - v2.3.1</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -21,7 +21,6 @@
 
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 1.8; }
-    /* 修正：ストーリーテキストの強調と追加描写 */
     .story-text { margin-bottom: 25px; font-size: 0.95em; color: #ddd; text-align: left; border-left: 2px solid gold; padding-left: 15px; }
     .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
@@ -44,11 +43,14 @@
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
     
     #content-area { flex-grow: 1; overflow: hidden; background: #fff; }
-    .tab { display: none; padding: 10px 10px 80px 10px; height: 100%; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    /* 修正：padding-bottomを150pxに拡張し、各タブ最下部の視認性を確保 */
+    .tab { display: none; padding: 10px 10px 150px 10px; height: 100%; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .tab.active { display: block; }
     
     .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; }
-    #log { height: 160px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow: hidden; border-radius: 8px; line-height: 1.4; }
+    /* 修正：ログ窓を拡大 */
+    #log { height: 280px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; line-height: 1.4; }
+    .log-set { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
     
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
@@ -129,7 +131,7 @@
     </div>
 </div>
 
-<div class="ver-footer">RELICORE v2.2.9</div>
+<div class="ver-footer">RELICORE v2.3.1</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -159,7 +161,7 @@ const RELIC_MASTER = [
     {id:501, star:5, name:"天界の神剣", atk:677777, hp:0, pIdx:0}, {id:502, star:5, name:"神殺しの刃", atk:1333337, hp:0, pIdx:0}, {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:654321, pIdx:1}, {id:504, star:5, name:"神格の心臓", atk:0, hp:1888888, pIdx:1}, {id:505, star:5, name:"魔力回路の核", atk:987654, hp:1500000, pIdx:2}, {id:506, star:5, name:"真理の到達者", atk:2178281, hp:3000000, pIdx:2}, {id:507, star:5, name:"王者の刻印", atk:3333333, hp:4500000, pIdx:3}, {id:508, star:5, name:"大号令の旗", atk:5555555, hp:7777777, pIdx:3}, {id:509, star:5, name:"虚空の魔眼", atk:6666666, hp:8888888, pIdx:4}, {id:510, star:5, name:"魔神の供物", atk:9999999, hp:12000000, pIdx:4}, {id:511, star:5, name:"失われた聖典", atk:1234567, hp:2000000, pIdx:2},
     {id:601, star:6, name:"【絶】の小太刀", atk:12345678, hp:0, pIdx:0, mult:1.1}, {id:602, star:6, name:"【永】の古盾", atk:0, hp:24242424, pIdx:1, mult:1.1}, {id:603, star:6, name:"【叡】の頁", atk:9988776, hp:15000000, pIdx:2, mult:1.1}, {id:604, star:6, name:"【凱】の徴", atk:18181818, hp:25000000, pIdx:3, mult:1.1}, {id:605, star:6, name:"【零】の塵", atk:44444444, hp:60000000, pIdx:4, mult:1.1},
     {id:701, star:7, name:"【絶】の長剣", atk:150000000, hp:0, pIdx:0, mult:1.2}, {id:702, star:7, name:"【永】の鉄壁", atk:0, hp:300000000, pIdx:1, mult:1.2}, {id:703, star:7, name:"【叡】の魔導書", atk:120000000, hp:180000000, pIdx:2, mult:1.2}, {id:704, star:7, name:"【凱】の軍旗", atk:200000000, hp:300000000, pIdx:3, mult:1.2}, {id:705, star:7, name:"【零】の裂け目", atk:250000000, hp:400000000, pIdx:4, mult:1.2},
-    {id:801, star:8, name:"【絶】界の神滅", atk:1000000000, hp:0, pIdx:0, mult:1.5, type:"剣神★8"}, {id:802, star:8, name:"【永】劫の聖域", atk:0, hp:2000000000, pIdx:1, mult:1.5, type:"不滅★8"}, {id:803, star:8, name:"【叡】智の真理", atk:888888888, hp:1200000000, pIdx:2, mult:1.5, type:"魔導★8"}, {id:804, star:8, name:"【凱】旋の覇道", atk:1500000000, hp:2500000000, pIdx:3, mult:1.5, type:"覇王★8"}, {id:805, star:8, name:"【零】の侵食", atk:2500000000, hp:4000000000, pIdx:4, mult:1.5, type:"虚無★8"},
+    {id:801, star:8, name:"【絶】界の神滅", atk:1000000000, hp:0, pIdx:0, mult:1.5, type:"剣神★8"}, {id:802, star:8, name:"【永】劫의 聖域", atk:0, hp:2000000000, pIdx:1, mult:1.5, type:"不滅★8"}, {id:803, star:8, name:"【叡】智の真理", atk:888888888, hp:1200000000, pIdx:2, mult:1.5, type:"魔導★8"}, {id:804, star:8, name:"【凱】旋の覇道", atk:1500000000, hp:2500000000, pIdx:3, mult:1.5, type:"覇王★8"}, {id:805, star:8, name:"【零】の侵食", atk:2500000000, hp:4000000000, pIdx:4, mult:1.5, type:"虚無★8"},
     {id:901, star:9, name:"【絶】界・多重定義", atk:10000000000, hp:0, pIdx:0, mult:2.0, type:"剣神★9"}, {id:902, star:9, name:"【永】死生超越の理", atk:0, hp:20000000000, pIdx:1, mult:2.0, type:"不滅★9"}, {id:903, star:9, name:"【叡】真理の法典", atk:9999999999, hp:15000000000, pIdx:2, mult:2.0, type:"魔導★9"}, {id:904, star:9, name:"【凱】覇道の極致", atk:15000000000, hp:25000000000, pIdx:3, mult:2.0, type:"覇王★9"}, {id:905, star:9, name:"【零】無窮の深淵", atk:25000000000, hp:40000000000, pIdx:4, mult:2.0, type:"虚無★9"},
     {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:88888888888, pIdx:3, mult:100.0, type:"LEGEND10"},
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, pIdx:4, mult:1000.0, type:"GOD11"}
@@ -191,11 +193,54 @@ function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { co
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
 function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE; refreshUI(); }
 
-function handleDrop(targetCount) {
+/* 修正：1ターンのログを塊として生成するよう変更 */
+function attack() {
+    if(isModalOpen) return;
+    let turnLogHtml = "";
+    let bonus = 0;
+    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+    player.deathCount += (1 + bonus); 
+    player.baseAtk += getRandomRange(1, player.deathCount); 
+    player.baseHP += getRandomRange(10, player.deathCount * 10);
+    const b = getRelicBonus();
+    let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
+    let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
+    let totalAtk;
+    if(b.flags.logicHack) { totalAtk = (player.baseAtk * 120n / 100n) * (b.atk > 0n ? b.atk : 1n); } 
+    else { totalAtk = (player.baseAtk * 120n / 100n + b.atk); }
+    let finalMult = b.mult * powerMult * b.flags.kingPower;
+    if(b.flags.deathToMult) finalMult *= (1 + player.deathCount / 100);
+    let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
+    if(b.flags.doubleDmg) baseDmg += totalAtk;
+    if(b.flags.digitBomb > 0) { for(let i=0; i<b.flags.digitBomb; i++) baseDmg *= 10n; }
+    
+    // 自攻撃ログの蓄積
+    for(let h=0; h < b.flags.multiHit; h++) {
+        if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
+        currentBossHP -= baseDmg;
+        turnLogHtml += `<div><span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span></div>`;
+        if(currentBossHP <= 0n) break;
+    }
+
+    if(currentBossHP <= 0n) { 
+        turnLogHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>`;
+        turnLogHtml += getDropLog(5 + bonus);
+        isModalOpen = true; 
+        document.getElementById("clear-modal").style.display = "flex"; 
+    } else { 
+        turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
+        turnLogHtml += getDropLog(1 + bonus);
+    }
+    
+    addLog(turnLogHtml);
+    saveGame(); refreshUI();
+}
+
+function getDropLog(targetCount) {
     let obtainedDict = {};
     let attempts = 0;
-    const maxTotalAttempts = 500; 
-    while(Object.values(obtainedDict).reduce((a,b)=>a+b, 0) < targetCount && attempts < maxTotalAttempts) {
+    let logStr = "";
+    while(Object.values(obtainedDict).reduce((a,b)=>a+b, 0) < targetCount && attempts < 500) {
         attempts++;
         let rv = Math.random() * 100, star = 1, curP = 0;
         for(let s in DROP_DATA) {
@@ -213,46 +258,12 @@ function handleDrop(targetCount) {
     }
     Object.entries(obtainedDict).forEach(([id, count]) => {
         const item = RELIC_MASTER.find(m => m.id == id);
-        addLog(`<span class="c${item.star}">【獲得】★${item.star} ${item.name} × ${count}</span>`);
+        logStr += `<div><span class="c${item.star}">【獲得】★${item.star} ${item.name} × ${count}</span></div>`;
     });
+    return logStr;
 }
 
 function getRandomRange(min, max) { let nMin = Number(min), nMax = Number(max); if (nMax < nMin) nMax = nMin; return BigInt(Math.floor(Math.random() * (nMax - nMin + 1)) + nMin); }
-
-function attack() {
-    if(isModalOpen) return;
-    let bonus = 0;
-    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-    player.deathCount += (1 + bonus); 
-    player.baseAtk += getRandomRange(1, player.deathCount); 
-    player.baseHP += getRandomRange(10, player.deathCount * 10);
-    const b = getRelicBonus();
-    let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
-    let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
-    let totalAtk;
-    if(b.flags.logicHack) { totalAtk = (player.baseAtk * 120n / 100n) * (b.atk > 0n ? b.atk : 1n); } 
-    else { totalAtk = (player.baseAtk * 120n / 100n + b.atk); }
-    let finalMult = b.mult * powerMult * b.flags.kingPower;
-    if(b.flags.deathToMult) finalMult *= (1 + player.deathCount / 100);
-    let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
-    if(b.flags.doubleDmg) baseDmg += totalAtk;
-    if(b.flags.digitBomb > 0) { for(let i=0; i<b.flags.digitBomb; i++) baseDmg *= 10n; }
-    for(let h=0; h < b.flags.multiHit; h++) {
-        if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
-        currentBossHP -= baseDmg;
-        addLog(`<span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span>`);
-        if(currentBossHP <= 0n) break;
-    }
-    if(currentBossHP <= 0n) { 
-        handleDrop(5 + bonus); 
-        isModalOpen = true; 
-        document.getElementById("clear-modal").style.display = "flex"; 
-    } else { 
-        addLog(`<span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`); 
-        handleDrop(1 + bonus);
-    }
-    saveGame(); refreshUI();
-}
 
 function refreshUI() {
     const b = getRelicBonus();
@@ -302,7 +313,17 @@ function renderRelics() { const items = Object.entries(player.inventory).filter(
 function renderStatus() { document.getElementById("v-death").innerText = player.deathCount.toLocaleString(); document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString(); let r = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放`; break; } } document.getElementById("st-rank").innerText = r; document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/53`; document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join(""); }
 function checkDropEligibility() { let msg = "【ドロップ資格確認】\n"; msg += "現在の最高ダメージ: " + player.maxDmg.toLocaleString() + "\n"; msg += "----------------------------\n"; Object.entries(DROP_DATA).forEach(([star, data]) => { const isReleased = player.maxDmg >= data.cond; const statusText = isReleased ? "[解放済み]" : "[未到達]"; const condText = data.cond > 0n ? ` (必要: ${data.cond.toLocaleString()})` : " (初期解放)"; msg += `★${star}: ${statusText}${condText}\n`; }); alert(msg); }
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
-function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.innerHTML = m; l.prepend(d); if(l.childNodes.length > 5) l.removeChild(l.lastChild); }
+
+/* 修正：1セット（攻撃・反撃・ドロップ）を単位として管理し、5セット分残す */
+function addLog(htmlContent) { 
+    const l = document.getElementById("log"); 
+    const set = document.createElement("div"); 
+    set.className = "log-set";
+    set.innerHTML = htmlContent; 
+    l.prepend(set); 
+    if(l.childNodes.length > 5) l.removeChild(l.lastChild); 
+}
+
 function resetData() { if(confirm("全リセットしますか？")) { localStorage.clear(); location.reload(); } }
 const btn = document.getElementById("attackBtn");
 btn.addEventListener("pointerdown", (e) => { e.preventDefault(); if(!attackInterval && !isModalOpen) { attack(); attackInterval = setInterval(attack, 120); } });
