@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.0.3</title>
+<title>RELICORE - v2.0.6</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -39,7 +39,6 @@
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
     #log { height: 350px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     
-    /* 演出強化スタイル */
     @keyframes glow-soft { 0% { opacity: 0.8; } 50% { opacity: 1; box-shadow: 0 0 10px rgba(0,123,255,0.3); } 100% { opacity: 0.8; } }
     @keyframes glow-gold { 0% { background: #1a1a1a; } 50% { background: #2a2510; } 100% { background: #1a1a1a; } }
     
@@ -153,11 +152,22 @@ const RELIC_MASTER = [
     {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1},
     {id:401, star:4, name:"王宮の秘宝", atk:5777, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:24680, pIdx:1},
     {id:501, star:5, name:"天界の神剣", atk:677777, hp:0, pIdx:0}, {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:654321, pIdx:1},
+    // ★6
     {id:601, star:6, name:"極限の魔剣", atk:12345678, hp:7654321, aP:666, hP:333, pIdx:0, mult:1.5},
     {id:602, star:6, name:"極限の魔盾", atk:5555555, hp:24242424, aP:222, hP:1234, pIdx:1, mult:1.5},
     {id:603, star:6, name:"極限の魔導書", atk:9988776, hp:9988776, aP:456, hP:456, pIdx:2, mult:1.5},
     {id:604, star:6, name:"極限の王冠", atk:18181818, hp:12121212, aP:777, hP:555, pIdx:3, mult:1.5},
     {id:605, star:6, name:"極限の虚珠", atk:44444444, hp:4444444, aP:4444, hP:444, pIdx:4, mult:3.0},
+    // ★7
+    {id:701, star:7, name:"天理の天秤", atk:88000000, hp:88000000, aP:1000, hP:1000, pIdx:2, mult:1.2},
+    {id:702, star:7, name:"覇者の軍旗", atk:120000000, hp:50000000, aP:5000, hP:0, pIdx:3, mult:1.2},
+    // ★8
+    {id:801, star:8, name:"深淵の眼差し", atk:500000000, hp:100000000, aP:10000, hP:2000, pIdx:4, mult:2.0},
+    {id:802, star:8, name:"星辰の守護", atk:100000000, hp:1000000000, aP:2000, hP:10000, pIdx:1, mult:2.0},
+    // ★9
+    {id:901, star:9, name:"次元の裂け目", atk:2500000000, hp:500000000, aP:25000, hP:5000, pIdx:4, mult:5.0},
+    {id:902, star:9, name:"創世の欠片", atk:1000000000, hp:1000000000, aP:10000, hP:10000, pIdx:2, mult:1.5},
+    // ★10以上 (所持上限1)
     {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:45678901234, aP:1234567, hP:1234567, pIdx:3, mult:100.0},
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:444444444444, aP:8888888, hP:4444444, pIdx:4, mult:1000.0}
 ];
@@ -172,7 +182,7 @@ function getRelicBonus() {
             if(r.star <= 3) a = a * 10n;
             atk += a; hp += BigInt(Math.floor(r.hp || 0)) * BigInt(count); 
             if(r.aP) atkPct += r.aP * count; if(r.hP) hpPct += r.hP * count;
-            if(r.mult) mult *= Math.pow(r.mult, count);
+            if(r.mult) mult *= Math.pow(r.mult, count); // 指数関数的に倍率が重なるように修正
             if(r.pIdx >= 0) pts[r.pIdx] += (r.star * count);
         }
     });
@@ -210,7 +220,7 @@ function attack() {
     let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgBonus;
     
     let totalAtk = (player.baseAtk * 120n / 100n + b.atk) * BigInt(Math.floor((100 + b.atkPct))) / 100n;
-    let dmg = totalAtk * BigInt(Math.floor(powerMult * 10000)) / 10000n;
+    let dmg = BigInt(Math.floor(Number(totalAtk) * b.mult * (powerMult * 10000) / 10000));
 
     if(dmg > player.maxDmg) player.maxDmg = dmg;
     currentBossHP -= dmg;
@@ -285,12 +295,12 @@ function renderVow() {
 }
 
 function renderPower(pts) {
-    document.getElementById("power").innerHTML = POWERS.map((p, i) => `<div class="power-section"><span>${p.name} ${pts[i]}pt</span></div>`).join("");
+    document.getElementById("power").innerHTML = POWERS.map((p, i) => `<div class="st-box"><b>${p.name}</b>: ${pts[i]}pt</div>`).join("");
 }
 
 function renderRelics() {
     const items = Object.entries(player.inventory).filter(([id, c]) => c > 0).map(([id, c]) => ({...RELIC_MASTER.find(m=>m.id==id), c})).sort((a,b)=>a.star-b.star);
-    document.getElementById("relic-list").innerHTML = items.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.c}</div></div>`).join("");
+    document.getElementById("relic-list").innerHTML = items.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.c}</div><div class="relic-effect-box">倍率 x${(r.mult || 1).toFixed(1)}</div></div>`).join("");
 }
 
 function renderStatus() {
