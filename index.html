@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.9-debug</title>
+<title>RELICORE - v2.2.9-debug-endless</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -76,11 +76,11 @@
 </style>
 </head>
 <body>
-<div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
+<div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">「真の姿」の討伐に成功しました。</div><button class="story-btn" onclick="closeClearModal()">虚無の先へ</button></div></div>
 
 <div id="header">
     <div class="boss-area">
-        <div class="boss-name" id="boss-display-name">魔神 <span class="debug-badge">DEBUG</span></div>
+        <div class="boss-name" id="boss-display-name">虚無の残滓 <span class="debug-badge">ENDLESS DEBUG</span></div>
         <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
         <div class="hp-val-display" id="bosshp-cur">0</div>
     </div>
@@ -102,21 +102,20 @@
     <div id="battle" class="tab active">
         <button class="btn-attack" id="attackBtn">こうげき</button>
         <div id="log"></div>
-        <div class="ver-footer">RELICORE v2.2.9-debug</div>
+        <div class="ver-footer">RELICORE v2.2.9-debug-endless</div>
     </div>
     <div id="vow" class="tab"><div id="vow-list"></div><div class="ver-footer">v2.2.9-debug</div></div>
     <div id="power" class="tab"><div id="power-content"></div><div class="ver-footer">v2.2.9-debug</div></div>
     <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div><div class="ver-footer">v2.2.9-debug</div></div>
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span></div>
-        <div class="ver-footer">v2.2.9-debug</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
-const BOSS_MAX_HP_BASE = 100000000000000000000n; 
+const BOSS_MAX_HP_ENDLESS = 1000000000000000000000000000000000000000000000000000000000000n; 
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"勇者の魂に刻まれた誓い。"},
     {id:101, star:1, name:"勇者の木片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"野草の滴", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"冒険の証", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"兵士の号令", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚ろな石", atk:4, hp:10, pIdx:4},
@@ -133,25 +132,24 @@ const RELIC_MASTER = [
 ];
 const POWERS = [{name:"剣神",skills:[{name:"一の太刀",desc:"基礎ATK +20%"},{name:"心气一致",desc:"所持遺物種数でダメージ増"},{name:"万象一掃",desc:"再起回数でダメージ増"},{name:"天断の極意",desc:"常時追加ダメージ100%"},{name:"極限一閃・無双",desc:"最終ダメージ倍率 x5.0"}]},{name:"不滅",skills:[{name:"生命の根源",desc:"基礎HP +30%"},{name:"再誕の輝き",desc:"再起ボーナス 1.5倍"},{name:"不撓不屈の魂",desc:"現在HP割合に応じてATK増"},{name:"死を超越せし者",desc:"再起数で全ステータス乗算"},{name:"不滅 of 王土",desc:"再起数で最終ダメ/HP指数増"}]},{name:"魔導",skills:[{name:"魔力回路",desc:"遺物効果 +20%上乗せ"},{name:"魔力奔流",desc:"全スキル効果 1.5倍"},{name:"理の解析",desc:"遺物ドロップ判定 +1回"},{name:"古の叡智",desc:"遺物ボーナス 1.2倍計算"},{name:"真理の扉",desc:"★5以上所持数で特大乗算"}]},{name:"覇王",skills:[{name:"万軍の主",desc:"遺物★合計に応じてATK加算"},{name:"覇王の威光",desc:"★6以上1つ毎に倍率UP"},{name:"統率の理",desc:"★1〜3遺物効果 10倍補正"},{name:"覇道の足跡",desc:"遺物種類数 × 0.2 倍率加算"},{name:"終焉の号令",desc:"全遺物効果 1.5倍"}]},{name:"虚無",skills:[{name:"忘却の彼方",desc:"基礎ATK +50%底上げ"},{name:"深淵の理",desc:"★合計100毎に倍率 +1.0"},{name:"残滓の追撃",desc:"常に2回連続攻撃"},{name:"無に帰す一撃",desc:"倍率に(再起数/100)を加算"},{name:"虚無の深淵",desc:"最終ダメージ倍率 x3.0"}]}];
 
-// デバッグ初期値設定
 let player = { 
-    inventory: {}, // 後で全追加
+    inventory: {}, 
     deathCount: 100000, 
     baseAtk: 1000000n, 
     baseHP: 10000000n, 
     maxDmg: 0n, 
-    isEndless: false, 
+    isEndless: true, // デバッグ用：最初からエンドレス
     storySeen: true 
 };
-RELIC_MASTER.forEach(r => player.inventory[r.id] = 1); // 全遺物1個所持
+RELIC_MASTER.forEach(r => player.inventory[r.id] = 1);
 
-let currentBossHP = BOSS_MAX_HP_BASE;
+let currentBossHP = BOSS_MAX_HP_ENDLESS; // 初期値をエンドレスHPに
 let attackInterval = null;
 let isModalOpen = false;
 
 function getRelicBonus() {
     let atk = 0n, hp = 0n, mult = 1.0;
-    let pts = [10000000, 10000000, 10000000, 10000000, 10000000]; // デバッグ用：全スキル解放pt
+    let pts = [10000000, 10000000, 10000000, 10000000, 10000000];
     let flags = { doubleDmg: true, multiHit: 1, logicHack: true, kingPower: 5, digitBomb: 1 };
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
@@ -165,7 +163,7 @@ function getRelicBonus() {
 
 function attack() {
     if(isModalOpen) return;
-    let bonus = 4; // deathCount 100,000 なのでボーナス+4
+    let bonus = 4;
     player.deathCount += (1 + bonus);
     player.baseAtk += BigInt(Math.floor(Math.random() * player.deathCount));
     player.baseHP += BigInt(Math.floor(Math.random() * player.deathCount * 10));
@@ -183,7 +181,7 @@ function attack() {
         isModalOpen = true; 
         document.getElementById("clear-modal").style.display = "flex"; 
     } else { 
-        addLog(`<span style="color:#dc3545;">魔神の攻撃！ 999...ダメ。再起の誓いによって新たなる力を得た</span>`); 
+        addLog(`<span style="color:#dc3545;">残滓の波動！ 999...ダメ。再起の誓いによって新たなる力を得た</span>`); 
     }
     refreshUI();
 }
@@ -194,13 +192,18 @@ function refreshUI() {
     document.getElementById("p-atk").innerText = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult)).toLocaleString();
     document.getElementById("p-hp").innerText = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult)).toLocaleString();
     document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
-    document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
+    
+    // HPバーの割合計算（10の60乗規模なのでBigIntで計算）
+    const pct = Number(currentBossHP * 100n / BOSS_MAX_HP_ENDLESS);
+    document.getElementById("hp-bar-fill").style.width = `${pct}%`;
+    document.getElementById("boss-display-name").innerText = "虚無の残滓";
+
     const tid = document.querySelector(".tab.active").id;
     if(tid === 'vow') renderVow(); else if(tid === 'power') renderPower(b.pts); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
 }
 
 function renderVow() {
-    document.getElementById("vow-list").innerHTML = `<div class="vow-item"><div class="vow-name">デバッグモード動作中</div><span class="vow-highlight">全遺物・全スキル解放状態</span></div>`;
+    document.getElementById("vow-list").innerHTML = `<div class="vow-item"><div class="vow-name">エンドレス・デバッグ</div><span class="vow-highlight">真の姿との最終決戦テスト中</span></div>`;
 }
 function renderPower(pts) { 
     document.getElementById("power-content").innerHTML = POWERS.map((p, i) => `
@@ -209,7 +212,7 @@ function renderPower(pts) {
 }
 function renderRelics() { document.getElementById("relic-list").innerHTML = RELIC_MASTER.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name}</div><div class="relic-effect-box">${r.atk||r.hp?'性能あり':'特殊'}</div></div>`).join(""); }
 function renderStatus() { document.getElementById("v-death").innerText = player.deathCount.toLocaleString(); }
-function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; refreshUI(); }
+function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_ENDLESS; refreshUI(); }
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
 function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.innerHTML = m; l.prepend(d); if(l.childNodes.length > 20) l.removeChild(l.lastChild); }
 function resetData() { localStorage.clear(); location.reload(); }
