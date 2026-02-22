@@ -7,7 +7,7 @@
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     
     .c1 { color: #888888; font-weight: bold; }
     .c2 { color: #28a745; font-weight: bold; }
@@ -42,32 +42,32 @@
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
     
-    #content-area { flex-grow: 1; overflow: hidden; background: #fff; position: relative; }
+    #content-area { flex-grow: 1; overflow: hidden; background: #fff; }
+    /* 修正：スクロール機能を完全に復旧 */
     .tab { display: none; padding: 10px; height: 100%; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    .tab.active { display: flex; flex-direction: column; }
+    .tab.active { display: block; }
     
-    /* 修正：マージンを詰め、高さを節約 */
-    .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; }
-    /* 修正：ログの高さを200pxに短縮してバージョン表記を1画面内に収める */
-    #log { height: 200px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; flex-shrink: 0; }
+    .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; }
+    /* 修正：高さを可変にしつつ十分なスペースを確保 */
+    #log { height: calc(100vh - 380px); min-height: 150px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
     
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     .modal-title { color: gold; font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
 
-    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0; }
+    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
     .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
     .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; line-height: 1.3; }
     .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
 
-    .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 10px; flex-shrink: 0; }
+    .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 20px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
     .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; line-height: 1.2; }
     .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
     .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
 
-    .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+    .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .power-head { background: #eee; padding: 8px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; }
     .skill-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
     .skill-row { display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
@@ -77,13 +77,13 @@
     .skill-req { font-size: 0.6em; color: #999; font-weight: normal; }
     .skill-effect { font-size: 0.7em; color: #666; padding-left: 2px; }
 
-    .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; flex-shrink: 0; }
+    .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
     .clickable-stat { color: var(--primary); text-decoration: underline; cursor: pointer; }
-    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; flex-shrink: 0; }
+    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 40px; }
 
-    /* 修正：過剰なパディングを削除し、適切なマージンを設定 */
-    .ver-footer { text-align: center; color: #999; font-size: 0.85em; padding: 15px 0; width: 100%; margin-top: 5px; flex-shrink: 0; }
+    /* 修正：デッドスペースを活用した画面固定配置 */
+    .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; z-index: 50; }
 </style>
 </head>
 <body>
@@ -114,27 +114,24 @@
     <div id="battle" class="tab active">
         <button class="btn-attack" id="attackBtn">こうげき</button>
         <div id="log"></div>
-        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="vow" class="tab">
         <div id="vow-list"></div>
-        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="power" class="tab">
         <div id="power-content"></div>
-        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="relic" class="tab">
         <div class="relic-list-container" id="relic-list"></div>
-        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
         <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
-        <div class="ver-footer">RELICORE v2.2.9</div>
     </div>
 </div>
+
+<div class="ver-footer">RELICORE v2.2.9</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -228,11 +225,9 @@ function attack() {
     if(isModalOpen) return;
     let bonus = 0;
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-    
     player.deathCount += (1 + bonus); 
     player.baseAtk += getRandomRange(1, player.deathCount); 
     player.baseHP += getRandomRange(10, player.deathCount * 10);
-    
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
@@ -244,14 +239,12 @@ function attack() {
     let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
     if(b.flags.doubleDmg) baseDmg += totalAtk;
     if(b.flags.digitBomb > 0) { for(let i=0; i<b.flags.digitBomb; i++) baseDmg *= 10n; }
-    
     for(let h=0; h < b.flags.multiHit; h++) {
         if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
         currentBossHP -= baseDmg;
         addLog(`<span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span>`);
         if(currentBossHP <= 0n) break;
     }
-    
     if(currentBossHP <= 0n) { 
         handleDrop(5 + bonus); 
         isModalOpen = true; 
@@ -270,13 +263,11 @@ function refreshUI() {
     let dispHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
     document.getElementById("p-atk").innerText = dispAtk.toLocaleString();
     document.getElementById("p-hp").innerText = dispHP.toLocaleString();
-    
     const maxH = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE;
     const pct = (Number(currentBossHP * 10000n / maxH) / 100);
     document.getElementById("hp-bar-fill").style.width = `${pct}%`;
     document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
     document.getElementById("boss-display-name").innerText = player.isEndless ? "虚無の残滓" : "魔神";
-    
     const tid = document.querySelector(".tab.active").id;
     if(tid === 'vow') renderVow(); else if(tid === 'power') renderPower(b.pts); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
 }
@@ -301,10 +292,7 @@ function renderPower(pts) {
                     const lock = pts[i] < req; 
                     return `
                     <div class="skill-row ${lock?'locked':''}">
-                        <div class="skill-main">
-                            <div class="skill-chip">${lock?'未覚醒':s.name}</div>
-                            <span class="skill-req">(必要: ${req.toLocaleString()} pt)</span>
-                        </div>
+                        <div class="skill-main"><div class="skill-chip">${lock?'未覚醒':s.name}</div><span class="skill-req">(必要: ${req.toLocaleString()} pt)</span></div>
                         <span class="skill-effect">${lock?'？？？':s.desc}</span>
                     </div>`; 
                 }).join("")}
