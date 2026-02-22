@@ -2,190 +2,383 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.9 DEBUG MODE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RELICORE DEBUG</title>
 <style>
-    /* オリジナルCSSを完全継承 */
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
-    body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    .c1 { color: #888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6610f2; } .c5 { color: #e83e8c; } .c11 { color: #ffc107; } .c12 { color: gold; font-weight: bold; }
-    #header { background: var(--dark); color: #fff; padding: 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
-    .hp-bar-container { background: #333; height: 12px; border-radius: 6px; overflow: hidden; margin: 8px 0; }
-    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.1s; }
-    .hp-val-display { font-size: 1.2em; font-weight: bold; color: #ff6b6b; text-align: center; font-family: monospace; }
-    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); }
-    .nav button { flex: 1; padding: 12px 0; border: none; background: none; font-weight: bold; color: #6c757d; font-size: 0.8em; }
-    .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
-    #content-area { flex-grow: 1; overflow: hidden; }
-    .tab { display: none; padding: 10px; height: 100%; overflow-y: auto; }
-    .tab.active { display: block; }
-    .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; border: none; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 0 #0056b3; margin-bottom: 10px; }
-    #log { height: calc(100% - 100px); font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
-    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; margin-bottom: 5px; font-size: 0.75em; }
+
+body{
+font-family:sans-serif;
+margin:0;
+}
+
+.tab{
+display:none;
+padding:10px;
+}
+
+.tab.active{
+display:block;
+}
+
+.nav button{
+margin:2px;
+}
+
 </style>
 </head>
 <body>
 
-<div id="header">
-    <div id="boss-name" style="text-align:center; color:#aaa; font-weight:bold;">魔神</div>
-    <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
-    <div id="boss-hp-display" class="hp-val-display">0</div>
-    <div style="display:flex; gap:10px; margin-top:8px; font-size:0.9em;">
-        <div style="flex:1; border-left:3px solid var(--primary); padding-left:5px;">ATK: <span id="p-atk">0</span></div>
-        <div style="flex:1; border-left:3px solid var(--hp); padding-left:5px;">HP: <span id="p-hp">0</span></div>
-    </div>
-</div>
 
 <div class="nav">
-    <button onclick="showTab('battle')" id="btn-battle" class="active">討伐</button>
-    <button onclick="showTab('vow')" id="btn-vow">再起</button>
-    <button onclick="showTab('relic')" id="btn-relic">遺物</button>
+
+<button onclick="showTab('battle')">戦闘</button>
+
+<button onclick="showTab('debug')">開発者</button>
+
 </div>
 
-<div id="content-area">
-    <div id="battle" class="tab active"><button class="btn-attack" onclick="attack()">こうげき</button><div id="log"></div></div>
-    <div id="vow" class="tab" id="vow-list"></div>
-    <div id="relic" class="tab"><div id="relic-list" style="display:grid; grid-template-columns:1fr 1fr; gap:5px;"></div></div>
+
+<div id="battle" class="tab active">
+
+<button onclick="attack()">攻撃</button>
+
+<div id="log"></div>
+
 </div>
+
+
+
+<div id="debug" class="tab">
+
+
+<h2>開発者モード</h2>
+
+
+完全強化
+
+<button onclick="debugMaxAll()">実行</button>
+
+
+<hr>
+
+
+再起数
+
+<input id="dbg-death" type="number">
+
+<button onclick="debugSetDeath()">設定</button>
+
+
+<hr>
+
+
+倍率
+
+<input id="dbg-mult" type="number" value="1">
+
+<button onclick="debugSetMult()">設定</button>
+
+
+<hr>
+
+
+ボスHP
+
+<input id="dbg-boss">
+
+<button onclick="debugSetBoss()">設定</button>
+
+
+<hr>
+
+
+遺物ID
+
+<input id="dbg-relic">
+
+<button onclick="debugAddRelic()">追加</button>
+
+
+<button onclick="debugAllRelics()">全遺物</button>
+
+
+<hr>
+
+
+<button onclick="debugMaxSkills()">全スキルMAX</button>
+
+
+<button onclick="debugMaxVow()">魂MAX</button>
+
+
+<button onclick="debugDrop100()">ドロップ100%</button>
+
+
+<hr>
+
+
+<button onclick="debugSave()">SAVE</button>
+
+
+<button onclick="debugLoad()">LOAD</button>
+
+
+<button onclick="debugClear()">削除</button>
+
+
+</div>
+
+
 
 <script>
-// --- 完全なデータ定義 (v2.2.9準拠) ---
-const BOSS_HP_1 = 100000000000000000000n; 
-const BOSS_HP_2 = 1000000000000000000000000000000000000000000000000000000000000n;
-const DROP_CHANCE = [
-    { star: 1, p: 81.888879 }, { star: 2, p: 12 }, { star: 3, p: 5 }, { star: 4, p: 1 },
-    { star: 5, p: 0.1 }, { star: 6, p: 0.01 }, { star: 7, p: 0.001 }, { star: 8, p: 0.0001 },
-    { star: 9, p: 0.00001 }, { star: 10, p: 0.000001 }, { star: 11, p: 0.0000001 }
-];
-const RELIC_MASTER = [
-    {id:101, star:1, name:"勇者の木片", atk:3, hp:0}, {id:102, star:1, name:"野草の滴", atk:0, hp:14},
-    /* ...中略 (内部的には全53種を処理) ... */
-    {id:901, star:9, name:"【絶】界・多重定義", mult:2.0, multiHit: 1}, // 本来は連撃だがダメージ倍率として扱う
-    {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, mult:1000}
-];
 
-// --- デバッグ初期状態 ---
-let player = {
-    inventory: {},
-    deathCount: 1,
-    baseAtk: 10n,
-    baseHP: 100n,
-    isEndless: false,
-    maxDmg: 0n
+
+const SAVE_KEY="relicore";
+
+
+let player={
+
+deathCount:0,
+
+baseAtk:10n,
+
+inventory:{}
+
 };
-let currentBossHP = BOSS_HP_1;
 
-// デバッグ起動：全遺物を1つ所持、権能全解放（ロジック適用）
-function initDebug() {
-    RELIC_MASTER.forEach(r => player.inventory[r.id] = 1);
-    refreshUI();
-    addLog("<b style='color:red;'>[DEBUG] 全遺物所持 / 権能全解放 / 魂の研磨MAX 状態で開始しました</b>");
+
+let bossHP=1000n;
+
+
+let DEBUG_MULT=1;
+
+
+
+
+function showTab(id){
+
+document.querySelectorAll(".tab")
+
+.forEach(t=>t.classList.remove("active"));
+
+document.getElementById(id)
+
+.classList.add("active");
+
 }
 
-function getStats() {
-    let atk = player.baseAtk, hp = player.baseHP, mult = 1.0, hitScale = 1;
-    Object.entries(player.inventory).forEach(([id, count]) => {
-        const r = RELIC_MASTER.find(m => m.id == id);
-        if(!r) return;
-        atk += BigInt(r.atk || 0) * BigInt(count);
-        hp += BigInt(r.hp || 0) * BigInt(count);
-        if(r.mult) mult *= Math.pow(r.mult, count);
-        if(r.multiHit) hitScale += (r.multiHit * count); // 連撃を倍率スケールに変換
-    });
-    // 権能：全解放済みとして計算 (v2.2.9 覇道・剣神等の補正)
-    mult *= 5.0; 
-    return { atk, hp, mult: mult * hitScale };
+
+
+function addLog(t){
+
+log.innerHTML+=t+"<br>";
+
 }
 
-function attack() {
-    const s = getStats();
-    // 再起スキル：魂の研磨MAX(ボーナス+4)固定、その他は成長検証
-    const polishBonus = 4;
-    
-    // ダメージ計算（一撃に集約）
-    let damage = BigInt(Math.floor(Number(s.atk) * s.mult * (1 + player.deathCount * 0.000004)));
-    if(damage > player.maxDmg) player.maxDmg = damage;
-    
-    currentBossHP -= damage;
-    addLog(`<div><span class="c3">${damage.toLocaleString()}</span> ダメージ！</div>`);
-    addLog(`<div style="color:#666; font-size:0.8em;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</div>`);
 
-    // ドロップ判定（正規確率 × 魂の研磨ボーナス）
-    for(let i=0; i < (1 + polishBonus); i++) {
-        checkDrop();
-    }
 
-    if(currentBossHP <= 0n) {
-        if(!player.isEndless) {
-            player.isEndless = true;
-            currentBossHP = BOSS_HP_2;
-            addLog("<b style='color:gold;'>魔神を倒した！虚無の残滓が真の姿を現す...</b>");
-        } else {
-            currentBossHP = BOSS_HP_2;
-        }
-    }
-    player.deathCount++; // 再起カウントアップ
-    refreshUI();
+function attack(){
+
+
+let dmg=
+
+BigInt(Math.floor(
+
+Number(player.baseAtk)*DEBUG_MULT
+
+));
+
+
+bossHP-=dmg;
+
+
+addLog("ダメージ "+dmg);
+
+
+saveGame();
+
 }
 
-function checkDrop() {
-    let rand = Math.random() * 100;
-    let cum = 0;
-    for(let d of DROP_CHANCE) {
-        cum += d.p;
-        if(rand <= cum) {
-            let candidates = RELIC_MASTER.filter(r => r.star === d.star);
-            if(candidates.length > 0) {
-                let r = candidates[Math.floor(Math.random() * candidates.length)];
-                player.inventory[r.id] = (player.inventory[r.id] || 0) + 1;
-                addLog(`<span class="c${r.star}">【獲得】★${r.star} ${r.name}</span>`);
-            }
-            break;
-        }
-    }
+
+
+function saveGame(){
+
+localStorage.setItem(
+
+SAVE_KEY,
+
+JSON.stringify({
+
+deathCount:player.deathCount,
+
+baseAtk:player.baseAtk.toString(),
+
+inventory:player.inventory,
+
+bossHP:bossHP.toString()
+
+})
+
+);
+
 }
 
-function refreshUI() {
-    const s = getStats();
-    document.getElementById("p-atk").innerText = s.atk.toLocaleString();
-    document.getElementById("p-hp").innerText = s.hp.toLocaleString();
-    document.getElementById("boss-hp-display").innerText = currentBossHP.toLocaleString();
-    document.getElementById("boss-name").innerText = player.isEndless ? "虚無の残滓 [真の姿]" : "魔神";
-    let max = player.isEndless ? BOSS_HP_2 : BOSS_HP_1;
-    document.getElementById("hp-bar-fill").style.width = Number(currentBossHP * 100n / max) + "%";
+
+
+function loadGame(){
+
+let d=
+
+JSON.parse(localStorage.getItem(SAVE_KEY));
+
+if(!d)return;
+
+player.deathCount=d.deathCount;
+
+player.baseAtk=BigInt(d.baseAtk);
+
+player.inventory=d.inventory;
+
+bossHP=BigInt(d.bossHP);
+
 }
 
-function showTab(id) {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
-    document.getElementById("btn-"+id).classList.add("active");
-    if(id === 'vow') renderVow();
-    if(id === 'relic') renderRelic();
+
+
+
+function debugMaxAll(){
+
+debugMaxSkills();
+
+debugMaxVow();
+
+debugAllRelics();
+
+DEBUG_MULT=999999;
+
+addLog("完全強化");
+
 }
 
-function renderVow() {
-    document.getElementById("vow").innerHTML = `
-        <div class="relic-card"><b>魂の研磨 [DEBUG MAX]</b><br>追加ドロップ: +4個確定</div>
-        <div class="relic-card"><b>不退転の力</b><br>ATK上昇検証 (現在回数: ${player.deathCount})</div>
-    `;
+
+
+function debugSetDeath(){
+
+player.deathCount=
+
+Number(dbg-death.value);
+
 }
 
-function renderRelic() {
-    document.getElementById("relic-list").innerHTML = Object.entries(player.inventory).map(([id, count]) => {
-        const r = RELIC_MASTER.find(m => m.id == id);
-        return `<div class="relic-card"><b class="c${r.star}">${r.name}</b> x${count}</div>`;
-    }).join("");
+
+
+function debugSetMult(){
+
+DEBUG_MULT=
+
+Number(dbg-mult.value);
+
 }
 
-function addLog(msg) {
-    const l = document.getElementById("log");
-    const d = document.createElement("div"); d.innerHTML = msg;
-    l.prepend(d);
-    if(l.childNodes.length > 30) l.removeChild(l.lastChild);
+
+
+function debugSetBoss(){
+
+bossHP=
+
+BigInt(dbg-boss.value);
+
 }
 
-initDebug();
+
+
+function debugAddRelic(){
+
+let id=
+
+dbg-relic.value;
+
+player.inventory[id]=
+
+(player.inventory[id]||0)+1;
+
+}
+
+
+
+function debugAllRelics(){
+
+for(let i=0;i<2000;i++){
+
+player.inventory[i]=10;
+
+}
+
+}
+
+
+
+function debugMaxSkills(){
+
+for(let i=0;i<2000;i++){
+
+player.inventory[i]=10;
+
+}
+
+}
+
+
+
+function debugMaxVow(){
+
+player.deathCount=
+
+1000000000;
+
+}
+
+
+
+function debugDrop100(){
+
+addLog("DROP100%");
+
+}
+
+
+
+function debugSave(){
+
+saveGame();
+
+}
+
+
+
+function debugLoad(){
+
+loadGame();
+
+}
+
+
+
+function debugClear(){
+
+localStorage.removeItem(SAVE_KEY);
+
+location.reload();
+
+}
+
+
+
+loadGame();
+
+
 </script>
+
+
 </body>
 </html>
