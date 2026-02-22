@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.0.1</title>
+<title>RELICORE - v2.0.2</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -43,11 +43,12 @@
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     .modal-title { color: gold; font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
 
-    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 12px 12px 20px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: gold; border-radius: 8px 0 0 8px; }
-    .vow-name { font-weight: bold; font-size: 1em; color: #333; margin-bottom: 4px; }
-    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 1.05em; margin-bottom: 4px; display: block; }
-    .vow-desc { font-size: 0.75em; color: #777; line-height: 1.4; }
+    /* 再起タブ：フォントサイズの調整 */
+    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
+    .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
+    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; line-height: 1.3; }
+    .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
 
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 80px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
@@ -140,7 +141,7 @@
             </div>
             <table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table>
         </div>
-        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.0.1</div>
+        <div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.0.2</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
@@ -272,7 +273,6 @@ function attack() {
 function handleDrop(isKill) {
     let dCount = 1; [1000, 5000, 25000, 100000].forEach(t => { if(player.deathCount >= t) dCount++; });
     if(isKill) dCount += 5;
-
     player.deathCount += dCount;
 
     for(let i=0; i<dCount; i++) {
