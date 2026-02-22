@@ -3,48 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.9-debug-stable</title>
+<title>RELICORE - v2.2.9-stable-debug</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    #header { background: var(--dark); color: #fff; padding: 15px; border-bottom: 2px solid #000; flex-shrink: 0; }
-    .hp-val-display { text-align: center; font-size: 1.3em; font-weight: bold; color: #ff6b6b; font-family: monospace; }
-    .hp-bar-container { background: #333; height: 12px; border-radius: 6px; overflow: hidden; margin: 8px 0; }
-    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; }
-
-    .status-box { display: flex; gap: 10px; margin-top: 10px; }
-    .stat-card { flex: 1; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; border-left: 4px solid var(--primary); }
-    .stat-label { font-size: 0.7em; color: #aaa; }
-    .stat-val { font-size: 1em; font-weight: bold; font-family: monospace; }
-
-    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); }
-    .nav button { flex: 1; padding: 15px 0; border: none; background: none; font-weight: bold; font-size: 0.9em; color: #666; }
-    .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
+    /* ヘッダー固定領域 */
+    #header { background: var(--dark); color: #fff; padding: 12px; border-bottom: 2px solid #000; flex-shrink: 0; z-index: 100; }
+    .boss-name { text-align: center; font-size: 0.9em; font-weight: bold; color: #888; margin-bottom: 4px; }
+    .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 4px 0; }
+    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.1s; }
+    .hp-val { text-align: center; font-size: 1.1em; font-weight: bold; color: #ff6b6b; font-family: monospace; }
     
-    #content-area { flex-grow: 1; overflow: hidden; position: relative; }
-    .tab { display: none; padding: 15px; height: 100%; overflow-y: auto; }
+    .status-row { display: flex; gap: 8px; margin-top: 8px; }
+    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 4px; border-left: 3px solid var(--primary); }
+    .stat-label { font-size: 0.6em; color: #aaa; text-transform: uppercase; }
+    .stat-val { font-size: 0.85em; font-weight: bold; font-family: monospace; color: #fff; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ナビゲーション固定領域 */
+    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .nav button { flex: 1; padding: 12px 0; border: none; background: none; font-weight: bold; font-size: 0.8em; color: #6c757d; border-bottom: 3px solid transparent; }
+    .nav button.active { color: var(--primary); border-bottom-color: var(--primary); background: #fff; }
+    
+    /* メインコンテンツ可変領域 */
+    #content-area { flex-grow: 1; position: relative; overflow: hidden; }
+    .tab { display: none; height: 100%; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
     .tab.active { display: block; }
     
-    .btn-attack { width: 100%; padding: 25px; background: var(--primary); color: #fff; font-size: 1.5em; font-weight: bold; border: none; border-radius: 15px; box-shadow: 0 5px 0 #0056b3; margin-bottom: 15px; }
-    #log { height: 280px; font-size: 0.85em; background: #fdfdfd; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    .btn-attack { width: 100%; padding: 18px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 10px; box-shadow: 0 4px 0 #0056b3; margin-bottom: 12px; transition: transform 0.05s; }
+    .btn-attack:active { transform: translateY(2px); box-shadow: 0 2px 0 #0056b3; }
     
-    .relic-log { color: #0056b3; font-weight: bold; background: #e7f3ff; padding: 5px; border-radius: 4px; margin: 4px 0; border-left: 4px solid #007bff; }
-    .relic-card { border: 1px solid var(--border); padding: 12px; border-radius: 10px; background: #fff; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .relic-eff { font-size: 0.8em; color: #666; font-family: monospace; margin-top: 4px; display: block; }
-    .relic-count { font-weight: bold; background: #eee; padding: 4px 10px; border-radius: 20px; }
+    #log { height: 320px; font-size: 0.8em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    .relic-log { color: #0056b3; font-weight: bold; background: #e7f3ff; border-left: 4px solid #007bff; padding: 4px 8px; margin: 4px 0; line-height: 1.4; }
+    .vow-msg { color: #dc3545; font-size: 0.85em; margin-bottom: 4px; }
+
+    /* 遺物リスト */
+    .relic-card { border: 1px solid var(--border); padding: 10px; border-radius: 8px; background: #fff; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .relic-info { display: flex; flex-direction: column; gap: 2px; }
+    .relic-name { font-weight: bold; font-size: 0.85em; }
+    .relic-eff { font-size: 0.75em; color: #666; font-family: monospace; }
+    .relic-count { font-weight: bold; color: var(--primary); background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 0.85em; }
 </style>
 </head>
 <body>
 
 <div id="header">
-    <div style="text-align:center; color:#888; font-size:0.9em; font-weight:bold;">虚無の残滓 - 真の姿</div>
+    <div class="boss-name">虚無の残滓 <span style="color:gold;">[真の姿]</span></div>
     <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
-    <div class="hp-val-display" id="bosshp-cur">0</div>
-    <div class="status-box">
+    <div class="hp-val" id="bosshp-cur">0</div>
+    <div class="status-row">
         <div class="stat-card"><div class="stat-label">ATK</div><div class="stat-val" id="p-atk">0</div></div>
-        <div class="stat-card" style="border-left-color:#dc3545;"><div class="stat-label">HP</div><div class="stat-val" id="p-hp">0</div></div>
+        <div class="stat-card" style="border-left-color:var(--hp);"><div class="stat-label">HP</div><div class="stat-val" id="p-hp">0</div></div>
     </div>
 </div>
 
@@ -61,22 +71,22 @@
     </div>
     <div id="relic" class="tab"><div id="relic-list"></div></div>
     <div id="status" class="tab">
-        <div style="padding:20px; background:#f8f9fa; border-radius:10px;">
-            <p>再起回数: <span id="v-death" style="font-weight:bold;">0</span></p>
-            <p style="font-size:0.8em; color:#888;">デバッグ機能：1クリックごとに遺物をランダム獲得</p>
-        </div>
-        <button onclick="resetData()" style="width:100%; margin-top:20px; padding:15px; background:#dc3545; color:#fff; border:none; border-radius:8px;">全リセット</button>
+        <p>再起回数: <span id="v-death" style="font-weight:bold;">0</span></p>
+        <p style="font-size:0.8em; color:#888;">※正規ドロップ率による検証環境</p>
+        <button onclick="resetData()" style="width:100%; padding:15px; background:var(--hp); color:#fff; border:none; border-radius:8px; font-weight:bold;">全リセット</button>
     </div>
 </div>
 
 <script>
 const BOSS_MAX_HP = 1000000000000000000000000000000000000000000000000000000000000n;
+const BASE_DROP_RATE = 0.05; // 正規ドロップ率 (5%)
 
+// 遺物マスタ
 const RELIC_MASTER = [
     {id:101, star:1, name:"勇者の木片", atk:3, hp:0}, {id:102, star:1, name:"野草の滴", atk:0, hp:14}, {id:103, star:1, name:"冒険の証", atk:2, hp:9},
     {id:201, star:2, name:"鉄の剣", atk:17, hp:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:126},
     {id:501, star:5, name:"天界の神剣", atk:677777, hp:0}, {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, mult:10.0}
-    // テスト用に主要遺物を配置（実際は53種類）
+    // テスト用に抜粋。本来は53種類
 ];
 
 let player = {
@@ -90,51 +100,56 @@ let currentBossHP = BOSS_MAX_HP;
 let attackInterval = null;
 
 function attack() {
-    // 1. 遺物ドロップと詳細ログ
-    const r = RELIC_MASTER[Math.floor(Math.random() * RELIC_MASTER.length)];
-    player.inventory[r.id] = (player.inventory[r.id] || 0) + 1;
-    
-    let dropInfo = `ATK+${(r.atk||0).toLocaleString()} / HP+${(r.hp||0).toLocaleString()}`;
-    if(r.mult) dropInfo += ` / Mult x${r.mult}`;
-    addLog(`<div class="relic-log">遺物獲得: ${r.name}<br><small>${dropInfo}</small></div>`);
+    // 1. 正規ドロップ判定
+    if (Math.random() < BASE_DROP_RATE) {
+        const r = RELIC_MASTER[Math.floor(Math.random() * RELIC_MASTER.length)];
+        player.inventory[r.id] = (player.inventory[r.id] || 0) + 1;
+        let eff = `ATK+${(r.atk||0).toLocaleString()} / HP+${(r.hp||0).toLocaleString()}`;
+        if(r.mult) eff += ` / Mult x${r.mult}`;
+        addLog(`<div class="relic-log">遺物獲得: ${r.name}<br><small>${eff}</small></div>`);
+    }
 
-    // 2. 正確なステータス再計算
-    let bonusAtk = 0n, bonusHp = 0n, totalMult = 1.0;
+    // 2. ステータス計算 (ルール: HP > ATK バランスを考慮)
+    let bAtk = 0n, bHp = 0n, tMult = 1.0;
     Object.entries(player.inventory).forEach(([id, count]) => {
         const m = RELIC_MASTER.find(x => x.id == id);
         if(!m) return;
-        bonusAtk += BigInt(m.atk || 0) * BigInt(count);
-        bonusHp += BigInt(m.hp || 0) * BigInt(count);
-        if(m.mult) totalMult *= Math.pow(m.mult, count);
+        bAtk += BigInt(m.atk || 0) * BigInt(count);
+        bHp += BigInt(m.hp || 0) * BigInt(count);
+        if(m.mult) tMult *= Math.pow(m.mult, count);
     });
 
-    let finalAtk = BigInt(Math.floor(Number(player.baseAtk + bonusAtk) * totalMult));
-    let finalHp = BigInt(Math.floor(Number(player.baseHP + bonusHp) * totalMult));
+    let finalAtk = BigInt(Math.floor(Number(player.baseAtk + bAtk) * tMult));
+    let finalHp = BigInt(Math.floor(Number(player.baseHP + bHp) * tMult));
     
-    // 3. ダメージ適用
     currentBossHP -= finalAtk;
     if(currentBossHP < 0n) currentBossHP = 0n;
 
-    addLog(`<span>${finalAtk.toLocaleString()} ダメージ！</span>`);
-    addLog(`<span style="color:#dc3545; font-size:0.8em;">再起の誓いによって新たなる力を得た</span>`);
+    // 3. ログ表示 (攻撃回数増加は禁止)
+    addLog(`<div>${finalAtk.toLocaleString()} ダメージ！</div>`);
+    addLog(`<div class="vow-msg">再起の誓いによって新たなる力を得た</div>`);
     
-    // UI反映
-    document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
-    document.getElementById("p-hp").innerText = finalHp.toLocaleString();
+    refreshUI(finalAtk, finalHp);
+}
+
+function refreshUI(atk, hp) {
+    document.getElementById("p-atk").innerText = atk.toLocaleString();
+    document.getElementById("p-hp").innerText = hp.toLocaleString();
     document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
     document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP)}%`;
+    document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
 }
 
 function renderRelics() {
-    const list = document.getElementById("relic-list");
-    list.innerHTML = Object.entries(player.inventory).map(([id, count]) => {
+    const container = document.getElementById("relic-list");
+    container.innerHTML = Object.entries(player.inventory).map(([id, count]) => {
         const m = RELIC_MASTER.find(x => x.id == id);
         let eff = `ATK +${(m.atk||0).toLocaleString()} / HP +${(m.hp||0).toLocaleString()}`;
         if(m.mult) eff += ` / Mult x${m.mult}`;
         return `
             <div class="relic-card">
-                <div>
-                    <div style="font-weight:bold; font-size:0.9em;">★${m.star} ${m.name}</div>
+                <div class="relic-info">
+                    <span class="relic-name">★${m.star} ${m.name}</span>
                     <span class="relic-eff">${eff}</span>
                 </div>
                 <div class="relic-count">×${count}</div>
@@ -155,7 +170,7 @@ function addLog(m) {
     const d = document.createElement("div");
     d.innerHTML = m;
     l.prepend(d);
-    if(l.childNodes.length > 25) l.removeChild(l.lastChild);
+    if(l.childNodes.length > 30) l.removeChild(l.lastChild);
 }
 
 function resetData() { localStorage.clear(); location.reload(); }
@@ -170,8 +185,9 @@ btn.addEventListener("pointerdown", (e) => {
 });
 window.addEventListener("pointerup", () => { clearInterval(attackInterval); attackInterval = null; });
 
+// 初期表示
 document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
-document.getElementById("v-death").innerText = player.deathCount;
+attack(); // 初期ステータス表示用
 </script>
 </body>
 </html>
