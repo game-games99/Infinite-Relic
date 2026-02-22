@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.3.2</title>
+<title>RELICORE - v2.3.3</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     
+    /* レアリティカラー定義 */
     .c1 { color: #888888; font-weight: bold; }
     .c2 { color: #28a745; font-weight: bold; }
     .c3 { color: #007bff; font-weight: bold; }
@@ -16,13 +17,19 @@
     .c5 { color: #e83e8c; font-weight: bold; }
     .c6 { color: #fd7e14; font-weight: bold; }
     .c7 { color: #d9534f; font-weight: bold; }
+    /* 修正：★8〜10の色分けを強化 */
+    .c8 { color: #ff0000; font-weight: bold; text-shadow: 0 0 2px rgba(255,0,0,0.3); }
+    .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); }
+    .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); }
     .c11 { color: #ffc107; font-weight: bold; text-shadow: 0 0 1px rgba(0,0,0,0.2); }
     .c12 { color: gold; font-weight: bold; }
 
+    /* ストーリー演出用 */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 1.8; }
     .story-text { margin-bottom: 25px; font-size: 0.95em; color: #ddd; text-align: left; border-left: 2px solid gold; padding-left: 15px; }
-    .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; }
+    .story-majinn { color: #ff4444; font-weight: bold; } /* 魔神のセリフ色 */
+    .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; border-left: 2px solid #00ffff; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
     
     #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
@@ -47,7 +54,6 @@
     .tab.active { display: block; }
     
     .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; }
-    /* 修正：デッドスペースを活用しログ窓のサイズを400pxに拡大 */
     #log { height: 400px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; line-height: 1.4; }
     .log-set { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
     
@@ -86,7 +92,23 @@
 </style>
 </head>
 <body>
-<div id="story-modal"><div class="story-content"><div class="story-text">「……覚えていないのか。<br>お前が世界を救う盾となり、その身を捧げたあの日を。<br><br>魔神の放った終焉の劫火が空を焼き、万物を無に帰す一撃が、お前の命を、誇りを、全てを砕いた。」</div><div class="story-sys">[ 警告：生命活動の停止、および全能力の喪失を確認 ]<br>[ システム：魂に刻まれた『再起の誓い』を検知……強制起動 ]</div><div class="story-text" style="border-left-color: #00ffff;"><b>灰の中から、何度でも立ち上がれ.</b></div><button class="story-btn" onclick="closeStory()">運命を受け入れる</button></div></div>
+<div id="story-modal">
+    <div class="story-content">
+        <div class="story-text">
+            「……覚えていないのか。<br>お前が世界を救う盾となり、その身を捧げたあの日を。<br><br>
+            <span class="story-majinn">魔神の放った終焉の劫火が空を焼き、万物を無に帰す一撃が、お前の命を、誇りを、全てを砕いた。</span>」
+        </div>
+        <div class="story-sys">
+            [ 警告：生命活動の停止、および全能力の喪失を確認 ]<br>
+            [ システム：魂に刻まれた『再起の誓い』を検知……強制起動 ]
+        </div>
+        <div class="story-text" style="border-left-color: #00ffff;">
+            <b>灰の中から、何度でも立ち上がれ.</b>
+        </div>
+        <button class="story-btn" onclick="closeStory()">運命を受け入れる</button>
+    </div>
+</div>
+
 <div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 
 <div id="header">
@@ -130,7 +152,7 @@
     </div>
 </div>
 
-<div class="ver-footer">RELICORE v2.3.2</div>
+<div class="ver-footer">RELICORE v2.3.3</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
