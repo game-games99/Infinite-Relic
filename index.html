@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.2</title>
+<title>RELICORE - v2.2.3</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -68,7 +68,7 @@
 <div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 <div id="header"><div class="boss-info"><div class="boss-name" id="boss-display-name">魔神</div><div class="hp-pct-display"><span id="bosshp-pct">100.0000</span>%</div></div><div class="hp-bar-container"><div id="hp-bar-fill"></div></div><div class="status-box"><div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div><div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div></div></div>
 <div class="nav"><button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button><button onclick="showTab('vow')" id="nav-vow">再起</button><button onclick="showTab('power')" id="nav-power">権能</button><button onclick="showTab('relic')" id="nav-relic">遺物</button><button onclick="showTab('status')" id="nav-status">詳細</button></div>
-<div id="content-area"><div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div><div id="vow" class="tab"><div id="vow-list"></div></div><div id="power" class="tab"></div><div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div><div id="status" class="tab"><div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.2.2</div><button class="btn-reset" onclick="resetData()">全データリセット</button></div></div>
+<div id="content-area"><div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div><div id="vow" class="tab"><div id="vow-list"></div></div><div id="power" class="tab"></div><div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div><div id="status" class="tab"><div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.2.3</div><button class="btn-reset" onclick="resetData()">全データリセット</button></div></div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -107,7 +107,7 @@ const RELIC_MASTER = [
 function getRelicBonus() {
     let atk = 0n, hp = 0n, mult = 1.0;
     let pts = [0, 0, 0, 0, 0];
-    let flags = { doubleDmg: false, multiHit: 1, deathScale: 1n, logicHack: false, kingPower: 1, digitBomb: 0 };
+    let flags = { doubleDmg: false, multiHit: 1, logicHack: false, kingPower: 1, digitBomb: 0 };
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
         if(!r) return;
@@ -120,7 +120,6 @@ function getRelicBonus() {
         if(r.type === "不滅★9") flags.deathToMult = true;
         if(r.type === "魔導★9") flags.logicHack = true;
         if(r.type === "覇王★9") flags.kingPower = Math.pow(5, count); 
-        if(r.type === "虚無★8") flags.starAtkAdd = true;
         if(r.type === "虚無★9") flags.digitBomb += count;
     });
     return { atk, hp, mult, pts, flags };
@@ -131,32 +130,20 @@ function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { co
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
 function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = player.isEndless ? BOSS_MAX_HP_ENDLESS : BOSS_MAX_HP_BASE; refreshUI(); }
 
-function handleDrop(isKill) {
-    let bonus = 0;
-    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-    
-    // 基本判定1 + 魂の研磨ボーナス(bonus)
-    let targetDrops = 1 + bonus; 
-    if(isKill) targetDrops += 5;
-    
+function handleDrop(targetCount) {
     let obtainedCount = 0;
     let attempts = 0;
     const maxTotalAttempts = 500; 
 
-    // targetDropsを満たすまで確実に回す
-    while(obtainedCount < targetDrops && attempts < maxTotalAttempts) {
+    while(obtainedCount < targetCount && attempts < maxTotalAttempts) {
         attempts++;
         let rv = Math.random() * 100, star = 1, curP = 0;
         for(let s in DROP_DATA) {
             curP += parseFloat(DROP_DATA[s].p);
             if(rv <= curP) { star = parseInt(s); break; }
         }
-        
-        // ダメージ条件未達なら再抽選
         if (player.maxDmg < DROP_DATA[star].cond) continue;
-
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
-        // ★10以上制限
         let filteredCands = cands.filter(m => !(m.star >= 10 && player.inventory[m.id] >= 1));
         
         if(filteredCands.length > 0) {
@@ -172,9 +159,21 @@ function getRandomRange(min, max) { let nMin = Number(min), nMax = Number(max); 
 
 function attack() {
     if(isModalOpen) return;
-    player.deathCount += 1;
-    player.baseAtk += getRandomRange(1, player.deathCount);
-    player.baseHP += getRandomRange(10, player.deathCount * 10);
+
+    // 【魂の研磨】ボーナス値の算出
+    let bonus = 0;
+    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+    
+    // 再起経験数(基本1 + ボーナス分)
+    let experienceGain = 1 + bonus;
+    
+    // 経験数分のステータス上昇を繰り返す
+    for(let i = 0; i < experienceGain; i++) {
+        player.deathCount += 1;
+        player.baseAtk += getRandomRange(1, player.deathCount);
+        player.baseHP += getRandomRange(10, player.deathCount * 10);
+    }
+
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
@@ -186,14 +185,22 @@ function attack() {
     let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
     if(b.flags.doubleDmg) baseDmg += totalAtk;
     if(b.flags.digitBomb > 0) { for(let i=0; i<b.flags.digitBomb; i++) baseDmg *= 10n; }
+
     for(let h=0; h < b.flags.multiHit; h++) {
         if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
         currentBossHP -= baseDmg;
         addLog(`<span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span>`);
         if(currentBossHP <= 0n) break;
     }
-    if(currentBossHP <= 0n) { handleDrop(true); isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; } 
-    else { addLog(`<span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`); handleDrop(false); }
+
+    if(currentBossHP <= 0n) { 
+        handleDrop(5 + experienceGain); // 討伐時はさらに+5
+        isModalOpen = true; 
+        document.getElementById("clear-modal").style.display = "flex"; 
+    } else { 
+        addLog(`<span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`); 
+        handleDrop(experienceGain); // 経験数分の同時ドロップ
+    }
     saveGame(); refreshUI();
 }
 
@@ -216,6 +223,7 @@ function refreshUI() {
 function renderVow() {
     let bonus = 0; let nextT = VOW_THRESHOLDS[0];
     VOW_THRESHOLDS.forEach((t, i) => { if(player.deathCount >= t) { bonus++; if(VOW_THRESHOLDS[i+1]) nextT = VOW_THRESHOLDS[i+1]; else nextT = "MAX"; } });
+    // 【重要】指示された文言をそのまま維持
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">ATK 1 〜 ${player.deathCount.toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにATK+1</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP+10</div></div>
