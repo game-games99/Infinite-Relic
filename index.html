@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2.4</title>
+<title>RELICORE - v2.2.5</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
+    /* 遺物レアリティカラー */
     .c1 { color: #888888; font-weight: bold; }
     .c2 { color: #28a745; font-weight: bold; }
     .c3 { color: #007bff; font-weight: bold; }
@@ -22,44 +23,60 @@
     .c11 { color: #ffc107; font-weight: bold; text-shadow: 0 0 1px rgba(0,0,0,0.2); }
     .c12 { color: gold; font-weight: bold; }
 
+    /* モーダル */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 1.8; }
     .story-text { margin-bottom: 30px; font-size: 0.95em; color: #ddd; text-align: left; border-left: 2px solid gold; padding-left: 15px; }
     .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
-    #header { background: var(--dark); color: #fff; padding: 10px 12px; border-bottom: 2px solid #000; flex-shrink: 0; }
-    .boss-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
-    .boss-name { font-size: 1.1em; font-weight: bold; color: var(--hp); letter-spacing: 1px; }
-    .hp-display-group { text-align: right; }
-    .hp-val-display { font-size: 0.8em; color: var(--hp); font-family: monospace; font-weight: bold; display: block; }
-    .hp-bar-container { background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
-    #hp-bar-fill { height: 100%; background: var(--hp); width: 100%; transition: width 0.1s; }
-    .status-box { display: flex; gap: 8px; }
-    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; }
+    
+    /* ヘッダー修正：視認性向上 */
+    #header { background: var(--dark); color: #fff; padding: 12px 15px; border-bottom: 2px solid #000; flex-shrink: 0; }
+    .boss-area { text-align: center; margin-bottom: 8px; }
+    .boss-name { font-size: 1.3em; font-weight: bold; color: var(--hp); letter-spacing: 2px; text-shadow: 0 0 8px rgba(220, 53, 69, 0.4); margin-bottom: 4px; }
+    .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.15s ease-out; }
+    .hp-val-display { font-size: 0.85em; color: #eee; font-family: 'Courier New', monospace; display: flex; justify-content: center; gap: 5px; opacity: 0.9; }
+    .hp-cur { color: #ff6b6b; font-weight: bold; }
+    
+    .status-box { display: flex; gap: 8px; margin-top: 10px; }
+    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; }
     .stat-card.hp-card { border-left-color: var(--hp); }
     .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; margin-bottom: 1px; }
     .stat-val { font-size: 0.95em; font-weight: bold; font-family: monospace; color: #fff; overflow-x: auto; white-space: nowrap; }
+
+    /* ナビゲーション */
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
+    
+    /* コンテンツエリア */
     #content-area { flex-grow: 1; overflow: hidden; background: #fff; position: relative; }
     .tab { display: none; padding: 10px; height: 100%; width: 100%; }
     .tab.active { display: block; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
     .btn-attack { width: 100%; padding: 20px; background: var(--primary); color: #fff; font-size: 1.4em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
     #log { height: 350px; font-size: 0.85em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    
+    /* モーダル(討伐) */
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     .modal-title { color: gold; font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
+
+    /* 再起タブ項目 */
     .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
     .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
     .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; line-height: 1.3; }
     .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
+
+    /* 遺物リスト */
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 10px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
     .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; line-height: 1.2; }
     .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
     .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
+
+    /* 権能セクション */
     .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .power-head { background: #eee; padding: 8px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; }
     .skill-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
@@ -67,6 +84,8 @@
     .skill-row.locked { opacity: 0.4; filter: grayscale(1); }
     .skill-chip { padding: 4px 8px; border-radius: 4px; font-size: 0.65em; background: #e7f3ff; color: #007bff; border: 1px solid #007bff; font-weight: bold; min-width: 80px; text-align: center; }
     .skill-effect { font-size: 0.7em; color: #666; }
+
+    /* 詳細タブ */
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
     .clickable-stat { color: var(--primary); text-decoration: underline; cursor: pointer; }
@@ -77,42 +96,51 @@
 <body>
 <div id="story-modal"><div class="story-content"><div class="story-text">「……覚えていないのか。<br>お前が世界を救う盾となり、その身を捧げたあの日を。」</div><div class="story-sys">[ 警告：生命活動の停止、および全能力の喪失を確認 ]<br>[ システム：魂に刻まれた『再起の誓い』を検知……強制起動 ]</div><div class="story-text" style="border-left-color: #00ffff;"><b>灰の中から、何度でも立ち上がれ。</b></div><button class="story-btn" onclick="closeStory()">運命を受け入れる</button></div></div>
 <div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
+
 <div id="header">
-    <div class="boss-info">
+    <div class="boss-area">
         <div class="boss-name" id="boss-display-name">魔神</div>
-        <div class="hp-display-group">
-            <span class="hp-val-display"><span id="bosshp-cur">0</span> / <span id="bosshp-max">0</span></span>
+        <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
+        <div class="hp-val-display">
+            <span id="bosshp-cur" class="hp-cur">0</span> / <span id="bosshp-max">0</span>
         </div>
     </div>
-    <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
     <div class="status-box">
         <div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div>
         <div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div>
     </div>
 </div>
-<div class="nav"><button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button><button onclick="showTab('vow')" id="nav-vow">再起</button><button onclick="showTab('power')" id="nav-power">権能</button><button onclick="showTab('relic')" id="nav-relic">遺物</button><button onclick="showTab('status')" id="nav-status">詳細</button></div>
+
+<div class="nav">
+    <button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button>
+    <button onclick="showTab('vow')" id="nav-vow">再起</button>
+    <button onclick="showTab('power')" id="nav-power">権能</button>
+    <button onclick="showTab('relic')" id="nav-relic">遺物</button>
+    <button onclick="showTab('status')" id="nav-status">詳細</button>
+</div>
+
 <div id="content-area">
     <div id="battle" class="tab active">
         <button class="btn-attack" id="attackBtn">こうげき</button>
         <div id="log"></div>
-        <div class="ver-footer">RELICORE v2.2.4</div>
+        <div class="ver-footer">RELICORE v2.2.5</div>
     </div>
     <div id="vow" class="tab">
         <div id="vow-list"></div>
-        <div class="ver-footer">RELICORE v2.2.4</div>
+        <div class="ver-footer">RELICORE v2.2.5</div>
     </div>
     <div id="power" class="tab">
         <div id="power-content"></div>
-        <div class="ver-footer">RELICORE v2.2.4</div>
+        <div class="ver-footer">RELICORE v2.2.5</div>
     </div>
     <div id="relic" class="tab">
         <div class="relic-list-container" id="relic-list"></div>
-        <div class="ver-footer">RELICORE v2.2.4</div>
+        <div class="ver-footer">RELICORE v2.2.5</div>
     </div>
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
         <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
-        <div class="ver-footer">RELICORE v2.2.4</div>
+        <div class="ver-footer">RELICORE v2.2.5</div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
