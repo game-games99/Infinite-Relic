@@ -3,92 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.3.3</title>
+<title>RELICORE - v2.3.4</title>
 <style>
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
+    :root { 
+        --bg: #1a1a1a; 
+        --panel: #262626; 
+        --border: #3a3a3a; 
+        --primary: #d4af37; /* 黄金色/残り火 */
+        --text: #e0e0e0; 
+        --sub-text: #a0a0a0;
+        --hp: #b02a37; 
+        --dark: #0f0f0f; 
+    }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    body { 
+        background: radial-gradient(circle at center, #2b2b2b 0%, #1a1a1a 100%); 
+        color: var(--text); 
+        font-family: 'Segoe UI', Roboto, sans-serif; 
+        margin: 0; 
+        height: 100vh; 
+        display: flex; 
+        flex-direction: column; 
+        overflow: hidden; 
+        position: relative; 
+    }
     
-    /* レアリティカラー定義 */
+    /* レアリティカラー（視認性向上のため彩度を微調整） */
     .c1 { color: #888888; font-weight: bold; }
-    .c2 { color: #28a745; font-weight: bold; }
-    .c3 { color: #007bff; font-weight: bold; }
-    .c4 { color: #6610f2; font-weight: bold; }
-    .c5 { color: #e83e8c; font-weight: bold; }
-    .c6 { color: #fd7e14; font-weight: bold; }
-    .c7 { color: #d9534f; font-weight: bold; }
-    /* 修正：★8〜10の色分けを強化 */
-    .c8 { color: #ff0000; font-weight: bold; text-shadow: 0 0 2px rgba(255,0,0,0.3); }
-    .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); }
-    .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); }
-    .c11 { color: #ffc107; font-weight: bold; text-shadow: 0 0 1px rgba(0,0,0,0.2); }
-    .c12 { color: gold; font-weight: bold; }
+    .c2 { color: #4dbd6a; font-weight: bold; }
+    .c3 { color: #4dabf7; font-weight: bold; }
+    .c4 { color: #be4bdb; font-weight: bold; }
+    .c5 { color: #f06595; font-weight: bold; }
+    .c6 { color: #ff922b; font-weight: bold; }
+    .c7 { color: #ff6b6b; font-weight: bold; }
+    .c8 { color: #ff0000; font-weight: bold; text-shadow: 0 0 5px rgba(255,0,0,0.5); }
+    .c9 { color: #cc5de8; font-weight: bold; text-shadow: 0 0 5px rgba(204,93,232,0.5); }
+    .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 2px rgba(255,255,255,0.3)); }
+    .c11 { color: #ffc107; font-weight: bold; }
+    .c12 { color: gold; font-weight: bold; text-shadow: 0 0 3px rgba(255,215,0,0.4); }
 
-    /* ストーリー演出用 */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 1.8; }
-    .story-text { margin-bottom: 25px; font-size: 0.95em; color: #ddd; text-align: left; border-left: 2px solid gold; padding-left: 15px; }
-    .story-majinn { color: #ff4444; font-weight: bold; } /* 魔神のセリフ色 */
+    .story-text { margin-bottom: 25px; font-size: 0.95em; color: #ddd; text-align: left; border-left: 2px solid var(--primary); padding-left: 15px; }
+    .story-majinn { color: #ff4444; font-weight: bold; }
     .story-sys { color: #00ffff; font-family: monospace; font-size: 0.85em; margin-bottom: 20px; text-align: left; background: rgba(0,255,255,0.1); padding: 10px; border-left: 2px solid #00ffff; }
-    .story-btn { background: none; border: 1px solid gold; color: gold; padding: 10px 40px; font-size: 1em; cursor: pointer; }
+    .story-btn { background: none; border: 1px solid var(--primary); color: var(--primary); padding: 10px 40px; font-size: 1em; cursor: pointer; }
     
-    #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
+    #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .boss-area { text-align: center; width: 100%; }
-    .boss-name { font-size: 1.0em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
-    .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 0 auto 8px auto; width: 100%; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
-    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.15s ease-out; }
-    .hp-val-display { font-size: 1.45em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.2; letter-spacing: -1px; }
+    .boss-name { font-size: 1.0em; font-weight: bold; color: #666; letter-spacing: 2px; margin-bottom: 4px; }
+    .hp-bar-container { background: #222; height: 8px; border-radius: 4px; overflow: hidden; margin: 0 auto 8px auto; width: 100%; border: 1px solid #333; }
+    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #721c24, #dc3545); width: 100%; transition: width 0.15s ease-out; }
+    .hp-val-display { font-size: 1.45em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.2; }
     
     .status-box { display: flex; gap: 8px; margin-top: 10px; }
-    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; overflow: hidden; }
-    .stat-card.hp-card { border-left-color: var(--hp); }
-    .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; margin-bottom: 1px; }
-    .stat-val { font-size: 0.9em; font-weight: bold; font-family: monospace; color: #fff; overflow-x: auto; white-space: nowrap; }
+    .stat-card { flex: 1; background: #1e1e1e; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+    .stat-label { font-size: 0.65em; color: var(--sub-text); text-transform: uppercase; margin-bottom: 1px; }
+    .stat-val { font-size: 0.9em; font-weight: bold; font-family: monospace; color: var(--primary); }
 
-    .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
-    .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
+    .nav { display: flex; background: var(--dark); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .nav button { flex: 1; padding: 14px 0; border: none; background: none; color: #555; font-weight: bold; font-size: 0.8em; transition: 0.3s; }
+    .nav button.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #1a1a1a; }
     
-    #content-area { flex-grow: 1; overflow: hidden; background: #fff; }
+    #content-area { flex-grow: 1; overflow: hidden; background: transparent; }
     .tab { display: none; padding: 10px 10px 150px 10px; height: 100%; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .tab.active { display: block; }
     
-    .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; }
-    #log { height: 400px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; line-height: 1.4; }
-    .log-set { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
+    .btn-attack { width: 100%; padding: 16px; background: #333; color: var(--primary); font-size: 1.2em; font-weight: bold; border: 1px solid var(--primary); border-radius: 8px; margin-bottom: 10px; flex-shrink: 0; box-shadow: 0 0 10px rgba(212,175,55,0.1); }
+    #log { height: 400px; font-size: 0.82em; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; color: #ccc; }
+    .log-set { border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px; }
     
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-    .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
-    .modal-title { color: gold; font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
+    .modal-content { background: #1a1a1a; border: 1px solid var(--primary); border-radius: 10px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
+    .modal-title { color: var(--primary); font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
 
-    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
-    .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
-    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; line-height: 1.3; }
-    .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
+    .vow-item { position: relative; background: #222; border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px 8px 16px; margin-bottom: 10px; }
+    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); }
+    .vow-name { font-weight: bold; font-size: 0.85em; color: var(--primary); margin-bottom: 2px; }
+    .vow-highlight { font-weight: bold; color: #fff; font-size: 0.82em; margin-bottom: 2px; display: block; }
+    .vow-desc { font-size: 0.7em; color: var(--sub-text); }
 
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
-    .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; line-height: 1.2; }
-    .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
-    .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
+    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 4px; background: #222; display: flex; flex-direction: column; min-height: 100px; }
+    .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; }
+    .relic-effect-box { font-size: 0.68em; color: #bbb; margin-bottom: 4px; }
+    .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #333; padding: 2px 4px; border-radius: 2px; align-self: flex-start; }
 
-    .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-    .power-head { background: #eee; padding: 8px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; }
-    .skill-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-    .skill-row { display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-    .skill-row.locked { opacity: 0.4; filter: grayscale(1); }
-    .skill-main { display: flex; align-items: center; gap: 8px; }
-    .skill-chip { padding: 3px 6px; border-radius: 4px; font-size: 0.65em; background: #e7f3ff; color: #007bff; border: 1px solid #007bff; font-weight: bold; min-width: 80px; text-align: center; }
-    .skill-req { font-size: 0.6em; color: #999; font-weight: normal; }
-    .skill-effect { font-size: 0.7em; color: #666; padding-left: 2px; }
+    .power-section { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .power-head { background: #333; padding: 8px; font-weight: bold; font-size: 0.8em; color: var(--primary); }
+    .skill-list { padding: 8px; background: #1e1e1e; display: flex; flex-direction: column; gap: 6px; }
+    .skill-row { border-bottom: 1px solid #2a2a2a; padding-bottom: 4px; }
+    .skill-row.locked { opacity: 0.3; }
+    .skill-chip { padding: 2px 6px; border-radius: 2px; font-size: 0.65em; background: #111; color: var(--primary); border: 1px solid var(--primary); }
+    .skill-req { font-size: 0.6em; color: #666; }
+    .skill-effect { font-size: 0.7em; color: #aaa; }
 
-    .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
-    .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
-    .clickable-stat { color: var(--primary); text-decoration: underline; cursor: pointer; }
-    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
+    .st-box { background: #222; border: 1px solid var(--border); border-radius: 4px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
+    .clickable-stat { color: var(--primary); text-decoration: underline; }
+    .btn-reset { width: 100%; padding: 16px; background: transparent; color: #555; border: 1px solid #333; border-radius: 4px; font-size: 0.8em; margin-top: 20px; }
 
-    .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; z-index: 50; }
+    .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #444; font-size: 0.65em; z-index: 50; }
 </style>
 </head>
 <body>
@@ -119,7 +133,7 @@
     </div>
     <div class="status-box">
         <div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div>
-        <div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div>
+        <div class="stat-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div>
     </div>
 </div>
 
@@ -136,23 +150,17 @@
         <button class="btn-attack" id="attackBtn">こうげき</button>
         <div id="log"></div>
     </div>
-    <div id="vow" class="tab">
-        <div id="vow-list"></div>
-    </div>
-    <div id="power" class="tab">
-        <div id="power-content"></div>
-    </div>
-    <div id="relic" class="tab">
-        <div class="relic-list-container" id="relic-list"></div>
-    </div>
+    <div id="vow" class="tab"><div id="vow-list"></div></div>
+    <div id="power" class="tab"><div id="power-content"></div></div>
+    <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
-        <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
+        <div class="st-box"><div>遺物出現率 <span id="st-collection" style="float:right;color:#666;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px; color:#aaa;" id="prob-list"></table></div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
 
-<div class="ver-footer">RELICORE v2.3.3</div>
+<div class="ver-footer">RELICORE v2.3.4</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -237,7 +245,7 @@ function attack() {
     for(let h=0; h < b.flags.multiHit; h++) {
         if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
         currentBossHP -= baseDmg;
-        turnLogHtml += `<div><span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span></div>`;
+        turnLogHtml += `<div><span style="color:#4dabf7; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span></div>`;
         if(currentBossHP <= 0n) break;
     }
 
@@ -247,7 +255,7 @@ function attack() {
         isModalOpen = true; 
         document.getElementById("clear-modal").style.display = "flex"; 
     } else { 
-        turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
+        turnLogHtml += `<div><span style="color:#ff6b6b;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
         turnLogHtml += getDropLog(1 + bonus);
     }
     
@@ -258,7 +266,6 @@ function attack() {
 function getDropLog(targetCount) {
     let obtainedDict = {};
     let attempts = 0;
-    let logStr = "";
     while(Object.values(obtainedDict).reduce((a,b)=>a+b, 0) < targetCount && attempts < 500) {
         attempts++;
         let rv = Math.random() * 100, star = 1, curP = 0;
@@ -275,6 +282,7 @@ function getDropLog(targetCount) {
             obtainedDict[sel.id] = (obtainedDict[sel.id] || 0) + 1;
         }
     }
+    let logStr = "";
     Object.entries(obtainedDict).forEach(([id, count]) => {
         const item = RELIC_MASTER.find(m => m.id == id);
         logStr += `<div><span class="c${item.star}">【獲得】★${item.star} ${item.name} × ${count}</span></div>`;
@@ -304,10 +312,10 @@ function renderVow() {
     let bonus = 0; let nextT = VOW_THRESHOLDS[0];
     VOW_THRESHOLDS.forEach((t, i) => { if(player.deathCount >= t) { bonus++; if(VOW_THRESHOLDS[i+1]) nextT = VOW_THRESHOLDS[i+1]; else nextT = "MAX"; } });
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">ATK 1 〜 ${player.deathCount.toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにATK+1</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP+10</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>`;
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">ATK 1 〜 ${player.deathCount.toLocaleString()} </span><div class="vow-desc">再起するたびにATK成長</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} </span><div class="vow-desc">再起するたびにHP成長</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">ドロップ/再起ボーナス：+${bonus}</span><div class="vow-desc">再起数で機能強化（次回：${nextT.toLocaleString()}）</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起数に応じて最終ダメージ増</div></div>`;
 }
 
 function renderPower(pts) { 
@@ -320,15 +328,15 @@ function renderPower(pts) {
                     const lock = pts[i] < req; 
                     return `
                     <div class="skill-row ${lock?'locked':''}">
-                        <div class="skill-main"><div class="skill-chip">${lock?'未覚醒':s.name}</div><span class="skill-req">(必要: ${req.toLocaleString()} pt)</span></div>
-                        <span class="skill-effect">${lock?'？？？':s.desc}</span>
+                        <div style="margin-bottom:4px;"><span class="skill-chip">${lock?'未覚醒':s.name}</span> <span class="skill-req">${req.toLocaleString()} pt</span></div>
+                        <div class="skill-effect">${lock?'？？？':s.desc}</div>
                     </div>`; 
                 }).join("")}
             </div>
         </div>`).join(""); 
 }
 
-function renderRelics() { const items = Object.entries(player.inventory).filter(([id, c]) => c > 0).map(([id, c]) => { const m = RELIC_MASTER.find(x => x.id == id); return m ? { ...m, c } : null; }).filter(r => r !== null).sort((a, b) => a.star - b.star); document.getElementById("relic-list").innerHTML = items.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.c}</div><div class="relic-effect-box">${r.id == 0 ? r.desc : (r.atk ? `ATK+${r.atk.toLocaleString()} ` : ``) + (r.hp ? `HP+${r.hp.toLocaleString()}` : ``)}</div>${r.pIdx >= 0 ? `<div class="relic-power-pt">${POWERS[r.pIdx].name}pt: ${r.star * r.c}</div>` : ``}</div>`).join(""); }
+function renderRelics() { const items = Object.entries(player.inventory).filter(([id, c]) => c > 0).map(([id, c]) => { const m = RELIC_MASTER.find(x => x.id == id); return m ? { ...m, c } : null; }).filter(r => r !== null).sort((a, b) => a.star - b.star); document.getElementById("relic-list").innerHTML = items.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.c}</div><div class="relic-effect-box">${r.id == 0 ? r.desc : (r.atk ? `ATK+${r.atk.toLocaleString()} ` : ``) + (r.hp ? `HP+${r.hp.toLocaleString()}` : ``)}</div>${r.pIdx >= 0 ? `<div class="relic-power-pt">${POWERS[r.pIdx].name}: ${r.star * r.c}</div>` : ``}</div>`).join(""); }
 function renderStatus() { document.getElementById("v-death").innerText = player.deathCount.toLocaleString(); document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString(); let r = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放`; break; } } document.getElementById("st-rank").innerText = r; document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/53`; document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join(""); }
 function checkDropEligibility() { let msg = "【ドロップ資格確認】\n"; msg += "現在の最高ダメージ: " + player.maxDmg.toLocaleString() + "\n"; msg += "----------------------------\n"; Object.entries(DROP_DATA).forEach(([star, data]) => { const isReleased = player.maxDmg >= data.cond; const statusText = isReleased ? "[解放済み]" : "[未到達]"; const condText = data.cond > 0n ? ` (必要: ${data.cond.toLocaleString()})` : " (初期解放)"; msg += `★${star}: ${statusText}${condText}\n`; }); alert(msg); }
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
