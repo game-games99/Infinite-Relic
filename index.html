@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.1.6</title>
+<title>RELICORE - v2.1.7</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -68,7 +68,7 @@
 <div id="clear-modal"><div class="modal-content"><div class="modal-title">討伐成功</div><div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 <div id="header"><div class="boss-info"><div class="boss-name" id="boss-display-name">魔神</div><div class="hp-pct-display"><span id="bosshp-pct">100.0000</span>%</div></div><div class="hp-bar-container"><div id="hp-bar-fill"></div></div><div class="status-box"><div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div><div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div></div></div>
 <div class="nav"><button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button><button onclick="showTab('vow')" id="nav-vow">再起</button><button onclick="showTab('power')" id="nav-power">権能</button><button onclick="showTab('relic')" id="nav-relic">遺物</button><button onclick="showTab('status')" id="nav-status">詳細</button></div>
-<div id="content-area"><div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div><div id="vow" class="tab"><div id="vow-list"></div></div><div id="power" class="tab"></div><div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div><div id="status" class="tab"><div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.1.6</div><button class="btn-reset" onclick="resetData()">全データリセット</button></div></div>
+<div id="content-area"><div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div><div id="vow" class="tab"><div id="vow-list"></div></div><div id="power" class="tab"></div><div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div><div id="status" class="tab"><div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>ドロップ資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/53</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><div style="text-align:center; color:#999; font-size:0.8em; margin:20px 0;">RELICORE v2.1.7</div><button class="btn-reset" onclick="resetData()">全データリセット</button></div></div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -89,7 +89,6 @@ const POWERS = [
     { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
 ];
 
-// HP > ATK ルール適用済み遺物マスタ
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"勇者の魂に刻まれた誓い。"},
     {id:101, star:1, name:"勇者の木片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"野草の滴", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"冒険の証", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"兵士の号令", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚ろな石", atk:4, hp:10, pIdx:4},
@@ -111,7 +110,6 @@ function getRelicBonus() {
     let flags = { doubleDmg: false, multiHit: 1, deathScale: 1n, logicHack: false, kingPower: 1, digitBomb: 0 };
     let totalRelics = 0;
     let lowRelicFixedSum = 0n;
-
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id);
         if(!r) return;
@@ -121,7 +119,6 @@ function getRelicBonus() {
         hp += BigInt(r.hp || 0) * BigInt(count);
         if(r.mult) mult *= Math.pow(r.mult, count);
         if(r.pIdx >= 0) pts[r.pIdx] += (r.star * count);
-
         if(r.type === "剣神★8") flags.doubleDmg = true;
         if(r.type === "剣神★9") flags.multiHit += count; 
         if(r.type === "不滅★8") flags.deathScale = BigInt(totalRelics); 
@@ -133,10 +130,8 @@ function getRelicBonus() {
         if(r.type === "虚無★8") flags.starAtkAdd = true;
         if(r.type === "虚無★9") flags.digitBomb += count;
     });
-
     if(flags.starAtkAdd) { let totalStars = 0; Object.entries(player.inventory).forEach(([id, c])=>{ const r=RELIC_MASTER.find(x=>x.id==id); if(r) totalStars += r.star * c; }); atk += BigInt(totalStars); }
     if(flags.lowRelicBoost) atk += lowRelicFixedSum * flags.lowRelicBoost;
-
     return { atk, hp, mult, pts, flags, totalRelics };
 }
 
@@ -178,34 +173,23 @@ function attack() {
     player.deathCount += 1;
     player.baseAtk += getRandomRange(1, player.deathCount);
     player.baseHP += getRandomRange(10, player.deathCount * 10);
-    
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
-    
     let totalAtk;
-    if(b.flags.logicHack) {
-        totalAtk = (player.baseAtk * 120n / 100n) * (b.atk > 0n ? b.atk : 1n);
-    } else {
-        totalAtk = (player.baseAtk * 120n / 100n + b.atk);
-    }
-
+    if(b.flags.logicHack) { totalAtk = (player.baseAtk * 120n / 100n) * (b.atk > 0n ? b.atk : 1n); } 
+    else { totalAtk = (player.baseAtk * 120n / 100n + b.atk); }
     let finalMult = b.mult * powerMult * b.flags.kingPower;
     if(b.flags.deathToMult) finalMult *= (1 + player.deathCount / 100);
     let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
-
     if(b.flags.doubleDmg) baseDmg += totalAtk;
-    if(b.flags.digitBomb > 0) {
-        for(let i=0; i<b.flags.digitBomb; i++) baseDmg *= 10n;
-    }
-
+    if(b.flags.digitBomb > 0) { for(let i=0; i<b.flags.digitBomb; i++) baseDmg *= 10n; }
     for(let h=0; h < b.flags.multiHit; h++) {
         if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
         currentBossHP -= baseDmg;
         addLog(`<span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span>`);
         if(currentBossHP <= 0n) break;
     }
-
     if(currentBossHP <= 0n) { handleDrop(true); isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; } 
     else { addLog(`<span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span>`); handleDrop(false); }
     saveGame(); refreshUI();
@@ -239,7 +223,20 @@ function renderVow() {
 function renderPower(pts) { document.getElementById("power").innerHTML = POWERS.map((p, i) => `<div class="power-section"><div class="power-head"><span>${p.name}</span><span>${pts[i].toLocaleString()} pt</span></div><div class="skill-list">${p.skills.map((s, si) => { const lock = pts[i] < POWER_UNLOCK_STEPS[si]; return `<div class="skill-row ${lock?'locked':''}"><div class="skill-chip">${lock?'未覚醒':s.name}</div><span class="skill-effect">${lock?'？？？':s.desc}</span></div>`; }).join("")}</div></div>`).join(""); }
 function renderRelics() { const items = Object.entries(player.inventory).filter(([id, c]) => c > 0).map(([id, c]) => { const m = RELIC_MASTER.find(x => x.id == id); return m ? { ...m, c } : null; }).filter(r => r !== null).sort((a, b) => a.star - b.star); document.getElementById("relic-list").innerHTML = items.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.c}</div><div class="relic-effect-box">${r.id == 0 ? r.desc : (r.atk ? `ATK+${r.atk.toLocaleString()} ` : ``) + (r.hp ? `HP+${r.hp.toLocaleString()}` : ``)}</div>${r.pIdx >= 0 ? `<div class="relic-power-pt">${POWERS[r.pIdx].name}pt: ${r.star * r.c}</div>` : ``}</div>`).join(""); }
 function renderStatus() { document.getElementById("v-death").innerText = player.deathCount.toLocaleString(); document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString(); let r = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放`; break; } } document.getElementById("st-rank").innerText = r; document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/53`; document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join(""); }
-function checkDropEligibility() { let msg = "【ドロップ資格確認】\n"; Object.entries(DROP_DATA).forEach(([star, data]) => { msg += `★${star}: ${player.maxDmg >= data.cond ? "✅ 解放済み" : "🔒 未到達"}\n`; }); alert(msg); }
+
+function checkDropEligibility() {
+    let msg = "【ドロップ資格確認】\n";
+    msg += "現在の最高ダメージ: " + player.maxDmg.toLocaleString() + "\n";
+    msg += "----------------------------\n";
+    Object.entries(DROP_DATA).forEach(([star, data]) => {
+        const isReleased = player.maxDmg >= data.cond;
+        const statusText = isReleased ? "[解放済み]" : "[未到達]";
+        const condText = data.cond > 0n ? ` (必要: ${data.cond.toLocaleString()})` : " (初期解放)";
+        msg += `★${star}: ${statusText}${condText}\n`;
+    });
+    alert(msg);
+}
+
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
 function addLog(m) { const l = document.getElementById("log"); const d = document.createElement("div"); d.innerHTML = m; l.prepend(d); if(l.childNodes.length > 40) l.removeChild(l.lastChild); }
 function resetData() { if(confirm("全リセットしますか？")) { localStorage.clear(); location.reload(); } }
