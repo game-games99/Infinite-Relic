@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.0.5</title>
+<title>RELICORE - v2.0.4</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -43,23 +43,22 @@
     @keyframes glow-gold { 0% { background: #1a1a1a; } 50% { background: #2a2510; } 100% { background: #1a1a1a; } }
     
     .log-rare { margin: 4px 0; padding: 6px; border-radius: 6px; border-left: 4px solid #007bff; background: #eef6ff; animation: glow-soft 2s infinite; font-weight: bold; }
-    .log-legend { margin: 6px 0; padding: 10px; border-radius: 8px; border: 2px solid gold; background: #1a1a1a; color: gold !important; animation: glow-gold 3s infinite; text-align: center; font-weight: bold; box-shadow: 0 0 15px rgba(218,165,32,0.4); }
+    .log-legend { margin: 6px 0; padding: 10px; border-radius: 8px; border: 2px solid gold; background: #1a1a1a; color: gold !important; animation: glow-gold 3s infinite; text-align: center; font-weight: bold; }
 
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     .modal-title { color: gold; font-size: 1.5em; font-weight: bold; margin-bottom: 15px; }
 
-    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
-    .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
-    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; line-height: 1.3; }
-    .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
+    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; }
+    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 4px 0 0 4px; }
+    .vow-name { font-weight: bold; font-size: 0.85em; color: #333; }
+    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; display: block; }
+    .vow-desc { font-size: 0.7em; color: #777; }
 
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 80px; }
-    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
-    .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; line-height: 1.2; }
-    .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
-    .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
+    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 80px; }
+    .relic-name { font-weight: bold; font-size: 0.72em; line-height: 1.2; }
+    .relic-effect-box { font-size: 0.65em; color: #666; }
     
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 80px; }
@@ -74,7 +73,7 @@
 <div id="story-modal">
     <div class="story-content">
         <div class="story-text">「……覚えていないのか。<br>お前が世界を救う盾となり、その身を捧げたあの日を。」</div>
-        <div class="story-sys">[ 警告：生命活動の停止、および全能力の喪失を確認 ]<br>[ システム：魂に刻まれた『再起の誓い』を検知……強制起動 ]</div>
+        <div class="story-sys">[ 警告：生命活動の停止 ]<br>[ システム：魂に刻まれた『再起の誓い』を検知 ]</div>
         <button class="story-btn" onclick="closeStory()">運命を受け入れる</button>
     </div>
 </div>
@@ -82,7 +81,7 @@
 <div id="clear-modal">
     <div class="modal-content">
         <div class="modal-title">討伐成功</div>
-        <div id="modal-body">魔神を討伐しました。<br>新たな力が魂に刻まれます。</div>
+        <div id="modal-body">魔神を討伐しました。</div>
         <button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button>
     </div>
 </div>
@@ -140,10 +139,11 @@ const POWERS = [
     { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +20%"}, {name: "心気一致", desc: "所持遺物種数でダメージ増"}, {name: "万象一掃", desc: "再起回数でダメージ増"}, {name: "天断の極意", desc: "常時追加ダメージ100%"}, {name: "極限一閃・無双", desc: "最終ダメージ倍率 x5.0"}]},
     { name: "不滅", skills: [{name: "生命の根源", desc: "基礎HP +30%"}, {name: "再誕の輝き", desc: "再起ボーナス 1.5倍"}, {name: "不撓不屈の魂", desc: "現在HP割合に応じてATK増"}, {name: "死を超越せし者", desc: "再起数で全ステータス乗算"}, {name: "不滅 of 王土", desc: "再起数で最終ダメ/HP指数増"}]},
     { name: "魔導", skills: [{name: "魔力回路", desc: "遺物効果 +20%上乗せ"}, {name: "魔力奔流", desc: "全スキル効果 1.5倍"}, {name: "理の解析", desc: "遺物ドロップ判定 +1回"}, {name: "古の叡智", desc: "遺物ボーナス 1.2倍計算"}, {name: "真理の扉", desc: "★5以上所持数で特大乗算"}]},
-    { name: "覇王", skills: [{name: "万軍の主", desc: "遺物★合計に応じてATK加算"}, {name: "覇王の威光", desc: "★6以上1つ毎に倍率UP"}, {name: "統率の理", desc: "★1〜3遺物効果 10倍補正"}, {name: "覇道の足跡", desc: "遺物種類数 × 0.2 倍率加算"}, {name: "終焉の号令", desc: "全遺物効果 1.5倍"}]},
+    { name: "覇王", skills: [{name: "万軍の主", desc: "遺物★合計に応じてATK加算"}, {name: "覇王の威光", desc: "★6以上1つ毎に倍率UP"}, {name: "統率の理", desc: "★1〜3遺物効果 10倍補正"}, {name: "覇道の足跡", desc: "遺物種類数 × 0.2 倍率加算"}, {name: "終焉 of 号令", desc: "全遺物効果 1.5倍"}]},
     { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
 ];
 
+// 遺物マスターデータ v2.0.4 拡充版
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"世界を救う盾となった勇者の魂に刻まれた誓い。"},
     {id:101, star:1, name:"勇者の木片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"野草の滴", atk:0, hp:14, pIdx:1},
@@ -155,8 +155,6 @@ const RELIC_MASTER = [
     {id:601, star:6, name:"極限の魔剣", atk:12345678, hp:7654321, pIdx:0, mult:1.5},
     {id:602, star:6, name:"極限の魔盾", atk:5555555, hp:24242424, pIdx:1, mult:1.5},
     {id:603, star:6, name:"極限の魔導書", atk:9988776, hp:9988776, pIdx:2, mult:1.5},
-    {id:604, star:6, name:"極限の王冠", atk:18181818, hp:12121212, pIdx:3, mult:1.5},
-    {id:605, star:6, name:"極限の虚珠", atk:44444444, hp:4444444, pIdx:4, mult:3.0},
     // ★7
     {id:701, star:7, name:"天理の天秤", atk:88000000, hp:88000000, pIdx:2, mult:1.2},
     {id:702, star:7, name:"覇者の軍旗", atk:120000000, hp:50000000, pIdx:3, mult:1.2},
@@ -178,9 +176,9 @@ function getRelicBonus() {
         const r = RELIC_MASTER.find(m => m.id == id);
         if(r) { 
             let a = BigInt(Math.floor(r.atk || 0)) * BigInt(count);
-            if(r.star <= 3) a = a * 10n; // ★7軍旗の効果を想定した補正
+            if(r.star <= 3) a = a * 10n;
             atk += a; hp += BigInt(Math.floor(r.hp || 0)) * BigInt(count); 
-            if(r.mult) mult *= Math.pow(r.mult, count); // 指数関数的累積
+            if(r.mult) mult *= Math.pow(r.mult, count);
             if(r.pIdx >= 0) pts[r.pIdx] += (r.star * count);
         }
     });
@@ -217,7 +215,6 @@ function attack() {
     let deathDmgBonus = 1.0 + (player.deathCount * 0.000004); 
     let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgBonus;
     
-    // ダメージ計算: (基礎+遺物) * 遺物倍率 * 権能倍率
     let totalAtk = (player.baseAtk * 120n / 100n + b.atk);
     let dmg = BigInt(Math.floor(Number(totalAtk) * b.mult * powerMult));
 
@@ -247,10 +244,7 @@ function handleDrop(isKill) {
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
         if(cands.length > 0) {
             let selected = cands[Math.floor(Math.random() * cands.length)];
-            
-            // ★10以上の所持上限1つのみを厳守
             if(selected.star >= 10 && player.inventory[selected.id] >= 1) continue;
-
             player.inventory[selected.id] = (player.inventory[selected.id] || 0) + 1;
             
             if(selected.star >= 10) {
@@ -286,9 +280,7 @@ function renderVow() {
     const steps = [1000, 5000, 25000, 100000];
     let dCount = 1;
     for(let s of steps) { if(player.deathCount >= s) dCount++; }
-    document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起回数: ${player.deathCount.toLocaleString()}</span></div>
-    `;
+    document.getElementById("vow-list").innerHTML = `<div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起回数: ${player.deathCount.toLocaleString()}</span></div>`;
 }
 
 function renderPower(pts) {
@@ -297,7 +289,7 @@ function renderPower(pts) {
 
 function renderRelics() {
     const items = Object.entries(player.inventory).filter(([id, c]) => c > 0).map(([id, c]) => ({...RELIC_MASTER.find(m=>m.id==id), c})).sort((a,b)=>a.star-b.star);
-    document.getElementById("relic-list").innerHTML = items.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.c}</div><div class="relic-effect-box">倍率 x${(r.mult || 1).toFixed(1)}</div></div>`).join("");
+    document.getElementById("relic-list").innerHTML = items.map(r => `<div class="relic-card"><div class="relic-name c${r.star}">★${r.star} ${r.name} × ${r.c}</div><div class="relic-effect-box">x${(r.mult || 1).toFixed(1)}</div></div>`).join("");
 }
 
 function renderStatus() {
