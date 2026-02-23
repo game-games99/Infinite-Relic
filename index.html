@@ -3,26 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.3.6</title>
+<title>RELICORE - v2.3.7</title>
 <style>
-    /* CSS構成：v2.3.4のスタイルを維持しつつストーリー演出を微調整 */
+    /* CSS構成：v2.3.6を維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-    
-    /* ストーリーモーダル：指示に基づきカラーを統一 */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.0; }
     .story-text { margin-bottom: 30px; font-size: 0.95em; color: #eee; text-align: left; border-left: 2px solid #555; padding-left: 20px; letter-spacing: 0.05em; }
     .story-majinn { color: #eee; font-weight: normal; display: block; margin: 15px 0; }
     .story-highlight { color: gold; font-weight: bold; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
-    .story-btn:active { background: rgba(255,215,0,0.2); }
-
-    /* レアリティカラー設定 */
     .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; text-shadow: 0 0 2px rgba(255,0,0,0.3); } .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); } .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); } .c11 { color: #ffc107; font-weight: bold; text-shadow: 0 0 1px rgba(0,0,0,0.2); } .c12 { color: gold; font-weight: bold; }
-
-    /* UIレイアウト保持 */
     #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .boss-area { text-align: center; width: 100%; }
     .boss-name { font-size: 1.0em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
@@ -126,12 +119,27 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.3.6</div>
+<div class="ver-footer">RELICORE v2.3.7</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
-const DROP_DATA = { 1: { p: "81.888879%", cond: 0n }, 2: { p: "12%", cond: 0n }, 3: { p: "5%", cond: 0n }, 4: { p: "1%", cond: 0n }, 5: { p: "0.1%", cond: 1000000n }, 6: { p: "0.01%", cond: 10000000n }, 7: { p: "0.001%", cond: 100000000n }, 8: { p: "0.0001%", cond: 1000000000n }, 9: { p: "0.00001%", cond: 10000000000n }, 10: { p: "0.000001%", cond: 100000000000n }, 11: { p: "0.0000001%", cond: 1000000000000n } };
+
+// --- 遺物出現率の再設定 (★2から0.1%で10倍ずつ減少、残りを★1に) ---
+const DROP_DATA = { 
+    1:  { p: "99.8888889%", cond: 0n }, 
+    2:  { p: "0.1%",        cond: 0n }, 
+    3:  { p: "0.01%",       cond: 0n }, 
+    4:  { p: "0.001%",      cond: 100000n }, 
+    5:  { p: "0.0001%",     cond: 1000000n }, 
+    6:  { p: "0.00001%",    cond: 10000000n }, 
+    7:  { p: "0.000001%",   cond: 100000000n }, 
+    8:  { p: "0.0000001%",  cond: 1000000000n }, 
+    9:  { p: "0.00000001%", cond: 10000000000n }, 
+    10: { p: "0.000000001%",cond: 100000000000n }, 
+    11: { p: "0.0000000001%",cond: 1000000000000n } 
+};
+
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, isEndless: false, storySeen: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
@@ -156,7 +164,7 @@ const RELIC_MASTER = [
     {id:601, star:6, name:"【絶】の小太刀", atk:12345678, hp:0, pIdx:0, mult:1.1}, {id:602, star:6, name:"【永】の古盾", atk:0, hp:24242424, pIdx:1, mult:1.1}, {id:603, star:6, name:"【叡】の頁", atk:9988776, hp:15000000, pIdx:2, mult:1.1}, {id:604, star:6, name:"【凱】の徴", atk:18181818, hp:25000000, pIdx:3, mult:1.1}, {id:605, star:6, name:"【零】の塵", atk:44444444, hp:60000000, pIdx:4, mult:1.1},
     {id:701, star:7, name:"【絶】の長剣", atk:150000000, hp:0, pIdx:0, mult:1.2}, {id:702, star:7, name:"【永】の鉄壁", atk:0, hp:300000000, pIdx:1, mult:1.2}, {id:703, star:7, name:"【叡】の魔導書", atk:120000000, hp:180000000, pIdx:2, mult:1.2}, {id:704, star:7, name:"【凱】の軍旗", atk:200000000, hp:300000000, pIdx:3, mult:1.2}, {id:705, star:7, name:"【零】の裂け目", atk:250000000, hp:400000000, pIdx:4, mult:1.2},
     {id:801, star:8, name:"【絶】界の神滅", atk:1000000000, hp:0, pIdx:0, mult:1.5}, {id:802, star:8, name:"【永】劫の聖域", atk:0, hp:2000000000, pIdx:1, mult:1.5}, {id:803, star:8, name:"【叡】智の真理", atk:888888888, hp:1200000000, pIdx:2, mult:1.5}, {id:804, star:8, name:"【凱】旋の覇道", atk:1500000000, hp:2500000000, pIdx:3, mult:1.5}, {id:805, star:8, name:"【零】の侵食", atk:2500000000, hp:4000000000, pIdx:4, mult:1.5},
-    {id:901, star:9, name:"【絶】界・多重定義", atk:10000000000, hp:0, pIdx:0, mult:2.0}, {id:902, star:9, name:"【永】死生超越の理", atk:0, hp:20000000000, pIdx:1, mult:2.0}, {id:903, star:9, name:"【叡】真理の法典", atk:9999999999, hp:15000000000, pIdx:2, mult:2.0}, {id:904, star:9, name:"【凱】覇道の極致", atk:15000000000, hp:25000000000, pIdx:3, mult:2.0}, {id:905, star:9, name:"【零】無窮の深淵", atk:25000000000, hp:40000000000, pIdx:4, mult:2.0},
+    {id:901, star:9, name:"【絶】界・多重定義", atk:10000000000, hp:0, pIdx:0, mult:2.0}, {id:902, star:9, name:"【永】死生超越の理", atk:0, hp:20000000000, pIdx:1, mult:2.0}, {id:903, star:9, name:"【叡】真理の法典", atk:9999999999, hp:150000000000, pIdx:2, mult:2.0}, {id:904, star:9, name:"【凱】覇道の極致", atk:15000000000, hp:25000000000, pIdx:3, mult:2.0}, {id:905, star:9, name:"【零】無窮の深淵", atk:25000000000, hp:40000000000, pIdx:4, mult:2.0},
     {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:88888888888, pIdx:3, mult:100.0},
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, pIdx:4, mult:1000.0}
 ];
@@ -166,21 +174,27 @@ function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { co
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
 function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; refreshUI(); }
 
+// --- ダメージ計算ロジックの改善 ---
 function attack() {
     if(isModalOpen) return;
     let turnLogHtml = "";
     let bonus = 0;
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+    
     player.deathCount += (1 + bonus); 
     player.baseHP += getRandomRange(10, player.deathCount * 10);
+    
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
-    let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
-    let totalAtk = (player.baseAtk * 120n / 100n + b.atk);
-    let finalMult = b.mult * powerMult;
-    let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
+    let relicKindBonus = 1.0 + (Object.keys(player.inventory).length * 0.2);
+    
+    // 合計攻撃力 = (基礎 + 遺物) * 遺物倍率 * 種類ボーナス * 再起補正
+    let totalAtkNum = Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult;
+    let baseDmg = BigInt(Math.floor(totalAtkNum));
+    
     if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
     currentBossHP -= baseDmg;
+    
     turnLogHtml += `<div><span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span></div>`;
     if(currentBossHP <= 0n) { 
         turnLogHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>`;
@@ -247,7 +261,8 @@ function getRandomRange(min, max) { let nMin = Number(min), nMax = Number(max); 
 function refreshUI() {
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004);
-    let dispAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
+    let relicKindBonus = 1.0 + (Object.keys(player.inventory).length * 0.2);
+    let dispAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult));
     let dispHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
     document.getElementById("p-atk").innerText = dispAtk.toLocaleString();
     document.getElementById("p-hp").innerText = dispHP.toLocaleString();
@@ -266,7 +281,7 @@ function renderRelics() {
 function renderStatus() { 
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString(); 
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString(); 
-    let r = "★4以下"; for(let s=11; s>=5; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放`; break; } }
+    let r = "★3以下"; for(let s=11; s>=4; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放`; break; } }
     document.getElementById("st-rank").innerText = r;
     document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/53`; 
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p}</td></tr>`).join(""); 
