@@ -154,8 +154,8 @@ let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 let isModalOpen = false;
 
-const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000];
-const POWER_UNLOCK_STEPS = [1000, 10000, 100000, 1000000, 10000000];
+const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
+const POWER_UNLOCK_STEPS = [1000, 5000, 25000, 100000, 250000];
 const POWERS = [
     { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +20%"}, {name: "心気一致", desc: "所持遺物種数でダメージ増"}, {name: "万象一掃", desc: "再起回数でダメージ増"}, {name: "天断の極意", desc: "常時追加ダメージ100%"}, {name: "極限一閃・無双", desc: "最終ダメージ倍率 x5.0"}]},
     { name: "不滅", skills: [{name: "生命の根源", desc: "基礎HP +30%"}, {name: "再誕の輝き", desc: "再起ボーナス 1.5倍"}, {name: "不撓不屈の魂", desc: "現在HP割合に応じてATK増"}, {name: "死を超越せし者", desc: "再起数で全ステータス乗算"}, {name: "不滅 of 王土", desc: "再起数で最終ダメ/HP指数増"}]},
