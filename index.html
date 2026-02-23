@@ -245,7 +245,7 @@ function attack() {
         }
     }
 
-    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>`;
+    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} 魔神の攻撃！999,999,999,999ダメージ！</span></div>`;
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
 
     if(currentBossHP <= 0n) { 
