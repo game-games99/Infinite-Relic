@@ -3,24 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.3.5</title>
+<title>RELICORE - v2.3.6</title>
 <style>
-    /* CSSは基本維持しつつ、ストーリー演出用の調整 */
+    /* CSS構成：ストーリー演出の洗練 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-    .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; text-shadow: 0 0 2px rgba(255,0,0,0.3); } .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); } .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); } .c11 { color: #ffc107; font-weight: bold; text-shadow: 0 0 1px rgba(0,0,0,0.2); } .c12 { color: gold; font-weight: bold; }
     
-    /* ストーリーモーダル：システム枠を廃止し情緒的なデザインへ */
+    /* ストーリーモーダル：指示に基づきカラーを統一 */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.0; }
     .story-text { margin-bottom: 30px; font-size: 0.95em; color: #eee; text-align: left; border-left: 2px solid #555; padding-left: 20px; letter-spacing: 0.05em; }
-    .story-majinn { color: #ff4444; font-weight: bold; display: block; margin: 15px 0; }
+    .story-majinn { color: #eee; font-weight: normal; display: block; margin: 15px 0; } /* 他のテキストと統一 */
     .story-highlight { color: gold; font-weight: bold; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
     .story-btn:active { background: rgba(255,215,0,0.2); }
 
-    /* 以下、UIコンポーネントは維持 */
+    /* レアリティカラー設定 */
+    .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; text-shadow: 0 0 2px rgba(255,0,0,0.3); } .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); } .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); } .c11 { color: #ffc107; font-weight: bold; text-shadow: 0 0 1px rgba(0,0,0,0.2); } .c12 { color: gold; font-weight: bold; }
+
+    /* UIレイアウト保持 */
     #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .boss-area { text-align: center; width: 100%; }
     .boss-name { font-size: 1.0em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
@@ -52,7 +54,6 @@
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
     .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; line-height: 1.2; }
     .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
-    .relic-power-pt { font-size: 0.65em; font-weight: bold; color: var(--primary); background: #eef6ff; padding: 2px 4px; border-radius: 4px; align-self: flex-start; }
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
     .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; z-index: 50; }
 </style>
@@ -71,8 +72,8 @@
             <br><br>
             深淵に漂うは、魔神に滅ぼされた世界の欠片。かつての英雄たちが遺した力の残滓を集めよ。
             <br><br>
-            <b>「灰の中から、何度でも立ち上がれ。<br>
-            空となった魂（CORE）に、遺物（RELIC）を刻みつけ、魔神を穿つ新たな牙と成せ。」</b>
+            <b>「何度でも立ち上がり、魂に遺物を刻み付ける。<br>
+            終わりの見えない闘いが、今始まる。」</b>
         </div>
         <button class="story-btn" onclick="closeStory()">魂に刻印する</button>
     </div>
@@ -111,10 +112,9 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.3.5</div>
+<div class="ver-footer">RELICORE v2.3.6</div>
 
 <script>
-// 基本ロジックはv2.3.4を維持し、テキスト反映のみ実施
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
 const DROP_DATA = { 1: { p: "81.888879%", cond: 0n }, 2: { p: "12%", cond: 0n }, 3: { p: "5%", cond: 0n }, 4: { p: "1%", cond: 0n }, 5: { p: "0.1%", cond: 1000000n }, 6: { p: "0.01%", cond: 10000000n }, 7: { p: "0.001%", cond: 100000000n }, 8: { p: "0.0001%", cond: 1000000000n }, 9: { p: "0.00001%", cond: 10000000000n }, 10: { p: "0.000001%", cond: 100000000000n }, 11: { p: "0.0000001%", cond: 1000000000000n } };
@@ -124,10 +124,8 @@ let attackInterval = null;
 let isModalOpen = false;
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000];
 
-// 遺物マスターデータ等は維持
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    /* 遺物データ省略(v2.3.3/4と同様) */
     {id:101, star:1, name:"勇者の木片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"野草の滴", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"冒険の証", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"兵士の号令", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚ろな石", atk:4, hp:10, pIdx:4},
     {id:201, star:2, name:"鉄の剣", atk:17, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:126, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:13, hp:55, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:28, hp:45, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:44, hp:60, pIdx:4},
     {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:144, hp:233, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:312, hp:450, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:444, hp:666, pIdx:4},
@@ -151,21 +149,17 @@ function attack() {
     let turnLogHtml = "";
     let bonus = 0;
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-    
     player.deathCount += (1 + bonus); 
     player.baseHP += getRandomRange(10, player.deathCount * 10);
-    
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let powerMult = (1.0 + (Object.keys(player.inventory).length * 0.2)) * deathDmgMult;
     let totalAtk = (player.baseAtk * 120n / 100n + b.atk);
     let finalMult = b.mult * powerMult;
     let baseDmg = BigInt(Math.floor(Number(totalAtk) * finalMult));
-    
     if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
     currentBossHP -= baseDmg;
     turnLogHtml += `<div><span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span></div>`;
-
     if(currentBossHP <= 0n) { 
         turnLogHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>`;
         turnLogHtml += getDropLog(5 + bonus);
@@ -175,7 +169,6 @@ function attack() {
         turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
         turnLogHtml += getDropLog(1 + bonus);
     }
-    
     addLog(turnLogHtml);
     saveGame(); refreshUI();
 }
@@ -207,13 +200,12 @@ function renderVow() {
     let bonus = 0; let nextT = VOW_THRESHOLDS[0];
     VOW_THRESHOLDS.forEach((t, i) => { if(player.deathCount >= t) { bonus++; if(VOW_THRESHOLDS[i+1]) nextT = VOW_THRESHOLDS[i+1]; else nextT = "MAX"; } });
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死の淵で深淵をさらい、滅びた世界の欠片を一つ、魂（CORE）に刻みつける。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死の淵で深淵をさらい、滅びた世界の欠片を一つ、魂に刻みつける。</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP+10</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>`;
 }
 
-// 共通処理・UI更新
 function getRelicBonus() {
     let atk = 0n, hp = 0n, mult = 1.0, pts = [0, 0, 0, 0, 0];
     Object.entries(player.inventory).forEach(([id, count]) => {
