@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.6.6</title>
+<title>RELICORE - v2.6.7</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -21,7 +21,11 @@
     .story-highlight { color: gold; font-weight: bold; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
     
-    .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; } .c11 { color: #ffc107; font-weight: bold; } .c12 { color: gold; font-weight: bold; }
+    /* カラーコード復旧 */
+    .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; } 
+    .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); } 
+    .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); } 
+    .c11 { color: #ffc107; font-weight: bold; } .c12 { color: gold; font-weight: bold; }
     
     #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .boss-area { text-align: center; width: 100%; }
@@ -47,6 +51,14 @@
     #log { height: 400px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; line-height: 1.4; }
     .log-set { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
     
+    /* 権能セクションのスタイル復元 */
+    .power-section { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 15px; background: #fdfdfd; }
+    .power-head { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid var(--panel); padding-bottom: 5px; margin-bottom: 10px; color: var(--dark); }
+    .skill-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8em; }
+    .skill-row.locked { opacity: 0.5; }
+    .skill-chip { background: var(--panel); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; font-weight: bold; white-space: nowrap; }
+    .skill-effect { color: #555; }
+
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     
@@ -128,7 +140,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.6.6</div>
+<div class="ver-footer">RELICORE v2.6.7</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -149,7 +161,7 @@ const POWERS = [
     { name: "不滅", skills: [{name: "生命の根源", desc: "基礎HP +30%"}, {name: "再誕の輝き", desc: "再起ボーナス 1.5倍"}, {name: "不撓不屈の魂", desc: "現在HP割合に応じてATK増"}, {name: "死を超越せし者", desc: "再起数で全ステータス乗算"}, {name: "不滅 of 王土", desc: "再起数で最終ダメ/HP指数増"}]},
     { name: "魔導", skills: [{name: "魔力回路", desc: "遺物効果 +20%上乗せ"}, {name: "魔力奔流", desc: "全スキル効果 1.5倍"}, {name: "理の解析", desc: "遺物ドロップ判定 +1回"}, {name: "古の叡智", desc: "遺物ボーナス 1.2倍計算"}, {name: "真理の扉", desc: "★5以上所持数で特大乗算"}]},
     { name: "覇王", skills: [{name: "万軍の主", desc: "遺物★合計に応じてATK加算"}, {name: "覇王の威光", desc: "★6以上1つ毎に倍率UP"}, {name: "統率の理", desc: "★1〜3遺物効果 10倍補正"}, {name: "覇道の足跡", desc: "遺物種類数 × 0.2 倍率加算"}, {name: "終焉の号令", desc: "全遺物効果 1.5倍"}]},
-    { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃（※禁止ルールに伴い表示のみ）"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
+    { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃（※表示のみ）"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
 ];
 
 const RELIC_MASTER = [
@@ -203,32 +215,14 @@ function closeUpgradeModal() {
 function renderVow() {
     const vowList = document.getElementById('vow-list');
     if (!vowList) return;
-    
     let bonus = 0; 
-    VOW_THRESHOLDS.forEach(t => { if(window.isDebugMode) { bonus = VOW_THRESHOLDS.length; } else if(player.deathCount >= t) bonus++; });
+    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     const nextThreshold = VOW_THRESHOLDS[bonus] || 'MAX';
-
     vowList.innerHTML = `
-        <div class="vow-item">
-            <div class="vow-name">不退転の力</div>
-            <span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span>
-            <div class="vow-desc">死を経験するたびに、深淵に漂う遺物を魂に刻む。</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">刹那の堆積</div>
-            <span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span>
-            <div class="vow-desc">再起するたびにHP増加幅+10。魔神の攻撃を受け止めた場合、★2以上の遺物を1つ獲得する。</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">魂の研磨</div>
-            <span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span>
-            <div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div>
-        </div>
-        <div class="vow-item">
-            <div class="vow-name">死を刻む</div>
-            <span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span>
-            <div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div>
-        </div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに、深淵に漂う遺物を魂に刻む。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。魔神の攻撃で生存した場合★2以上の遺物を1つ獲得する。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
     `;
 }
 
@@ -266,7 +260,6 @@ function attack() {
             player.deathCount += (1 + bonus);
             player.baseHP += BigInt(Math.floor(10 + Math.random() * (player.deathCount * 10)));
             let currentBonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) currentBonus++; });
-            
             if(currentBonus > prevBonus) {
                 openUpgradeModal("再起の誓い、共鳴", "再起の誓いが、呼び掛けに応える…\n【魂の研磨】が強化された。");
                 addLog(logHtml); saveGame(); refreshUI();
@@ -333,11 +326,21 @@ function refreshUI() {
     document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
     document.getElementById("hado-box").style.display = player.hasHado ? "block" : "none";
     const tid = document.querySelector(".tab.active").id;
-    if(tid === 'vow') renderVow(); else if(tid === 'power') renderPower(b.pts); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
+    if(tid === 'vow') renderVow(); 
+    else if(tid === 'power') renderPower(b.pts); 
+    else if(tid === 'relic') renderRelics(); 
+    else if(tid === 'status') renderStatus();
 }
 
 function renderPower(pts) {
-    document.getElementById("power-content").innerHTML = POWERS.map((p, i) => `<div class="power-section"><div class="power-head"><span>${p.name}</span><span>${pts[i].toLocaleString()} pt</span></div><div class="skill-list">${p.skills.map((s, si) => { const req = POWER_UNLOCK_STEPS[si]; const lock = pts[i] < req; return `<div class="skill-row ${lock?'locked':''}"><div class="skill-chip">${lock?'未覚醒':s.name}</div><span class="skill-effect">${lock?'？？？':s.desc}</span></div>`; }).join("")}</div></div>`).join("");
+    document.getElementById("power-content").innerHTML = POWERS.map((p, i) => `
+        <div class="power-section">
+            <div class="power-head"><span>${p.name}</span><span>${pts[i].toLocaleString()} pt</span></div>
+            <div class="skill-list">${p.skills.map((s, si) => { 
+                const req = POWER_UNLOCK_STEPS[si]; const lock = pts[i] < req; 
+                return `<div class="skill-row ${lock?'locked':''}"><div class="skill-chip">${lock?'未覚醒':s.name}</div><span class="skill-effect">${lock?'？？？':s.desc}</span></div>`; 
+            }).join("")}</div>
+        </div>`).join("");
 }
 
 function renderRelics() {
