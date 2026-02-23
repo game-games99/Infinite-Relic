@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.3.9</title>
+<title>RELICORE - v2.4.0</title>
 <style>
-    /* CSS構成：v2.3.7を維持 */
+    /* CSS構成：v2.3.9を維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -116,7 +116,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.3.9</div>
+<div class="ver-footer">RELICORE v2.4.0</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -179,8 +179,17 @@ function attack() {
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let relicKindBonus = 1.0 + (Object.keys(player.inventory).length * 0.2);
-    let totalAtkNum = Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult;
-    let baseDmg = BigInt(Math.floor(totalAtkNum));
+    
+    // 基準となる合計ATKの算出
+    let baseAtkNum = Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult;
+    
+    // 乱数計算 (0.8 〜 1.2倍の範囲で変動)
+    let randomMult = 0.8 + (Math.random() * 0.4);
+    let finalDmgNum = baseAtkNum * randomMult;
+    
+    // 小数点を切り捨ててBigInt化
+    let baseDmg = BigInt(Math.floor(finalDmgNum));
+    if (baseDmg < 1n) baseDmg = 1n;
     
     if(baseDmg > player.maxDmg) player.maxDmg = baseDmg;
     currentBossHP -= baseDmg;
