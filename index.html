@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.5.1</title>
+<title>RELICORE - v2.5.2</title>
 <style>
-    /* CSS構成：v2.5.0を維持 */
+    /* CSS構成：v2.5.1を維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -116,12 +116,12 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.5.1</div>
+<div class="ver-footer">RELICORE v2.5.2</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
-const MAJIN_ATK_VALUE = 999999999999n; // 魔神の攻撃力（約1兆）
+const MAJIN_ATK_VALUE = 999999999999n;
 
 const DROP_DATA = { 
     1:  { p: "99.8888889%", cond: 0n }, 
@@ -153,7 +153,8 @@ const POWERS = [
 
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    {id:101, star:1, name:"勇者の木片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"野草の滴", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"冒険の証", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"兵士の号令", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚ろな石", atk:4, hp:10, pIdx:4},
+    // ★1名称変更：対応権能の欠片
+    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅の欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
     {id:201, star:2, name:"鉄の剣", atk:17, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:126, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:13, hp:55, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:28, hp:45, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:44, hp:60, pIdx:4},
     {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:144, hp:233, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:312, hp:450, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:444, hp:666, pIdx:4},
     {id:401, star:4, name:"王宮の秘宝", atk:5777, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:24680, pIdx:1}, {id:403, star:4, name:"伝説の断片", atk:8192, hp:12000, pIdx:2}, {id:404, star:4, name:"覇道の手引書", atk:18888, hp:25000, pIdx:3}, {id:405, star:4, name:"破滅の引き金", atk:44444, hp:66666, pIdx:4},
@@ -199,18 +200,13 @@ function attack() {
         isModalOpen = true; 
         document.getElementById("clear-modal").style.display = "flex"; 
     } else { 
-        // 攻撃を受け止める判定
         let currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
         
         if(currentTotalHP > MAJIN_ATK_VALUE) {
-            // 【生存】
             turnLogHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃を受け止めた！</span></div>`;
-            // 金剛の肉体：追加効果発動
             turnLogHtml += getSpecificDropLog(2); 
-            // 通常ドロップも発生
             turnLogHtml += getDropLog(1 + bonus);
         } else {
-            // 【再起】
             player.deathCount += (1 + bonus);
             player.baseHP += getRandomRange(10, player.deathCount * 10);
             turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ ${MAJIN_ATK_VALUE.toLocaleString()}ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
@@ -277,7 +273,7 @@ function renderVow() {
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに、深淵に漂う遺物を1つ魂に刻む。</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに増加。魔神の攻撃を受け止めた場合、★2以上の遺物を1つ獲得する</span><div class="vow-desc">再起するたびに増加するHPの幅が＋10</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
+        <div class="vow-item"><div class="vow-name">魂 of 研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>`;
 }
 
