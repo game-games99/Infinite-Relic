@@ -245,7 +245,7 @@ function attack() {
         }
     }
 
-    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} 魔神の攻撃！999,999,999,999ダメージ！</span></div>`;
+    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>`;
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
 
     if(currentBossHP <= 0n) { 
@@ -265,7 +265,7 @@ function attack() {
                 addLog(logHtml); saveGame(); refreshUI();
                 return;
             }
-            logHtml += `<div><span style="color:#dc3545;">${MAJIN_ATK_VALUE.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>` + getDropLog(1 + bonus);
+            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${MAJIN_ATK_VALUE.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>` + getDropLog(1 + bonus);
         }
     }
     addLog(logHtml); saveGame(); refreshUI();
