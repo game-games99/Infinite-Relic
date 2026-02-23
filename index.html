@@ -3,12 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.5.3</title>
+<title>RELICORE - v2.5.4</title>
 <style>
-    /* CSS構成：v2.5.2を維持 */
+    /* CSS構成：v2.5.3を維持しつつ演出用を追加 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    
+    /* 特殊演出ウィンドウ */
+    #special-notice {
+        position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+        width: 85%; max-width: 400px; background: rgba(0, 0, 0, 0.85);
+        border: 2px solid gold; border-radius: 15px; color: #fff;
+        padding: 25px; text-align: center; z-index: 11000;
+        display: none; pointer-events: none;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        animation: noticeFade 4s forwards;
+    }
+    @keyframes noticeFade {
+        0% { opacity: 0; transform: translate(-50%, -45%); }
+        15% { opacity: 1; transform: translate(-50%, -50%); }
+        85% { opacity: 1; transform: translate(-50%, -50%); }
+        100% { opacity: 0; transform: translate(-50%, -55%); }
+    }
+    .notice-line1 { color: #aaa; font-size: 0.9em; margin-bottom: 10px; font-style: italic; }
+    .notice-line2 { color: gold; font-size: 1.2em; font-weight: bold; text-shadow: 0 0 5px gold; }
+
+    /* 以下、既存スタイル */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.0; }
     .story-text { margin-bottom: 30px; font-size: 0.95em; color: #eee; text-align: left; border-left: 2px solid #555; padding-left: 20px; letter-spacing: 0.05em; }
@@ -67,6 +88,11 @@
 </head>
 <body>
 
+<div id="special-notice">
+    <div class="notice-line1">再起の誓いが、呼び掛けに応える…</div>
+    <div class="notice-line2">魂の研磨が強化された</div>
+</div>
+
 <div id="story-modal">
     <div class="story-content">
         <div class="story-text">
@@ -116,7 +142,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.5.3</div>
+<div class="ver-footer">RELICORE v2.5.4</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -171,11 +197,21 @@ function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { co
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
 function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; refreshUI(); }
 
+function triggerSpecialNotice() {
+    const notice = document.getElementById("special-notice");
+    notice.style.display = "none"; // 一旦リセット
+    void notice.offsetWidth; // リフロー
+    notice.style.display = "block";
+    setTimeout(() => { notice.style.display = "none"; }, 4000);
+}
+
 function attack() {
     if(isModalOpen) return;
     let turnLogHtml = "";
-    let bonus = 0;
-    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+    
+    // 以前のボーナス値を計算
+    let prevBonus = 0;
+    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) prevBonus++; });
     
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
@@ -193,6 +229,9 @@ function attack() {
     
     turnLogHtml += `<div><span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span></div>`;
     
+    let bonus = 0;
+    VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+
     if(currentBossHP <= 0n) { 
         turnLogHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>`;
         turnLogHtml += getDropLog(5 + bonus);
@@ -208,6 +247,12 @@ function attack() {
         } else {
             player.deathCount += (1 + bonus);
             player.baseHP += getRandomRange(10, player.deathCount * 10);
+            
+            // 強化演出判定
+            let currentBonus = 0;
+            VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) currentBonus++; });
+            if(currentBonus > prevBonus) triggerSpecialNotice();
+
             turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ ${MAJIN_ATK_VALUE.toLocaleString()}ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
             turnLogHtml += getDropLog(1 + bonus);
         }
