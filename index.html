@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.3.7</title>
+<title>RELICORE - v2.3.9</title>
 <style>
-    /* CSS構成：v2.3.6を維持 */
+    /* CSS構成：v2.3.7を維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -71,14 +71,11 @@
     <div class="story-content">
         <div class="story-text">
             「……まだ、その魂は潰えていないのか。<br>
-            肉体は砕け、積み上げた研鑽も……かつて、お前が愛した世界とともに灰へと帰した。
-            <br>
+            肉体は砕け、積み上げた研鑽も……かつて、お前が愛した世界とともに灰へと帰した。<br>
             <span class="story-majinn">魔神の劫火はお前の『過去』をすべて焼き尽くした。今のお前は、拠り所も力も持たぬ、空っぽの器に過ぎない。</span>
             だが、絶望の淵でお前の魂を繋ぎ止める一つの輝きがある。<br>
-            決して折れぬ不屈の意志が呼び覚ます、最期の光――<span class="story-highlight">『再起の誓い』</span>。
-            <br><br>
-            深淵に漂うは、魔神に滅ぼされた世界の欠片。かつての英雄たちが遺した力の残滓を集めよ。
-            <br><br>
+            決して折れぬ不屈の意志が呼び覚ます、最期の光――<span class="story-highlight">『再起の誓い』</span>。<br><br>
+            深淵に漂うは、魔神に滅ぼされた世界の欠片。かつての英雄たちが遺した力の残滓を集めよ。<br><br>
             <b>「何度でも立ち上がり、魂に遺物を刻み付ける。<br>
             終わりの見えない闘いが、今始まる。」</b>
         </div>
@@ -119,13 +116,12 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.3.7</div>
+<div class="ver-footer">RELICORE v2.3.9</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
 
-// --- 遺物出現率の再設定 (★2から0.1%で10倍ずつ減少、残りを★1に) ---
 const DROP_DATA = { 
     1:  { p: "99.8888889%", cond: 0n }, 
     2:  { p: "0.1%",        cond: 0n }, 
@@ -174,21 +170,15 @@ function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { co
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
 function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; refreshUI(); }
 
-// --- ダメージ計算ロジックの改善 ---
 function attack() {
     if(isModalOpen) return;
     let turnLogHtml = "";
     let bonus = 0;
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     
-    player.deathCount += (1 + bonus); 
-    player.baseHP += getRandomRange(10, player.deathCount * 10);
-    
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let relicKindBonus = 1.0 + (Object.keys(player.inventory).length * 0.2);
-    
-    // 合計攻撃力 = (基礎 + 遺物) * 遺物倍率 * 種類ボーナス * 再起補正
     let totalAtkNum = Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult;
     let baseDmg = BigInt(Math.floor(totalAtkNum));
     
@@ -202,6 +192,8 @@ function attack() {
         isModalOpen = true; 
         document.getElementById("clear-modal").style.display = "flex"; 
     } else { 
+        player.deathCount += (1 + bonus);
+        player.baseHP += getRandomRange(10, player.deathCount * 10);
         turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
         turnLogHtml += getDropLog(1 + bonus);
     }
@@ -224,12 +216,18 @@ function getDropLog(targetCount) {
             obtainedDict[sel.id] = (obtainedDict[sel.id] || 0) + 1;
         }
     }
-    let logStr = "";
+
+    let logHtml = "";
+    let starGroups = {};
     Object.entries(obtainedDict).forEach(([id, count]) => {
         const item = RELIC_MASTER.find(m => m.id == id);
-        logStr += `<div><span class="c${item.star}">【刻印】★${item.star} ${item.name} × ${count}</span></div>`;
+        if(!starGroups[item.star]) starGroups[item.star] = [];
+        starGroups[item.star].push(`${item.name}×${count}`);
     });
-    return logStr;
+    Object.keys(starGroups).sort((a, b) => a - b).forEach(star => {
+        logHtml += `<div><span class="c${star}">★${star} ${starGroups[star].join("、")}</span></div>`;
+    });
+    return logHtml;
 }
 
 function renderVow() {
