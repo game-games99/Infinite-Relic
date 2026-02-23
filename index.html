@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.4.2</title>
+<title>RELICORE - v2.5.0</title>
 <style>
-    /* CSS構成：v2.4.1を維持 */
+    /* CSS構成：v2.4.2を維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -116,7 +116,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.4.2</div>
+<div class="ver-footer">RELICORE v2.5.0</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -200,10 +200,42 @@ function attack() {
         player.deathCount += (1 + bonus);
         player.baseHP += getRandomRange(10, player.deathCount * 10);
         turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
+        
+        // 通常ドロップ
         turnLogHtml += getDropLog(1 + bonus);
+        // 金剛の肉体：★2以上確定枠（追加効果）
+        turnLogHtml += getSpecificDropLog(2); 
     }
     addLog(turnLogHtml);
     saveGame(); refreshUI();
+}
+
+function getSpecificDropLog(minStar) {
+    let rv = Math.random() * 100, star = minStar, curP = 0;
+    // minStar以上の確率分布から再抽選
+    let totalP = 0;
+    for(let s in DROP_DATA) { if(parseInt(s) >= minStar) totalP += parseFloat(DROP_DATA[s].p); }
+    let rand = Math.random() * totalP;
+    let accum = 0;
+    for(let s in DROP_DATA) {
+        if(parseInt(s) >= minStar) {
+            accum += parseFloat(DROP_DATA[s].p);
+            if(rand <= accum) { star = parseInt(s); break; }
+        }
+    }
+    
+    // 条件チェック
+    if (player.maxDmg < DROP_DATA[star].cond) star = minStar; // 未解禁なら最低保証の★2へ
+
+    let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
+    let filteredCands = cands.filter(m => !(m.star >= 10 && player.inventory[m.id] >= 1));
+    
+    if(filteredCands.length > 0) {
+        let sel = filteredCands[Math.floor(Math.random() * filteredCands.length)];
+        player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
+        return `<div><span class="c${sel.star}">[金剛の肉体] ★${sel.star} ${sel.name}×1</span></div>`;
+    }
+    return "";
 }
 
 function getDropLog(targetCount) {
@@ -239,8 +271,8 @@ function renderVow() {
     let bonus = 0; let nextT = VOW_THRESHOLDS[0];
     VOW_THRESHOLDS.forEach((t, i) => { if(player.deathCount >= t) { bonus++; if(VOW_THRESHOLDS[i+1]) nextT = VOW_THRESHOLDS[i+1]; else nextT = "MAX"; } });
     document.getElementById("vow-list").innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに、深淵に漂う遺物を一つ魂に刻む。</div></div>
-        <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに増加</span><div class="vow-desc">再起するたびに増加するHPの幅が＋10</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに、深淵に漂う遺物を1つ魂に刻む。</div></div>
+        <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに増加。魔神の攻撃を受け止めた場合、★2以上の遺物を1つ獲得する</span><div class="vow-desc">再起するたびに増加するHPの幅が＋10</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>`;
 }
