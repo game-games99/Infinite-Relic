@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.5.4</title>
+<title>RELICORE - v2.5.5</title>
 <style>
-    /* CSS構成：v2.5.3を維持しつつ演出用を追加 */
+    /* CSS構成：v2.5.4を維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     
-    /* 特殊演出ウィンドウ */
     #special-notice {
         position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
         width: 85%; max-width: 400px; background: rgba(0, 0, 0, 0.85);
@@ -29,7 +28,6 @@
     .notice-line1 { color: #aaa; font-size: 0.9em; margin-bottom: 10px; font-style: italic; }
     .notice-line2 { color: gold; font-size: 1.2em; font-weight: bold; text-shadow: 0 0 5px gold; }
 
-    /* 以下、既存スタイル */
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.0; }
     .story-text { margin-bottom: 30px; font-size: 0.95em; color: #eee; text-align: left; border-left: 2px solid #555; padding-left: 20px; letter-spacing: 0.05em; }
@@ -103,7 +101,7 @@
             決して折れぬ不屈の意志が呼び覚ます、最期の光――<span class="story-highlight">『再起の誓い』</span>。<br><br>
             深淵に漂うは、魔神に滅ぼされた世界の欠片。かつての英雄たちが遺した力の残滓を集めよ。<br><br>
             <b>「何度でも立ち上がり、魂に遺物を刻み付ける。<br>
-            終わりの見えない闘いが、今始まる。」</b>
+            終わりの見えない闘いが, 今始まる。」</b>
         </div>
         <button class="story-btn" onclick="closeStory()">魂に刻印する</button>
     </div>
@@ -142,7 +140,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.5.4</div>
+<div class="ver-footer">RELICORE v2.5.5</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -167,7 +165,10 @@ let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, max
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 let isModalOpen = false;
-const VOW_THRESHOLDS = [1000, 5000, 25000, 100000];
+
+// 魂の研磨 最大+9へ拡張
+const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000, 500000, 1000000, 2500000, 5000000];
+
 const POWER_UNLOCK_STEPS = [1000, 10000, 100000, 1000000, 10000000];
 const POWERS = [
     { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +20%"}, {name: "心气一致", desc: "所持遺物種数でダメージ増"}, {name: "万象一掃", desc: "再起回数でダメージ増"}, {name: "天断の極意", desc: "常時追加ダメージ100%"}, {name: "極限一閃・無双", desc: "最終ダメージ倍率 x5.0"}]},
@@ -199,8 +200,8 @@ function closeClearModal() { document.getElementById("clear-modal").style.displa
 
 function triggerSpecialNotice() {
     const notice = document.getElementById("special-notice");
-    notice.style.display = "none"; // 一旦リセット
-    void notice.offsetWidth; // リフロー
+    notice.style.display = "none";
+    void notice.offsetWidth;
     notice.style.display = "block";
     setTimeout(() => { notice.style.display = "none"; }, 4000);
 }
@@ -209,7 +210,6 @@ function attack() {
     if(isModalOpen) return;
     let turnLogHtml = "";
     
-    // 以前のボーナス値を計算
     let prevBonus = 0;
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) prevBonus++; });
     
@@ -248,7 +248,6 @@ function attack() {
             player.deathCount += (1 + bonus);
             player.baseHP += getRandomRange(10, player.deathCount * 10);
             
-            // 強化演出判定
             let currentBonus = 0;
             VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) currentBonus++; });
             if(currentBonus > prevBonus) triggerSpecialNotice();
@@ -317,7 +316,7 @@ function renderVow() {
     document.getElementById("vow-list").innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに、深淵に漂う遺物を一つ魂に刻む。</div></div>
         <div class="vow-item"><div class="vow-name">金剛の肉体</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP+10</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextT.toLocaleString()}）</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">同時ドロップ数/再起カウント：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${typeof nextT === 'number' ? nextT.toLocaleString() : nextT}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.0004).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>`;
 }
 
