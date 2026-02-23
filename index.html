@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.5.0</title>
+<title>RELICORE - v2.5.1</title>
 <style>
-    /* CSS構成：v2.4.2を維持 */
+    /* CSS構成：v2.5.0を維持 */
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -116,11 +116,12 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.5.0</div>
+<div class="ver-footer">RELICORE v2.5.1</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
+const MAJIN_ATK_VALUE = 999999999999n; // 魔神の攻撃力（約1兆）
 
 const DROP_DATA = { 
     1:  { p: "99.8888889%", cond: 0n }, 
@@ -191,45 +192,49 @@ function attack() {
     currentBossHP -= baseDmg;
     
     turnLogHtml += `<div><span style="color:#007bff; font-weight:bold;">${baseDmg.toLocaleString()} ダメージ！</span></div>`;
+    
     if(currentBossHP <= 0n) { 
         turnLogHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>`;
         turnLogHtml += getDropLog(5 + bonus);
         isModalOpen = true; 
         document.getElementById("clear-modal").style.display = "flex"; 
     } else { 
-        player.deathCount += (1 + bonus);
-        player.baseHP += getRandomRange(10, player.deathCount * 10);
-        turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ 999,999,999,999ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
+        // 攻撃を受け止める判定
+        let currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
         
-        // 通常ドロップ
-        turnLogHtml += getDropLog(1 + bonus);
-        // 金剛の肉体：★2以上確定枠（追加効果）
-        turnLogHtml += getSpecificDropLog(2); 
+        if(currentTotalHP > MAJIN_ATK_VALUE) {
+            // 【生存】
+            turnLogHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃を受け止めた！</span></div>`;
+            // 金剛の肉体：追加効果発動
+            turnLogHtml += getSpecificDropLog(2); 
+            // 通常ドロップも発生
+            turnLogHtml += getDropLog(1 + bonus);
+        } else {
+            // 【再起】
+            player.deathCount += (1 + bonus);
+            player.baseHP += getRandomRange(10, player.deathCount * 10);
+            turnLogHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ ${MAJIN_ATK_VALUE.toLocaleString()}ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
+            turnLogHtml += getDropLog(1 + bonus);
+        }
     }
     addLog(turnLogHtml);
     saveGame(); refreshUI();
 }
 
 function getSpecificDropLog(minStar) {
-    let rv = Math.random() * 100, star = minStar, curP = 0;
-    // minStar以上の確率分布から再抽選
     let totalP = 0;
     for(let s in DROP_DATA) { if(parseInt(s) >= minStar) totalP += parseFloat(DROP_DATA[s].p); }
     let rand = Math.random() * totalP;
-    let accum = 0;
+    let accum = 0, star = minStar;
     for(let s in DROP_DATA) {
         if(parseInt(s) >= minStar) {
             accum += parseFloat(DROP_DATA[s].p);
             if(rand <= accum) { star = parseInt(s); break; }
         }
     }
-    
-    // 条件チェック
-    if (player.maxDmg < DROP_DATA[star].cond) star = minStar; // 未解禁なら最低保証の★2へ
-
+    if (player.maxDmg < DROP_DATA[star].cond) star = minStar;
     let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
     let filteredCands = cands.filter(m => !(m.star >= 10 && player.inventory[m.id] >= 1));
-    
     if(filteredCands.length > 0) {
         let sel = filteredCands[Math.floor(Math.random() * filteredCands.length)];
         player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
@@ -253,7 +258,6 @@ function getDropLog(targetCount) {
             obtainedDict[sel.id] = (obtainedDict[sel.id] || 0) + 1;
         }
     }
-
     let logHtml = "";
     let starGroups = {};
     Object.entries(obtainedDict).forEach(([id, count]) => {
