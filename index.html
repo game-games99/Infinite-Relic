@@ -131,7 +131,7 @@
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
         <div id="hado-box" class="st-box" style="display:none; border:2px solid gold;">
-            <span style="color:gold; font-weight:bold;">習得済み：覇導の号令</span><br>
+            <span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>
             ★1遺物の基礎効果が10倍に強化されています。
         </div>
         <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
@@ -175,7 +175,7 @@ const RELIC_MASTER = [
     {id:901, star:9, name:"【絶】界・多重定義", atk:10000000000, hp:0, pIdx:0, mult:2.0}, {id:902, star:9, name:"【永】死生超越の理", atk:0, hp:20000000000, pIdx:1, mult:2.0}, {id:903, star:9, name:"【叡】真理の法典", atk:9999999999, hp:150000000000, pIdx:2, mult:2.0}, {id:904, star:9, name:"【凱】覇道の極致", atk:15000000000, hp:25000000000, pIdx:3, mult:2.0}, {id:905, star:9, name:"【零】無窮の深淵", atk:25000000000, hp:40000000000, pIdx:4, mult:2.0},
     {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:88888888888, pIdx:3, mult:100.0},
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, pIdx:4, mult:1000.0},
-    {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:-1, desc:"遥か古の、誰かの記憶が結晶化した微かな塵。"}
+    {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:-1, desc:"遥か古の、誰かの記憶が結晶化した微かな塵。たくさん集めると…？"}
 ];
 
 function saveGame() { 
@@ -222,8 +222,8 @@ function renderVow() {
     vowList.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに深淵に漂う遺物を魂に刻む。</div></div>
         <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。数多もの戦闘が核に刻みこまれる。</div></div>
-        <div class="vow-item"><div class="vow-name">光の障壁</div><span class="vow-highlight">稀に魔神の攻撃を無効化する ${minCut}% 〜 100% ランダムカット</span><div class="vow-desc">光の障壁が展開され、死に至る衝撃を霧散させる。</div></div>
-        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時、★2以上の遺物を確定で入手する</span><div class="vow-desc">耐え抜いた時、深淵から新たな力の結晶を掴み取る。</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に魔神の攻撃を無効化する ${minCut}% 〜 100% ランダムカット</span><div class="vow-desc">因果を拒絶し攻撃を軽減または無効化する</div></div>
+        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc"></div>諦めないで強き、意志が新たな力を手に入れる</div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
     `;
@@ -243,7 +243,7 @@ function attack() {
     if(!player.hasHado && (player.inventory[106] || 0) >= 100000) {
         if(Math.random() < 0.0001) {
             player.hasHado = true;
-            openUpgradeModal("スキル【覇導の号令】覚醒", "塵が積もり、魂の記憶が繋がった。\n★1遺物の基礎効果が10倍に強化される。");
+            openUpgradeModal("スキル【破軍の号令】覚醒", "塵が積もり、魂の記憶が繋がった。\n★1遺物の基礎効果が10倍に強化される。");
             return;
         }
     }
