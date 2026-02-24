@@ -221,9 +221,9 @@ function renderVow() {
     const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
 
     vowList.innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに、深淵に漂う遺物を魂に刻む。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。器を広げ、猛攻を耐える土台を作る。</div></div>
-        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">魔神の攻撃を ${minCut}% 〜 100% ランダムカット ＆ 生存時★2以上確定</span><div class="vow-desc">魂の昂ぶりが守護の壁となる。耐え抜いた時、★2〜11の遺物を獲得。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに深淵に漂う遺物を魂に刻む。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。数多もの戦闘が核に刻みこまれる。</div></div>
+        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">聖なる力が稀に攻撃を無効化する ${minCut}% 〜 100% ランダムカット ＆ 生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">攻撃を耐え抜いた時★2〜11の遺物を獲得。</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
     `;
