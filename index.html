@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.6.7</title>
+<title>RELICORE - v2.6.8</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -21,7 +21,6 @@
     .story-highlight { color: gold; font-weight: bold; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
     
-    /* カラーコード復旧 */
     .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; } 
     .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); } 
     .c10 { background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; display: inline-block; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); } 
@@ -51,7 +50,6 @@
     #log { height: 400px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; line-height: 1.4; }
     .log-set { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
     
-    /* 権能セクションのスタイル復元 */
     .power-section { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 15px; background: #fdfdfd; }
     .power-head { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid var(--panel); padding-bottom: 5px; margin-bottom: 10px; color: var(--dark); }
     .skill-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8em; }
@@ -140,7 +138,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.6.7</div>
+<div class="ver-footer">RELICORE v2.6.8</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -166,7 +164,7 @@ const POWERS = [
 
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅の欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
+    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅의欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
     {id:201, star:2, name:"鉄の剣", atk:17, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:126, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:13, hp:55, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:28, hp:45, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:44, hp:60, pIdx:4},
     {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:144, hp:233, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:312, hp:450, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:444, hp:666, pIdx:4},
     {id:401, star:4, name:"王宮の秘宝", atk:5777, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:24680, pIdx:1}, {id:403, star:4, name:"伝説の断片", atk:8192, hp:12000, pIdx:2}, {id:404, star:4, name:"覇道の手引書", atk:18888, hp:25000, pIdx:3}, {id:405, star:4, name:"破滅の引き金", atk:44444, hp:66666, pIdx:4},
@@ -218,9 +216,14 @@ function renderVow() {
     let bonus = 0; 
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     const nextThreshold = VOW_THRESHOLDS[bonus] || 'MAX';
+    
+    // 下限成長：25万回で20%に到達
+    const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
+
     vowList.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに、深淵に漂う遺物を魂に刻む。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。魔神の攻撃で生存した場合★2以上の遺物を1つ獲得する。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。器を広げ、猛攻を耐える土台を作る。</div></div>
+        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">魔神の攻撃を ${minCut}% 〜 100% ランダムカット ＆ 生存時★2以上確定</span><div class="vow-desc">魂の昂ぶりが守護の壁となる。耐え抜いた時、★2〜11の遺物を獲得。</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
     `;
@@ -253,12 +256,24 @@ function attack() {
         isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
     } else {
         const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-        if (currentTotalHP > MAJIN_ATK_VALUE) {
-            let guaranteedDrop = getGuaranteedDrop(2);
-            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃を受け止めた！</span></div>` + guaranteedDrop;
+        
+        // --- 反撃の狼煙：カット計算 ---
+        const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
+        const actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut; 
+        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
+
+        if (currentTotalHP > mitigatedDmg) {
+            // 生存報酬（★2以上確定）
+            let guaranteedDrop = getGuaranteedDrop(); 
+            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ（${actualCutPercent}%カット）。魔神の攻撃を受け止めた！</span></div>` + guaranteedDrop;
         } else {
-            player.deathCount += (1 + bonus);
-            player.baseHP += BigInt(Math.floor(10 + Math.random() * (player.deathCount * 10)));
+            // --- 刹那の堆積：重複防止計算 ---
+            const incrementBase = player.deathCount; 
+            player.deathCount += (1 + bonus); 
+            
+            // HP上昇は加算前の値を基準に1回分だけ計算
+            player.baseHP += BigInt(Math.floor(10 + Math.random() * (Number(incrementBase) * 10)));
+            
             let currentBonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) currentBonus++; });
             if(currentBonus > prevBonus) {
                 openUpgradeModal("再起の誓い、共鳴", "再起の誓いが、呼び掛けに応える…\n【魂の研磨】が強化された。");
@@ -271,13 +286,21 @@ function attack() {
     addLog(logHtml); saveGame(); refreshUI();
 }
 
-function getGuaranteedDrop(minStar) {
-    let star = Math.max(minStar, Math.floor(Math.random() * 4) + 2);
+function getGuaranteedDrop() {
+    let rv = Math.random() * 100;
+    let star = 2; 
+    let curP = 0;
+    for(let s in DROP_DATA) {
+        if (s === "1") continue; 
+        curP += parseFloat(DROP_DATA[s].p);
+        if(rv <= curP) { star = parseInt(s); break; }
+    }
+    if (player.maxDmg < DROP_DATA[star].cond) star = 2;
     let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
     if(cands.length === 0) cands = RELIC_MASTER.filter(m => m.star === 2);
     let sel = cands[Math.floor(Math.random() * cands.length)];
     player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
-    return `<div style="font-size:0.82em; margin-top:2px; border-top:1px dashed #eee; padding-top:2px;">獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×1</span></div>`;
+    return `<div style="font-size:0.82em; margin-top:2px; border-top:1px dashed #eee; padding-top:2px;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×1</span></div>`;
 }
 
 function getDropLog(targetCount) {
