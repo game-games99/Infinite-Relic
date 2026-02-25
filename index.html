@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.0.0</title>
+<title>RELICORE - v3.0.1</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --purple: #6610f2; --purple-light: #f3f0ff; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -143,7 +143,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.0.0</div>
+<div class="ver-footer">RELICORE v3.0.1</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -160,6 +160,7 @@ const DROP_DATA = {
     7: { p: 0.000001, cond: 100000000n } 
 };
 
+// 基礎値管理を初期化
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, storySeen: false, hasHado: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
@@ -170,24 +171,9 @@ const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 
 const RELIC_MASTER = [
     {id:0, star:8, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    // ★1: 16種類 (ATK型5, HP型5, 複合5, 特殊1)
-    {id:101, star:1, name:"剣士の欠片", atk:7, hp:0, pIdx:0},
-    {id:102, star:1, name:"狩人の欠片", atk:8, hp:0, pIdx:0},
-    {id:103, star:1, name:"暗殺者の欠片", atk:9, hp:0, pIdx:0},
-    {id:104, star:1, name:"狂戦士の欠片", atk:10, hp:0, pIdx:0},
-    {id:105, star:1, name:"武闘家の欠片", atk:6, hp:0, pIdx:0},
-    {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45, pIdx:1},
-    {id:107, star:1, name:"騎士の欠片", atk:0, hp:55, pIdx:1},
-    {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65, pIdx:1},
-    {id:109, star:1, name:"修道士の欠片", atk:0, hp:40, pIdx:1},
-    {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50, pIdx:1},
-    {id:111, star:1, name:"魔法使いの欠片", atk:4, hp:35, pIdx:2},
-    {id:112, star:1, name:"斥候の欠片", atk:3, hp:48, pIdx:2},
-    {id:113, star:1, name:"冒険者の欠片", atk:5, hp:42, pIdx:2},
-    {id:114, star:1, name:"見習いの欠片", atk:2, hp:30, pIdx:2},
-    {id:115, star:1, name:"放浪者の欠片", atk:4, hp:44, pIdx:2},
-    {id:116, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:3},
-    // ★2以上
+    {id:101, star:1, name:"剣士の欠片", atk:7, hp:0, pIdx:0}, {id:102, star:1, name:"狩人の欠片", atk:8, hp:0, pIdx:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9, hp:0, pIdx:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10, hp:0, pIdx:0}, {id:105, star:1, name:"武闘家の欠片", atk:6, hp:0, pIdx:0},
+    {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45, pIdx:1}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55, pIdx:1}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65, pIdx:1}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40, pIdx:1}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50, pIdx:1},
+    {id:111, star:1, name:"魔法使いの欠片", atk:4, hp:35, pIdx:2}, {id:112, star:1, name:"斥候の欠片", atk:3, hp:48, pIdx:2}, {id:113, star:1, name:"冒険者の欠片", atk:5, hp:42, pIdx:2}, {id:114, star:1, name:"見習いの欠片", atk:2, hp:30, pIdx:2}, {id:115, star:1, name:"放浪者の欠片", atk:4, hp:44, pIdx:2}, {id:116, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:3},
     {id:201, star:2, name:"鉄の剣", atk:20, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:150, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:15, hp:80, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:30, hp:60, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:45, hp:90, pIdx:4},
     {id:301, star:3, name:"魔力剣", atk:150, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:800, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:150, hp:300, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:350, hp:600, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:500, hp:1000, pIdx:4},
     {id:401, star:4, name:"王宮の秘宝", atk:6000, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:30000, pIdx:1}, {id:403, star:4, name:"伝説の断片", atk:9000, hp:15000, pIdx:2}, {id:404, star:4, name:"覇道の手引書", atk:20000, hp:35000, pIdx:3}, {id:405, star:4, name:"破滅の引き金", atk:50000, hp:80000, pIdx:4},
@@ -206,8 +192,8 @@ function loadGame() {
     if(saved) { 
         const p = JSON.parse(saved); 
         Object.assign(player, p); 
-        player.baseAtk = 10n; 
-        player.baseHP = 100n; 
+        player.baseAtk = BigInt(p.baseAtk || "10"); 
+        player.baseHP = BigInt(p.baseHP || "100"); 
         player.maxDmg = BigInt(p.maxDmg || "0"); 
         currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString()); 
     } 
@@ -226,7 +212,7 @@ function renderVow() {
     const curMinCut = rejStep * 5;
     vowList.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を獲得する</span><div class="vow-desc">攻撃するたびに深淵に漂う遺物を魂に刻む。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 〜 ${player.deathCount.toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起のたびに生命の核が強化される。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">基礎HPが再起のたびに最大 ${player.deathCount.toLocaleString()} 増加中</span><div class="vow-desc">再起のたびに生命の核が強化される。</div></div>
         <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">被ダメージを ${curMinCut}% 〜 100% 軽減する</span><div class="vow-desc">不屈の意志が因果を歪め、死を遠ざける。</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志が新たな力を引き寄せる。</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘による遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能が強化される。</div></div>
@@ -239,26 +225,38 @@ function attack() {
     const b = getRelicBonus();
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
-    let finalDmgNum = Number(10n + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4);
+    let finalDmgNum = Number(player.baseAtk + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4);
     let finalDmg = BigInt(Math.floor(finalDmgNum)) || 1n;
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
+    
     let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
-    if(currentBossHP <= 0n) { currentBossHP = 0n; logHtml += `<div class="c8">【討伐成功】魔神の消滅を確認。</div>`; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; }
-    else {
-        const currentTotalHP = BigInt(Math.floor(Number(100n + b.hp) * b.mult));
+    
+    if(currentBossHP <= 0n) { 
+        currentBossHP = 0n; 
+        logHtml += `<div class="c8">【討伐成功】魔神の消滅を確認。</div>`; 
+        isModalOpen = true; 
+        document.getElementById("clear-modal").style.display = "flex"; 
+    } else {
+        const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
         let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
         const minCut = rejStep * 5; 
         const actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut; 
         const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
-        if (currentTotalHP > mitigatedDmg) { logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); }
-        else { 
+        
+        if (currentTotalHP > mitigatedDmg) { 
+            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
+        } else { 
+            // 刹那の堆積：HP上昇処理
+            let upHP = BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
+            player.baseHP += upHP;
             player.deathCount += (1 + bonus); 
-            player.baseHP += BigInt(Math.floor(1 + Math.random() * (Number(player.deathCount)))); 
-            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
+            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た (基礎HP+${upHP.toLocaleString()})</span></div>`; 
         }
     }
-    addLog(logHtml); saveGame(); refreshUI();
+    addLog(logHtml); 
+    saveGame(); 
+    refreshUI();
 }
 
 function getGuaranteedDrop() {
@@ -307,8 +305,8 @@ function getRelicBonus() {
 function refreshUI() {
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
-    const finalAtk = BigInt(Math.floor(Number(10n + b.atk) * b.mult * deathDmgMult));
-    const finalHp = BigInt(Math.floor(Number(100n + b.hp) * b.mult));
+    const finalAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
+    const finalHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
     
     document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
     document.getElementById("p-hp").innerText = finalHp.toLocaleString();
