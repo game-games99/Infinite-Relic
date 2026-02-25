@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.0.1</title>
+<title>RELICORE - v3.0.2</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --purple: #6610f2; --purple-light: #f3f0ff; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -23,15 +23,9 @@
     .story-highlight { color: gold; font-weight: bold; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
 
-    /* レアリティカラー再編 */
-    .c1 { color: #888; font-weight: bold; } /* 塵 */
-    .c2 { color: #28a745; font-weight: bold; } /* 一般 */
-    .c3 { color: #007bff; font-weight: bold; } /* 希少 */
-    .c4 { color: #6610f2; font-weight: bold; } /* 遺産 */
-    .c5 { color: #e83e8c; font-weight: bold; } /* 伝説 */
-    .c6 { color: #fd7e14; font-weight: bold; } /* 幻想 */
-    .c7 { background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); } /* 神域 */
-    .c8 { color: gold; font-weight: bold; text-shadow: 0 0 5px gold; } /* 再起 */
+    .c1 { color: #888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; }
+    .c7 { background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; filter: drop-shadow(0 0 1px rgba(0,0,0,0.2)); }
+    .c8 { color: gold; font-weight: bold; text-shadow: 0 0 5px gold; }
 
     #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
     .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 8px 0; width: 100%; }
@@ -56,6 +50,9 @@
 
     .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; margin-bottom: 10px; }
     .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; }
+    .vow-name { font-weight: bold; font-size: 0.85em; }
+    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; display: block; margin-top: 2px; }
+    .vow-desc { font-size: 0.7em; color: #777; margin-top: 2px; }
 
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; min-height: 80px; }
@@ -69,7 +66,7 @@
 </head>
 <body>
 
-<div id="hado-awaken-modal"><div class="modal-common hado-content"><h3>【覇軍の号令】覚醒</h3><p>記憶の残滓が臨界を超え、王の魂が呼応した。<br><br><span style="color:gold;">★1遺物の基礎効果が10倍に強化される。</span></p><button class="story-btn" onclick="closeHadoModal()">力と成す</button></div></div>
+<div id="hado-awaken-modal"><div class="modal-common hado-content"><h3>【覇軍の号令】覚醒</h3><p>記憶の残滓が臨界を超え、王の魂が呼応した。<br><br><span style="color:gold; font-weight:bold;">【覇道の理】</span><br>★1遺物の基礎効果が10倍に強化される。</p><button class="story-btn" onclick="closeHadoModal()">力と成す</button></div></div>
 <div id="upgrade-modal"><div class="modal-common"><h3 id="upgrade-title"></h3><p id="upgrade-msg"></p><button class="story-btn" onclick="closeUpgradeModal()">承知した</button></div></div>
 <div id="story-modal"><div class="story-content"><div class="story-text">「……まだ、その魂は潰えていないのか。<br>今のお前は空っぽの器に過ぎない。だが、絶望の淵でお前を繋ぎ止める光がある。<br>決して折れぬ不屈の意志――<span class="story-highlight">『再起の誓い』</span>。</div><button class="story-btn" onclick="closeStory()">魂に刻印する</button></div></div>
 <div id="clear-modal"><div class="modal-common"><h3>討伐成功</h3><p>魔神を討伐しました。</p><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
@@ -95,28 +92,19 @@
     <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
     <div id="status" class="tab">
         <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" onclick="checkDropEligibility()" style="cursor:pointer; text-decoration:underline;">確認中...</span></div>
-        <div id="hado-box" class="st-box" style="display:none; border:2px solid gold;"><span style="color:gold;">習得済み：覇軍の号令</span><br>★1遺物の基礎効果が10倍です。</div>
+        <div id="hado-box" class="st-box" style="display:none; border:2px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物の基礎効果が10倍に強化されています。</div>
         <div class="st-box">遺物収集: <span id="st-collection">0/54</span><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.0.1</div>
+<div class="ver-footer">RELICORE v3.0.2</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n; 
 const MAJIN_ATK_VALUE = 999999999999n;
 
-// ★1〜7のドロップ率と解放条件
-const DROP_DATA = { 
-    1: { p: "99.8888%", cond: 0n }, 
-    2: { p: "0.1%", cond: 1000n }, 
-    3: { p: "0.01%", cond: 100000n }, 
-    4: { p: "0.001%", cond: 10000000n }, 
-    5: { p: "0.0001%", cond: 1000000000n }, 
-    6: { p: "0.00001%", cond: 100000000000n }, 
-    7: { p: "0.000001%", cond: 10000000000000n }
-};
+const DROP_DATA = { 1: { p: "99.8888%", cond: 0n }, 2: { p: "0.1%", cond: 1000n }, 3: { p: "0.01%", cond: 100000n }, 4: { p: "0.001%", cond: 10000000n }, 5: { p: "0.0001%", cond: 1000000000n }, 6: { p: "0.00001%", cond: 100000000000n }, 7: { p: "0.000001%", cond: 10000000000000n } };
 
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, storySeen: false, hasHado: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
@@ -126,57 +114,42 @@ let isModalOpen = false;
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000]; 
 
-// 総数54種類：メモリーダスト＋再起の誓い＋52種類の新名称遺物
 const RELIC_MASTER = [
     {id:0, star:8, name:"再起の誓い", atk:0, hp:0, desc:"不屈の魂に刻まれた、再誕の原点。"},
     {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, desc:"だれかの記憶の欠片。"},
-    // ★1 (10種)
     {id:101, star:1, name:"折れた聖剣の切っ先", atk:5, hp:0}, {id:102, star:1, name:"綻びた騎士の外套", atk:0, hp:25}, {id:103, star:1, name:"色褪せた英雄譚", atk:3, hp:15}, {id:104, star:1, name:"錆びた真鍮の鍵", atk:4, hp:10}, {id:105, star:1, name:"ひび割れた魔力核", atk:8, hp:5},
     {id:107, star:1, name:"兵士の認識票", atk:2, hp:20}, {id:108, star:1, name:"枯れた薬草", atk:0, hp:30}, {id:109, star:1, name:"古びた硬貨", atk:6, hp:8}, {id:110, star:1, name:"戦友の遺髪", atk:3, hp:18}, {id:111, star:1, name:"破れた戦術書", atk:7, hp:12},
-    // ★2 (8種)
     {id:201, star:2, name:"修練者の重剣", atk:50, hp:0}, {id:202, star:2, name:"守備兵の大盾", atk:0, hp:350}, {id:203, star:2, name:"刻印の指輪", atk:40, hp:180}, {id:204, star:2, name:"歴戦の兜", atk:20, hp:500},
     {id:205, star:2, name:"傭兵の短剣", atk:70, hp:50}, {id:206, star:2, name:"丈夫な胸当て", atk:0, hp:600}, {id:207, star:2, name:"狩人の矢尻", atk:55, hp:120}, {id:208, star:2, name:"古酒の小瓶", atk:30, hp:400},
-    // ★3 (8種)
     {id:301, star:3, name:"蒼銀の魔導剣", atk:900, hp:0}, {id:302, star:3, name:"守護者の遺環", atk:0, hp:6500}, {id:303, star:3, name:"知恵の石盤", atk:700, hp:3500}, {id:304, star:3, name:"名誉騎士の紋章", atk:1200, hp:2000},
     {id:305, star:3, name:"深淵の呼び声", atk:1500, hp:1500}, {id:306, star:3, name:"魔力供給の腕輪", atk:500, hp:8000}, {id:307, star:3, name:"予言の断片", atk:1000, hp:4000}, {id:308, star:3, name:"聖別された水", atk:0, hp:12000},
-    // ★4 (8種)
     {id:401, star:4, name:"名もなき王の遺剣", atk:18000, hp:0}, {id:402, star:4, name:"神樹の生枝", atk:0, hp:110000}, {id:403, star:4, name:"いにしえの戦旗", atk:15000, hp:80000}, {id:404, star:4, name:"黄金の杯", atk:10000, hp:150000},
     {id:405, star:4, name:"破砕の槌", atk:25000, hp:50000}, {id:406, star:4, name:"宵闇の外套", atk:0, hp:200000}, {id:407, star:4, name:"竜の逆鱗", atk:30000, hp:70000}, {id:408, star:4, name:"真理の鍵", atk:22000, hp:100000},
-    // ★5 (8種)
     {id:501, star:5, name:"次元を割く破剣", atk:500000, hp:0}, {id:502, star:5, name:"絶対者の心臓", atk:0, hp:3000000}, {id:503, star:5, name:"終焉の予言書", atk:400000, hp:2200000}, {id:504, star:5, name:"神格の涙", atk:100000, hp:5000000},
     {id:505, star:5, name:"王者の刻印", atk:600000, hp:2500000}, {id:506, star:5, name:"魔導極致の杖", atk:800000, hp:1500000}, {id:507, star:5, name:"天界の門扉", atk:0, hp:7000000}, {id:508, star:5, name:"星詠みの砂時計", atk:450000, hp:3500000},
-    // ★6 (5種) - 特殊効果
     {id:601, star:6, name:"【幻想】乖離する光", atk:12000000, hp:0, mult:1.2}, {id:602, star:6, name:"【幻想】不滅の聖杯", atk:0, hp:80000000, mult:1.2}, {id:603, star:6, name:"【幻想】叡智の瞳", atk:8000000, hp:40000000, mult:1.2}, {id:604, star:6, name:"【幻想】凱旋の風", atk:15000000, hp:20000000, mult:1.2}, {id:605, star:6, name:"【幻想】虚無の境界", atk:10000000, hp:50000000, mult:1.2},
-    // ★7 (5種) - 神域
     {id:701, star:7, name:"【神域】黎明の真理", atk:250000000, hp:0, mult:2.0}, {id:702, star:7, name:"【神域】世界樹の種子", atk:0, hp:2000000000, mult:2.0}, {id:703, star:7, name:"【神域】因果の糸", atk:150000000, hp:1200000000, mult:2.0}, {id:704, star:7, name:"【神域】覇道の王冠", atk:300000000, hp:800000000, mult:2.0}, {id:705, star:7, name:"【神域】零の超越", atk:200000000, hp:1500000000, mult:2.0}
 ];
 
 function saveGame() { const d = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(d)); }
-
 function loadGame() { 
     let s = localStorage.getItem(SAVE_KEY); 
-    if(s) { 
-        const p = JSON.parse(s); 
-        Object.assign(player, p); 
-        player.baseAtk = BigInt(p.baseAtk || "10"); 
-        player.baseHP = BigInt(p.baseHP || "100"); 
-        player.maxDmg = BigInt(p.maxDmg || "0"); 
-        currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString());
-        // 旧データ互換性チェック: ID 0(再起の誓い)のstarが12だった場合、新体系(8)に読み替える
-        const vow = RELIC_MASTER.find(m => m.id === 0);
-        if (player.inventory[0] && vow && vow.star !== 8) { /* 必要に応じ変換処理 */ }
-    } 
+    if(s) { const p = JSON.parse(s); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString()); } 
     if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; 
 }
 
 function renderVow() {
     const l = document.getElementById('vow-list');
-    let b = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) b++; });
+    let bon = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bon++; });
     let rs = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rs++; });
+    const curMin = rs * 5;
     l.innerHTML = `
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">再起時 HP +${(player.deathCount * 10).toLocaleString()}</span></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">被ダメ軽減 ${rs*5}% 〜 100%</span></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">最終威力補正: ${(player.deathCount * 0.0004).toFixed(2)}%</span></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を獲得する</span><div class="vow-desc">攻撃するたびに深淵に漂う遺物を魂に刻む。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">再起時 HP +${(player.deathCount * 10).toLocaleString()}</span><div class="vow-desc">再起するたびに生命の核が強化される。</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">被ダメ軽減 ${curMin}% 〜 100%</span><div class="vow-desc">不屈の意志が因果を歪め、死を遠ざける。</div></div>
+        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時 ★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志が新たな力を引き寄せる。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘による遺物獲得数/再起回数：+${bon}</span><div class="vow-desc">再起した回数に応じて機能が強化される。</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.0004).toFixed(2)}%</span><div class="vow-desc">再起のたびに最終ダメージを微増させる。</div></div>
     `;
 }
 
@@ -194,6 +167,11 @@ function attack() {
     currentBossHP -= dmg;
     let log = `<div><span style="color:#007bff; font-weight:bold;">${dmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bon);
 
+    // 【覇軍の号令】解放ロジック：メモリーダスト(ID:106)が10万個以上
+    if(!player.hasHado && (player.inventory[106] || 0) >= 100000) {
+        if(Math.random() < 0.01) { player.hasHado = true; openHadoModal(); }
+    }
+
     if(currentBossHP <= 0n) { 
         currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
     } else {
@@ -203,15 +181,24 @@ function attack() {
         const mDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - cut / 100)));
 
         if (curHP > mDmg) {
-            log += `<div><span style="color:#28a745;">魔神の攻撃！${mDmg.toLocaleString()} ダメージ。障壁展開(${cut}%)！</span></div>`;
+            log += `<div><span style="color:#28a745;">魔神の攻撃！${mDmg.toLocaleString()} ダメージ。障壁展開(${cut}%)！</span></div>` + getGuaranteedDrop();
         } else {
             player.deathCount += (1 + bon); 
             player.baseHP += BigInt(Math.floor(10 + Math.random() * (Number(player.deathCount) * 10)));
             log += `<div><span style="color:#dc3545;">魔神の攻撃！${mDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>`;
-            if(!player.hasHado && player.deathCount >= 1000) { player.hasHado = true; openHadoModal(); }
         }
     }
     addLog(log); saveGame(); refreshUI();
+}
+
+function getGuaranteedDrop() {
+    let rv = Math.random() * 0.1, star = 2, curP = 0;
+    for(let s in DROP_DATA) { if(s=="1")continue; curP += parseFloat(DROP_DATA[s].p); if(rv <= curP){ star=parseInt(s); break; } }
+    if (player.maxDmg < DROP_DATA[star].cond) star = 2;
+    let cands = RELIC_MASTER.filter(m => m.star === star);
+    let sel = cands[Math.floor(Math.random() * cands.length)];
+    player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
+    return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}</span></div>`;
 }
 
 function getDropLog(count) {
@@ -225,10 +212,11 @@ function getDropLog(count) {
         player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
         got[sel.id] = (got[sel.id] || 0) + 1;
     }
-    return Object.entries(got).map(([id, c]) => {
+    const items = Object.entries(got).map(([id, c]) => {
         const m = RELIC_MASTER.find(x=>x.id==id);
-        return `<div style="font-size:0.85em;">獲得: <span class="c${m.star}">★${m.star} ${m.name}×${c}</span></div>`;
-    }).join("");
+        return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`;
+    });
+    return items.length > 0 ? `<div style="font-size:0.82em;">獲得：${items.join(", ")}</div>` : "";
 }
 
 function getRelicBonus() {
