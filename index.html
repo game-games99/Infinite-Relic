@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.1.5</title>
+<title>RELICORE - v3.1.6</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -145,7 +145,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.1.5</div>
+<div class="ver-footer">RELICORE v3.1.6</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -184,9 +184,15 @@ function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_D
 
 function renderVow() {
    const vowList = document.getElementById('vow-list'); if (!vowList) return;
+   
+   // 魂の研磨
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-   let nextThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
+   let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
+   
+   // 因果の拒絶 (v3.1.6 修正箇所: 段階表示を次までの目標値に変更)
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
+   let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
+   
    const powerRate = (player.deathCount * 0.0004).toFixed(4);
 
    vowList.innerHTML = `
@@ -198,12 +204,12 @@ function renderVow() {
        <div class="vow-item">
            <div class="vow-name">刹那の堆積</div>
            <span class="vow-highlight" style="color:#007bff;">HP 10 ～ ${player.deathCount.toLocaleString()} の間でランダムに上昇</span>
-           <span class="vow-sub">再起するたびにHP増加幅+10。数多もの戦闘が核に刻み込まれる。</span>
+           <span class="vow-sub">再起するたびにHP増加幅+1 数多もの戦闘が核に刻み込まれる。</span>
        </div>
        <div class="vow-item">
            <div class="vow-name">因果の拒絶</div>
            <span class="vow-highlight" style="color:#007bff;">稀に攻撃を無効化する ${rejStep * 5}% ～ 100% ランダムカット</span>
-           <span class="vow-sub">再起の深まりと共に下限が向上（現在：第${rejStep}段階）</span>
+           <span class="vow-sub">再起の深まりと共に下限が向上（次回：${nextRejThres.toLocaleString()}）</span>
        </div>
        <div class="vow-item">
            <div class="vow-name">反撃の狼煙</div>
@@ -212,8 +218,8 @@ function renderVow() {
        </div>
        <div class="vow-item">
            <div class="vow-name">魂の研磨</div>
-           <span class="vow-highlight" style="color:#007bff;">遺物獲得数/再起回数：+${bonus + 1}</span>
-           <span class="vow-sub">再起した回数に応じて機能強化（次回：${nextThres.toLocaleString()}）</span>
+           <span class="vow-highlight" style="color:#007bff;">戦闘での遺物獲得数/再起回数：+${bonus + 1}</span>
+           <span class="vow-sub">再起した回数に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span>
        </div>
        <div class="vow-item">
            <div class="vow-name">死を刻む</div>
