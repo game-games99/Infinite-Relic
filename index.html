@@ -250,7 +250,7 @@ function renderVow() {
         <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびに生命の核が強化される。</div></div>
         <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">被ダメージを ${curMinCut}% 〜 100% 軽減する</span><div class="vow-desc">不屈の意志が因果を歪め、死を遠ざける。</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志が新たな力を引き寄せる。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">不退転の力に/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能が強化される。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘による遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能が強化される。</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起のたびに最終ダメージを微増させる。</div></div>
     `;
 }
