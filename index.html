@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.15</title>
+<title>RELICORE - v3.3.16</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.15</div>
+<div class="ver-footer">RELICORE v3.3.16</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -281,7 +281,7 @@ function refreshUI() {
 
 function renderVow() {
    const vowList = document.getElementById('vow-list'); if (!vowList) return;
-   const bushinBonus = (player.inventory[401] || 0);
+   const bushinCount = (player.inventory[401] || 0);
    const expFormatted = player.deathCount.toLocaleString();
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
    const madoBonus = Math.min(30, player.inventory[403] || 0); 
@@ -289,11 +289,11 @@ function renderVow() {
    const kamaCount = BigInt(player.inventory[406] || 0);
    const powerRate = (BigInt(player.deathCount) * 4n * (1n + kamaCount) / 100n);
    vowList.innerHTML = `
-       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物ボーナス：通常ドロップからランダム1種に +${bushinBonus}</span><span class="vow-sub">獲得した遺物の中から1つを選び, 魂を刻み込む。</span></div>
+       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物ボーナス：通常ドロップからランダム1種に +${bushinCount}</span><span class="vow-sub">【武神の魂】獲得遺物の中から1つを選び, 魂を刻み込む。</span></div>
        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${expFormatted} の間で上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
-       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">障壁：${finalRejMin}% ～ 100% カット</span><span class="vow-sub">経験の深まりと共に下限が向上。</span></div>
+       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">障壁：${finalRejMin}% ～ 100% カット</span><span class="vow-sub">経験値 3,000 / 15,000 / 60,000 / 150,000 到達で下限向上。</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時, ★2以上の遺物入手(武神効果対象外)</span><span class="vow-sub">不屈の闘志を燃やし, 新たな力を手に入れる。</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘獲得遺物 / 戦闘経験値</span><span class="vow-sub">戦闘で得られる経験値の効率が向上。蓄積した経験値が成長を加速させる。</span></div>
+       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">獲得資格拡大中 (経験値: ${expFormatted})</span><span class="vow-sub">経験値 1,000 / 5,000 / 25,000 / 100,000 / 250,000 到達で効率上昇。</span></div>
        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${powerRate.toLocaleString()}%</span><span class="vow-sub">経験を積むたびに最終ダメージが増加。</span></div>
    `;
 }
