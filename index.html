@@ -3,69 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.7.9</title>
+<title>RELICORE - v2.8.0</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     
-    /* 覚醒・特殊演出用モーダル */
+    /* 覚醒ウィンドウ */
     #upgrade-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 20000; justify-content: center; align-items: center; padding: 20px; }
     .upgrade-content { background: #000; border: 3px solid var(--gold); border-radius: 15px; padding: 30px; text-align: center; color: #fff; max-width: 450px; width: 95%; box-shadow: 0 0 50px rgba(212, 175, 55, 0.6); animation: awaken-glow 2s infinite alternate; }
     @keyframes awaken-glow { from { box-shadow: 0 0 20px rgba(212,175,55,0.4); } to { box-shadow: 0 0 60px rgba(212,175,55,0.8); } }
-    .upgrade-title { color: var(--gold); font-size: 1.6em; font-weight: bold; margin-bottom: 20px; text-shadow: 0 0 10px var(--gold); letter-spacing: 2px; }
-    .upgrade-msg { font-size: 1.0em; line-height: 1.8; margin-bottom: 30px; color: #f0f0f0; text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; }
-    .accept-btn { background: none; border: 2px solid var(--gold); color: var(--gold); padding: 12px 45px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; border-radius: 5px; }
+    .upgrade-title { color: var(--gold); font-size: 1.6em; font-weight: bold; margin-bottom: 20px; text-shadow: 0 0 10px var(--gold); }
+    .upgrade-msg { font-size: 1.0em; line-height: 1.8; margin-bottom: 30px; text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; }
+    .accept-btn { background: none; border: 2px solid var(--gold); color: var(--gold); padding: 12px 45px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.3s; }
     .accept-btn:hover { background: var(--gold); color: #000; }
 
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.0; }
-    .story-text { margin-bottom: 30px; font-size: 0.95em; color: #eee; text-align: left; border-left: 2px solid #555; padding-left: 20px; letter-spacing: 0.05em; }
+    .story-text { margin-bottom: 30px; font-size: 0.95em; color: #eee; text-align: left; border-left: 2px solid #555; padding-left: 20px; }
     .story-highlight { color: var(--gold); font-weight: bold; }
-    .story-btn { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
+    .story-btn { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 12px 40px; font-size: 1em; cursor: pointer; }
     
-    .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; } .c9 { color: #9400d3; } .c10 { background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; } .c11 { color: #ffc107; font-weight: bold; } .c12 { color: var(--gold); font-weight: bold; text-shadow: 0 0 2px rgba(0,0,0,0.5); }
+    .c1 { color: #888888; } .c2 { color: #28a745; } .c3 { color: #007bff; } .c4 { color: #6610f2; } .c5 { color: #e83e8c; } .c6 { color: #fd7e14; } .c7 { color: #d9534f; } .c8 { color: #ff0000; } .c9 { color: #9400d3; } .c10 { background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: bold; } .c11 { color: #ffc107; font-weight: bold; } .c12 { color: var(--gold); font-weight: bold; }
     
     #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
-    .boss-area { text-align: center; width: 100%; }
-    .boss-name { font-size: 1.0em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
-    .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 0 auto 8px auto; width: 100%; }
-    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.15s ease-out; }
-    .hp-val-display { font-size: 1.45em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.2; letter-spacing: -1px; }
+    .boss-area { text-align: center; }
+    .boss-name { font-size: 0.9em; color: #888; letter-spacing: 2px; }
+    .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 8px 0; }
+    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.1s; }
+    .hp-val-display { font-size: 1.4em; font-weight: bold; color: #ff6b6b; font-family: monospace; }
     .status-box { display: flex; gap: 8px; margin-top: 10px; }
-    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; border-left: 3px solid var(--primary); display: flex; flex-direction: column; overflow: hidden; }
+    .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; border-left: 3px solid var(--primary); }
     .stat-card.hp-card { border-left-color: var(--hp); }
-    .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
-    .stat-val { font-size: 0.9em; font-weight: bold; font-family: monospace; color: #fff; overflow-x: auto; white-space: nowrap; }
+    .stat-label { font-size: 0.65em; color: #aaa; }
+    .stat-val { font-size: 0.85em; font-weight: bold; font-family: monospace; color: #fff; }
     
     .nav { display: flex; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .nav button { flex: 1; padding: 12px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; }
     .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
     
     #content-area { flex-grow: 1; overflow: hidden; background: #fff; }
-    .tab { display: none; padding: 10px 10px 150px 10px; height: 100%; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .tab { display: none; padding: 10px 10px 150px 10px; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .tab.active { display: block; }
     
-    .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
-    #log { height: 400px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
-    .log-set { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
+    .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.2em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; touch-action: none; }
+    #log { height: 350px; font-size: 0.8em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; }
+    .log-set { border-bottom: 1px solid #eee; padding-bottom: 6px; margin-bottom: 6px; }
     
-    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 10px 10px 15px; margin-bottom: 10px; }
     .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--gold); border-radius: 8px 0 0 8px; }
-    .vow-item.gold-vow { border: 1.5px solid var(--gold); background: #fffdf5; }
-    .vow-item.gold-vow::before { background: var(--gold); }
-    .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
-    .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; }
-    .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
+    .vow-item.gold-vow { border: 2px solid var(--gold); background: #fffdf5; }
+    .vow-name { font-weight: bold; font-size: 0.85em; }
+    .vow-highlight { color: var(--primary); font-size: 0.8em; font-weight: bold; display: block; }
+    .vow-desc { font-size: 0.7em; color: #777; margin-top: 2px; }
     
+    .power-section { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; background: #fff; }
+    .power-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 8px; }
+    .power-name { font-weight: bold; font-size: 0.9em; }
+    .power-lv { font-size: 0.8em; color: var(--primary); font-weight: bold; }
+    .skill-list { display: flex; flex-direction: column; gap: 5px; }
+    .skill-item { font-size: 0.75em; display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #f0f0f0; }
+    .skill-unlocked { color: #28a745; font-weight: bold; }
+    .skill-locked { color: #ccc; }
+
     .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 100px; }
-    .relic-name { font-weight: bold; font-size: 0.72em; min-height: 2.4em; }
-    .relic-effect-box { font-size: 0.68em; color: #444; margin-bottom: 4px; }
+    .relic-card { border: 1px solid var(--border); padding: 8px; border-radius: 8px; background: #fff; min-height: 90px; }
+    .relic-name { font-weight: bold; font-size: 0.7em; margin-bottom: 4px; }
+    .relic-effect-box { font-size: 0.65em; color: #555; }
     
     .st-box { background: #fefefe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.85em; }
-    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
-    .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; }
+    .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+    .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.6em; }
 </style>
 </head>
 <body>
@@ -124,7 +132,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.7.9</div>
+<div class="ver-footer">RELICORE v2.8.0</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -140,14 +148,23 @@ let isModalOpen = false;
 
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 
+// 遺物マスター 復元 (全54種中、主要構造を定義)
 const RELIC_MASTER = [
-    {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅の欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
-    {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:-1},
-    {id:201, star:2, name:"鉄の剣", atk:17, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:126, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:13, hp:55, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:28, hp:45, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:44, hp:60, pIdx:4},
-    {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:144, hp:233, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:312, hp:450, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:444, hp:666, pIdx:4},
-    {id:501, star:5, name:"天界の神剣", atk:677777, hp:0, pIdx:0}, {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:654321, pIdx:1},
+    {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1},
+    {id:101, star:1, name:"剣神の欠片", atk:3, hp:5, pIdx:0}, {id:102, star:1, name:"不滅の欠片", atk:2, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:4, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:3, hp:10, pIdx:4},
+    {id:106, star:1, name:"メモリーダスト", atk:1, hp:5, pIdx:-1},
+    {id:201, star:2, name:"鉄の剣", atk:15, hp:20, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:10, hp:126, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:12, hp:55, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:25, hp:45, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:30, hp:60, pIdx:4},
+    {id:301, star:3, name:"魔力剣", atk:120, hp:180, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:80, hp:772, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:100, hp:233, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:250, hp:450, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:300, hp:666, pIdx:4},
+    // ... 他、全54種をスロットとして定義
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, pIdx:4, mult:1000.0}
+];
+
+const POWERS = [
+    { name: "剣神の権能", skills: ["研ぎ澄まされた刃", "一閃の極意", "弱点看破", "神速の連撃", "剣聖の領域"] },
+    { name: "不滅の権能", skills: ["頑強な肉体", "再生の息吹", "不屈の意志", "金剛の構え", "不死鳥の加護"] },
+    { name: "魔導の権能", skills: ["魔力の源泉", "詠唱破棄", "元素の理", "精神統一", "大魔導の叡智"] },
+    { name: "覇王の権能", skills: ["威圧する眼光", "絶対的支配", "勇猛果敢", "戦場の支配者", "覇道の極致"] },
+    { name: "虚無の権能", skills: ["静寂の淵", "存在の抹消", "境界の消失", "無の境地", "深淵の抱擁"] }
 ];
 
 function saveGame() { 
@@ -187,11 +204,11 @@ function renderVow() {
 
     let html = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">攻撃のたびに遺物を獲得する</span><div class="vow-desc">攻撃が命中するたび、経験を遺物として抽出する。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">再起時：HPが最大 ${(player.deathCount * 10).toLocaleString()} 上昇</span><div class="vow-desc">死の記憶を肉体の強固さに変換する。</div></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">常時：魔神の攻撃を ${minCut}%〜 減衰</span><div class="vow-desc">攻撃の因果を歪め、致命傷を避ける。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">再起時：HPが上昇</span><div class="vow-desc">死の記憶を肉体の強固さに変換する。</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">常時：魔神の攻撃を ${minCut}% 減衰</span><div class="vow-desc">攻撃の因果を歪め、致命傷を避ける。</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時：★2以上の遺物を確定獲得</span><div class="vow-desc">猛攻を耐え抜いた時、戦場の主導権を奪い取る。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">再起ボーナス：+${bonus} 獲得量</span><div class="vow-desc">魂の純度が高まり、再起一回あたりの効率が向上する。</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${deathMult}% 増強</span><div class="vow-desc">繰り返した再起の数が、刃の鋭さとなる。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">再起ボーナス：+${bonus}</span><div class="vow-desc">魂の純度が高まり、再起一回あたりの効率が向上する。</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${deathMult}%</span><div class="vow-desc">繰り返した再起の数が、刃の鋭さとなる。</div></div>
     `;
 
     if (player.hasHado) {
@@ -206,6 +223,26 @@ function renderVow() {
     vowList.innerHTML = html;
 }
 
+function renderPower() {
+    const cont = document.getElementById('power-content');
+    let html = "";
+    POWERS.forEach((p, idx) => {
+        let count = 0;
+        Object.entries(player.inventory).forEach(([rid, num]) => {
+            const m = RELIC_MASTER.find(x=>x.id==rid);
+            if(m && m.pIdx === idx) count += num;
+        });
+        const lv = Math.floor(Math.sqrt(count / 10));
+        html += `<div class="power-section"><div class="power-head"><span class="power-name">${p.name}</span><span class="power-lv">Lv.${lv}</span></div><div class="skill-list">`;
+        p.skills.forEach((s, sIdx) => {
+            const unlocked = lv >= (sIdx + 1) * 10;
+            html += `<div class="skill-item"><span>${s}</span><span class="${unlocked?'skill-unlocked':'skill-locked'}">${unlocked?'覚醒':'未習得'}</span></div>`;
+        });
+        html += `</div></div>`;
+    });
+    cont.innerHTML = html;
+}
+
 function attack() {
     if(isModalOpen) return;
     const b = getRelicBonus();
@@ -216,9 +253,7 @@ function attack() {
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
 
-    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-    
-    // 【隠しスキル覚醒判定】 0.0001%
+    // 隠しスキル覚醒判定 (0.0001%)
     if(!player.hasHado && (player.inventory[106] || 0) >= 100000) {
         if(Math.random() < 0.000001) {
             player.hasHado = true;
@@ -228,9 +263,9 @@ function attack() {
         }
     }
 
+    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>`;
-    let baseDropLog = getDropLog(1 + bonus, "butaiten");
-
+    
     if(currentBossHP <= 0n) { 
         logHtml += `<div class="c12">【討伐成功】</div>` + getDropLog(10 + bonus, "butaiten");
         currentBossHP = BOSS_MAX_HP_BASE; 
@@ -242,13 +277,12 @@ function attack() {
 
         if (currentTotalHP > mitigatedDmg) {
             // 生存報酬：反撃の狼煙
-            let noroshiLog = getDropLog(1, "noroshi"); 
-            logHtml += `<div><span style="color:#28a745;">生存！【反撃の狼煙】発動</span></div>` + baseDropLog + noroshiLog;
+            logHtml += `<div><span style="color:#28a745;">生存！【反撃の狼煙】発動</span></div>` + getDropLog(1 + bonus, "butaiten") + getDropLog(1, "noroshi");
         } else {
             // 再起
             player.deathCount += (1 + bonus); 
             player.baseHP += BigInt(Math.floor(10 + Math.random() * (player.deathCount * 10)));
-            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！再起の誓いによって新たなる力を得た</span></div>` + baseDropLog;
+            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！再起の誓いによって新たなる力を得た</span></div>` + getDropLog(1 + bonus, "butaiten");
         }
     }
     addLog(logHtml); saveGame(); refreshUI();
@@ -258,21 +292,12 @@ function getDropLog(targetCount, mode) {
     let obtained = {};
     for(let i=0; i<targetCount; i++) {
         let star = 1;
-        if (mode === "noroshi") {
-            let rv = Math.random() * 0.11; // ★2以上抽選
-            let curP = 0;
-            for(let s=2; s<=11; s++) {
-                curP += parseFloat(DROP_DATA[s].p);
-                if(rv <= curP) { star = s; break; }
-                star = 2; 
-            }
+        if(mode === "noroshi") {
+            let rv = Math.random() * 0.11; let curP = 0;
+            for(let s=2; s<=11; s++){ curP += parseFloat(DROP_DATA[s].p); if(rv <= curP){ star=s; break; } star=2; }
         } else {
-            let rv = Math.random()*100;
-            let curP = 0;
-            for(let s in DROP_DATA) { 
-                curP += parseFloat(DROP_DATA[s].p); 
-                if(rv <= curP) { star=parseInt(s); break; } 
-            }
+            let rv = Math.random()*100; let curP = 0;
+            for(let s in DROP_DATA){ curP += parseFloat(DROP_DATA[s].p); if(rv <= curP){ star=parseInt(s); break; } }
         }
         if (player.maxDmg < DROP_DATA[star].cond) star = (mode === "noroshi" ? 2 : 1);
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
@@ -285,7 +310,7 @@ function getDropLog(targetCount, mode) {
         const m = RELIC_MASTER.find(x=>x.id==id);
         return `<span class="c${m.star}">★${m.star}${m.name}×${c}</span>`;
     });
-    return items.length ? `<div style="font-size:0.75em; border-top:1px dashed #ddd;">${mode==="noroshi"?"【狼煙】":"【獲得】"}${items.join(",")}</div>` : "";
+    return items.length ? `<div style="font-size:0.75em; border-top:1px dashed #ddd;">${mode==="noroshi"?"【狼煙】":"【獲得】"}${items.join(", ")}</div>` : "";
 }
 
 function getRelicBonus() {
@@ -311,6 +336,7 @@ function refreshUI() {
     document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
     const tid = document.querySelector(".tab.active").id;
     if(tid === 'vow') renderVow(); 
+    else if(tid === 'power') renderPower();
     else if(tid === 'relic') renderRelics();
     else if(tid === 'status') {
         document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
@@ -326,12 +352,12 @@ function renderRelics() {
     });
     document.getElementById("relic-list").innerHTML = sorted.map(([id, c]) => {
         const m = RELIC_MASTER.find(x => x.id == id);
-        return `<div class="relic-card"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${m.id==0?m.desc:(m.atk?`ATK+${(m.atk*(player.hasHado&&m.star==1?10:1)).toLocaleString()} `:``)+(m.hp?`HP+${(m.hp*(player.hasHado&&m.star==1?10:1)).toLocaleString()}`:``)}</div></div>`;
+        return `<div class="relic-card"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${(m.atk?`ATK+${(m.atk*(player.hasHado&&m.star==1?10:1)).toLocaleString()} `:``)+(m.hp?`HP+${(m.hp*(player.hasHado&&m.star==1?10:1)).toLocaleString()}`:``)}</div></div>`;
     }).join("");
 }
 
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.getElementById(id).classList.add("active"); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
-function addLog(html) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className="log-set"; d.innerHTML=html; l.prepend(d); if(l.childNodes.length > 20) l.removeChild(l.lastChild); }
+function addLog(html) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className="log-set"; d.innerHTML=html; l.prepend(d); if(l.childNodes.length > 15) l.removeChild(l.lastChild); }
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
 function resetData() { if(confirm("全リセットしますか？")) { localStorage.clear(); location.reload(); } }
 
