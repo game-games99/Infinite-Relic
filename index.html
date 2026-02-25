@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.7.1</title>
+<title>RELICORE - v2.7.3</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -138,7 +138,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.7.1</div>
+<div class="ver-footer">RELICORE v2.7.3</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -164,7 +164,7 @@ const POWERS = [
 
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅의欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
+    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅の欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
     {id:201, star:2, name:"鉄の剣", atk:17, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:126, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:13, hp:55, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:28, hp:45, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:44, hp:60, pIdx:4},
     {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:144, hp:233, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:312, hp:450, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:444, hp:666, pIdx:4},
     {id:401, star:4, name:"王宮の秘宝", atk:5777, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:24680, pIdx:1}, {id:403, star:4, name:"伝説の断片", atk:8192, hp:12000, pIdx:2}, {id:404, star:4, name:"覇道の手引書", atk:18888, hp:25000, pIdx:3}, {id:405, star:4, name:"破滅の引き金", atk:44444, hp:66666, pIdx:4},
@@ -222,7 +222,7 @@ function renderVow() {
     vowList.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに深淵に漂う遺物を魂に刻む。</div></div>
         <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。数多もの戦闘が核に刻みこまれる。</div></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${minCut}% 〜 100% ランダムカット</span><div class="vow-desc">攻撃を軽減または無効化する</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${minCut}% 〜 100% ランダムカット</span><div class="vow-desc">攻撃のたびに受けるダメージが変動する</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志を燃やし、新たな力を手に入れる。</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
@@ -256,14 +256,18 @@ function attack() {
         isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
     } else {
         const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
+        
+        // 因果の拒絶: 毎回カット率を計算し、ダメージを変動させる
         const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
         const actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut; 
         const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
 
         if (currentTotalHP > mitigatedDmg) {
+            // 生存: 変動ダメージを表示
             let guaranteedDrop = getGuaranteedDrop(); 
             logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ（${actualCutPercent}%カット）。光の障壁が展開された！</span></div>` + guaranteedDrop;
         } else {
+            // 再起: 常にMAJIN_ATK_VALUEを表示し、力不足を演出
             const incrementBase = player.deathCount; 
             player.deathCount += (1 + bonus); 
             player.baseHP += BigInt(Math.floor(10 + Math.random() * (Number(incrementBase) * 10)));
@@ -385,7 +389,7 @@ function checkDropEligibility() {
     Object.entries(DROP_DATA).forEach(([star, data]) => { msg += `★${star}: ${player.maxDmg >= data.cond ? "[解放済み]" : "[未到達]"}${data.cond > 0n ? ` (必要: ${data.cond.toLocaleString()})` : " (初期)"}\n`; }); alert(msg); 
 }
 
-function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
+function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.getElementById(id).classList.add("active"); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
 function addLog(html) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className="log-set"; d.innerHTML=html; l.prepend(d); if(l.childNodes.length > 15) l.removeChild(l.lastChild); }
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
 function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; refreshUI(); }
