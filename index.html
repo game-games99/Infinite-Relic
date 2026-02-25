@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.4</title>
+<title>RELICORE - v3.3.5</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.4</div>
+<div class="ver-footer">RELICORE v3.3.5</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -146,7 +146,7 @@ const RELIC_MASTER = [
    {id:101, star:1, name:"剣士の欠片", atk:7n, hp:0n}, {id:102, star:1, name:"狩人の欠片", atk:8n, hp:0n}, {id:103, star:1, name:"暗殺者の欠片", atk:9n, hp:0n}, {id:104, star:1, name:"狂戦士の欠片", atk:10n, hp:0n}, {id:105, star:1, name:"武闘家の欠片", atk:6n, hp:0n}, {id:106, star:1, name:"衛兵の欠片", atk:0n, hp:45n}, {id:107, star:1, name:"騎士の欠片", atk:0n, hp:55n}, {id:108, star:1, name:"重装兵の欠片", atk:0n, hp:65n}, {id:109, star:1, name:"修道士の欠片", atk:0n, hp:40n}, {id:110, star:1, name:"盾持ちの欠片", atk:0n, hp:50n}, {id:111, star:1, name:"魔法使いの欠片", atk:4n, hp:35n}, {id:112, star:1, name:"斥候の欠片", atk:3n, hp:48n}, {id:113, star:1, name:"冒険者の欠片", atk:5n, hp:42n}, {id:114, star:1, name:"見習いの欠片", atk:2n, hp:30n}, {id:115, star:1, name:"放浪者の欠片", atk:4n, hp:44n}, {id:116, star:1, name:"メモリーダスト", atk:1n, hp:10n},
    {id:201, star:2, name:"聖騎士の欠片", atk:412n, hp:6824n}, {id:202, star:2, name:"龍騎士の欠片", atk:867n, hp:4231n}, {id:203, star:2, name:"暗黒騎士の欠片", atk:1342n, hp:0n}, {id:204, star:2, name:"賢者の欠片", atk:521n, hp:7112n}, {id:205, star:2, name:"大魔道士の欠片", atk:1189n, hp:243n}, {id:206, star:2, name:"暗殺王の欠片", atk:1563n, hp:127n}, {id:207, star:2, name:"重装騎士の欠片", atk:0n, hp:12486n}, {id:208, star:2, name:"拳聖の欠片", atk:992n, hp:3154n}, {id:209, star:2, name:"神官の欠片", atk:42n, hp:14867n}, {id:210, star:2, name:"冒険王の欠片", atk:733n, hp:5941n},
    {id:301, star:3, name:"聖龍騎士の欠片", atk:8743n, hp:69241n}, {id:302, star:3, name:"深淵魔導の欠片", atk:13241n, hp:2147n}, {id:303, star:3, name:"金剛武神の欠片", atk:4128n, hp:148632n}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15684n, hp:0n}, {id:305, star:3, name:"大聖者の欠片", atk:527n, hp:152414n}, {id:306, star:3, name:"影の支配者の欠片", atk:14109n, hp:1284n}, {id:307, star:3, name:"竜血闘士の欠片", atk:10242n, hp:42109n}, {id:308, star:3, name:"天界騎士の欠片", atk:6127n, hp:98451n}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16248n, hp:421n}, {id:310, star:3, name:"極大賢者の欠片", atk:5421n, hp:118407n},
-   {id:401, star:4, name:"【不退転】武神の魂", atk:65000n, hp:180000n, desc: "生存・再起時に関わらず、遺物獲得数に +(所持数) 加算する。"}, 
+   {id:401, star:4, name:"【不退転】武神の魂", atk:65000n, hp:180000n, desc: "獲得した遺物群から1つをランダムに選び、所持数分を加算する。"}, 
    {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000n, hp:250000n, desc: "再起時のHP上昇抽選を (1+所持数) 回行う。"}, 
    {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000n, hp:150000n, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000n, hp:120000n, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"}, 
@@ -238,38 +238,60 @@ function attack() {
     addLog(logHtml); saveGame(); refreshUI();
 }
 
-// ドロップ加算ロジックの修正（武神の魂の効果反映）
+// ドロップ加算ロジック：生存時の確定枠も武神の魂を適用
 function getGuaranteedDrop() {
    const zankoCount = player.inventory[404] || 0;
    let star = (zankoCount > 0) ? 3 : 2;
    if(zankoCount > 0 && Math.random() < 0.001) star = 4;
    
-   const bushinAdd = (player.inventory[401] || 0); // 武神の魂の所持数
-   const totalGet = 1 + bushinAdd; // 本来の1個 + 加算ボーナス
-   
    let cands = RELIC_MASTER.filter(m => m.star === star);
    let sel = cands[Math.floor(Math.random() * cands.length)];
+   
+   const bushinAdd = (player.inventory[401] || 0);
+   const totalGet = 1 + bushinAdd; 
    player.inventory[sel.id] = (player.inventory[sel.id] || 0) + totalGet;
    return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}${totalGet > 1 ? ' ×' + totalGet : ''}</span></div>`;
 }
 
+// ドロップ加算ロジックの修正：当選リストからランダムな1種にのみ武神のボーナスを加算
 function getDropLog(targetCount) {
-   let obtained = {};
-   const bushinAdd = (player.inventory[401] || 0); 
+   let当選リスト = [];
    const currentRates = player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA;
    
+   // 1. まず通常のドロップ判定を行い、当選した遺物をリスト化する
    for(let i=0; i<targetCount; i++) {
        let rv = Math.random()*100, star=1, curP=0;
        for(let s in currentRates) { curP += currentRates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
        let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0);
        let sel = cands[Math.floor(Math.random() * cands.length)];
-       
-       const totalGet = 1 + bushinAdd; // 当選1回につき、1+所持数個獲得
-       player.inventory[sel.id] = (player.inventory[sel.id] || 0) + totalGet;
-       obtained[sel.id] = (obtained[sel.id] || 0) + totalGet;
+       当選リスト.push(sel.id);
    }
-   const items = Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; });
-   return items.length > 0 ? `<div style="font-size:0.82em;">獲得：${items.join(", ")}</div>` : "";
+
+   if (当選リスト.length === 0) return "";
+
+   // 2. 当選リストの中からランダムに1つのIDを「武神の対象」として選ぶ
+   const bushinTargetId = 当選リスト[Math.floor(Math.random() * 当選リスト.length)];
+   const bushinAdd = (player.inventory[401] || 0);
+
+   let obtained = {};
+   当選リスト.forEach(id => {
+       let count = 1;
+       // 選ばれた1種のみ、武神の魂の数だけ加算
+       if (id === bushinTargetId) {
+           count += bushinAdd;
+           // 二度目以降のループで同じIDが選ばれても、ボーナスは1回(1種)分のみ適用
+           // (※リスト内に同IDが複数あっても、加算処理は1回に制限)
+       }
+       player.inventory[id] = (player.inventory[id] || 0) + count;
+       obtained[id] = (obtained[id] || 0) + count;
+   });
+
+   // 3. ログ表示用の生成
+   const items = Object.entries(obtained).map(([id, c]) => { 
+       const m = RELIC_MASTER.find(x=>x.id==id); 
+       return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; 
+   });
+   return `<div style="font-size:0.82em;">獲得：${items.join(", ")}</div>`;
 }
 
 function refreshUI() {
@@ -296,7 +318,7 @@ function renderVow() {
    const kamaCount = BigInt(player.inventory[406] || 0);
    const powerRate = (BigInt(player.deathCount) * 4n * (1n + kamaCount) / 100n);
    vowList.innerHTML = `
-       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物獲得個数：+${bushinBonus}</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
+       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物ボーナス：ランダム1種に +${bushinBonus}</span><span class="vow-sub">獲得した遺物の中から1つを選び、魂を刻み込む。</span></div>
        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間で上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">障壁：${finalRejMin}% ～ 100% カット</span><span class="vow-sub">再起の深まりと共に下限が向上。</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時、確定遺物入手</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
