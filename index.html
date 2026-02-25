@@ -216,7 +216,7 @@ function attack() {
        if (currentTotalHP > mitigatedDmg) { 
            const chieCount = player.inventory[405] || 0;
            if(chieCount > 0) player.deathCount += chieCount;
-           logHtml += `<div><span style="color:#28a745; font-weight:bold;">終末神アポカリス＝ディアの攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
+           logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
        } else {
            const prevDeath = player.deathCount;
            const seijaCount = player.inventory[402] || 0;
@@ -224,7 +224,7 @@ function attack() {
            for(let i=0; i <= seijaCount; i++) totalUpHP += BigInt(Math.floor(10 + Math.random() * (Math.max(1, player.deathCount))));
            player.baseHP += totalUpHP; 
            player.deathCount += (1 + bonus);
-           logHtml += `<div><span style="color:#dc3545;">終末神アポカリス＝ディアの攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
+           logHtml += `<div><span style="color:#dc3545;">敵の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
            VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("スキル強化：魂の研磨", `戦闘経験値 ${t.toLocaleString()} 到達。成長効率上昇。`); });
        }
    }
