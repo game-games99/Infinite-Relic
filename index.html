@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.5</title>
+<title>RELICORE - v3.2.6</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -58,9 +58,6 @@
    .vow-highlight { font-weight: bold; font-size: 0.82em; display: block; line-height: 1.4; }
    .vow-sub { font-size: 0.72em; color: #888; display: block; margin-top: 2px; line-height: 1.3; }
 
-   #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-   .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
-
    .relic-list-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
    .relic-card { position: relative; border: 1px solid #e0d5f0; padding: 6px 6px 6px 10px; border-radius: 6px; background: var(--relic-bg); display: flex; flex-direction: column; min-height: 70px; box-shadow: 0 2px 4px rgba(102, 16, 242, 0.05); }
    .relic-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--relic-purple); border-radius: 6px 0 0 6px; }
@@ -114,7 +111,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.5</div>
+<div class="ver-footer">RELICORE v3.2.6</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -139,7 +136,7 @@ const RELIC_MASTER = [
    {id:301, star:3, name:"聖龍騎士の欠片", atk:8700, hp:69000}, {id:302, star:3, name:"深淵魔導の欠片", atk:13000, hp:15000}, {id:303, star:3, name:"金剛武神の欠片", atk:4100, hp:148000}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15000, hp:16000}, {id:305, star:3, name:"大聖者の欠片", atk:500, hp:152000}, {id:306, star:3, name:"影の支配者の欠片", atk:14000, hp:15000}, {id:307, star:3, name:"竜血闘士の欠片", atk:10000, hp:42000}, {id:308, star:3, name:"天界騎士の欠片", atk:6100, hp:98000}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16000, hp:17000}, {id:310, star:3, name:"極大賢者の欠片", atk:5400, hp:118000},
    {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得する遺物個数を (1+所持数) 倍にする。"}, 
    {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "再起時のHP上昇抽選を (1+所持数) 回行う。"}, 
-   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "ダメージカット率の上限を 50% に固定する。"}, 
+   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "ダメージカット率の下限を +30% 加算する。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"}, 
    {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに再起回数が (所持数) 増加する。"}, 
    {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:180000, desc: "「死を刻む」の上昇量に 1つにつき +0.0001% 加算する。"},
@@ -190,15 +187,10 @@ function attack() {
    if(isModalOpen) return;
    const b = getRelicBonus();
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-   
-   // ステータスとしてのATK（攻撃中は固定）
    const statAtk = player.baseAtk + b.atk;
-   
-   // ダメージ補正（死を刻む：係数を 0.0001 に抑制）
    const kamaCount = player.inventory[406] || 0;
    const deathDmgMult = 1.0 + (player.deathCount * 0.0001 * (1 + kamaCount));
    
-   // 最終ダメージ
    let finalDmg = BigInt(Math.floor(Number(statAtk) * b.mult * deathDmgMult * (0.9 + Math.random()*0.2))) || 1n;
    if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
    currentBossHP -= finalDmg;
@@ -211,14 +203,16 @@ function attack() {
        document.getElementById("clear-modal").style.display = "flex"; 
    } else {
        const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-       let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
-       let actualCutPercent = Math.floor(Math.random() * (101 - (rejStep * 5))) + (rejStep * 5);
-       if(player.inventory[403]) actualCutPercent = Math.min(50, actualCutPercent);
        
+       // 【因果の拒絶】と【魔導王の記憶】の下限合算処理
+       let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
+       let lowerLimit = rejStep * 5; // 再起スキル分(最大20)
+       if(player.inventory[403]) lowerLimit += 30; // 魔導王分(30)を加算し、下限50へ
+       
+       let actualCutPercent = Math.floor(Math.random() * (101 - lowerLimit)) + lowerLimit;
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
        
        if (currentTotalHP > mitigatedDmg) { 
-           // 生存時の再起回数加算は行うが、UI更新までステータス計算には含めない
            const chieCount = player.inventory[405] || 0;
            if(chieCount > 0) player.deathCount += chieCount;
            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
