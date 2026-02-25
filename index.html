@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.7.7</title>
+<title>RELICORE - v2.7.8</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -139,7 +139,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.7.7</div>
+<div class="ver-footer">RELICORE v2.7.8</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -217,14 +217,14 @@ function renderVow() {
     let bonus = 0; 
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     const nextThreshold = VOW_THRESHOLDS[bonus] || 'MAX';
-    const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
+    const minCut = Math.min(40, 10 + Math.floor(player.deathCount / 8000));
 
     vowList.innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">攻撃のたびにランダムな遺物を獲得する</span><div class="vow-desc">剣を振るうその刹那、戦いの経験が力へと変換される。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅が拡張。死の痛みを強固な盾とする。</div></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">常時発動：障壁が攻撃を大幅減衰。さらに生存時★2以上確定ドロップ</span><div class="vow-desc">因果を歪めて生存し、戦場に漂う高純度の遺物を奪い取る。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">再起回数増加ボーナス：+${bonus}</span><div class="vow-desc">再起した回数に応じて、一死あたりの成長率が向上。</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージが永続的に底上げされる。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">攻撃のたびに遺物を獲得する</span><div class="vow-desc">刃が魔神を穿つたび、その経験が遺物として結実する。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起のたびに肉体が魔神の力に適応し、強固な器へと成る。</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">常時発動：障壁が攻撃を大幅減衰 (${minCut}%〜)</span><div class="vow-desc">因果を歪める障壁を展開し、致命的なダメージを霧散させる。</div></div>
+        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時確定：★2以上の遺物を獲得する</span><div class="vow-desc">魔神の猛攻を耐え抜いた際、戦場に漂う高純度の残滓を奪い取る。</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージが永続的に増強される。</div></div>
     `;
 }
 
@@ -241,13 +241,13 @@ function attack() {
 
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     
-    // 【基本報酬】攻撃による通常ドロップ
-    let baseDropLog = getDropLog(1 + bonus, false);
+    // 【不退転の力】攻撃による基本ドロップ
+    let baseDropLog = getDropLog(1 + bonus, "butaiten");
 
     if(!player.hasHado && (player.inventory[106] || 0) >= 100000) {
         if(Math.random() < 0.0001) {
             player.hasHado = true;
-            openUpgradeModal("スキル【破軍の号令】覚醒", "魂の底から過去の記憶が溢れ出した。\n★1遺物の基礎効果が10倍に強化される。");
+            openUpgradeModal("スキル【破軍の号令】覚醒", "蓄積された戦いの塵が王者の魂を呼び覚ます。\n★1遺物の基礎効果が10倍に強化される。");
             return;
         }
     }
@@ -255,7 +255,7 @@ function attack() {
     let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>`;
 
     if(currentBossHP <= 0n) { 
-        logHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>` + getDropLog(10 + bonus, false);
+        logHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>` + getDropLog(10 + bonus, "butaiten");
         isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
     } else {
         const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
@@ -264,20 +264,20 @@ function attack() {
         const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutRate)));
 
         if (currentTotalHP > mitigatedDmg) {
-            // 【生存時】
-            let survivalDropLog = getDropLog(1, true); // ★2以上確定
-            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。光の障壁が因果を拒絶した！</span></div>`;
+            // 【生存】反撃の狼煙が発動
+            let noroshiLog = getDropLog(1, "noroshi"); 
+            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。生存し反撃の狼煙を上げた！</span></div>`;
             logHtml += baseDropLog;
-            logHtml += survivalDropLog;
+            logHtml += noroshiLog;
         } else {
-            // 【再起時】
+            // 【再起】
             const incrementBase = player.deathCount; 
             player.deathCount += (1 + bonus); 
             player.baseHP += BigInt(Math.floor(10 + Math.random() * (Number(incrementBase) * 10)));
             
             let currentBonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) currentBonus++; });
             if(currentBonus > prevBonus) {
-                openUpgradeModal("再起の誓い、共鳴", "絶望の淵で、新たな可能性が芽吹く…\n【魂の研磨】が強化された。");
+                openUpgradeModal("再起の誓い、共鳴", "死の淵から帰還するたびに、魂がより純化されていく…\n【魂の研磨】が強化された。");
                 addLog(logHtml); saveGame(); refreshUI();
                 return;
             }
@@ -287,21 +287,21 @@ function attack() {
     addLog(logHtml); saveGame(); refreshUI();
 }
 
-function getDropLog(targetCount, isSurvivalBonus) {
+function getDropLog(targetCount, mode) {
     let obtained = {};
     for(let i=0; i<targetCount; i++) {
         let star = 1;
-        if (isSurvivalBonus) {
-            // 生存報酬：★2以上確定抽選
-            let rv = Math.random() * 0.1111111; // ★2以上の確率合計値付近で調整
+        if (mode === "noroshi") {
+            // 反撃の狼煙：★2以上確定
+            let rv = Math.random() * 0.1111111; 
             let curP = 0;
             for(let s=2; s<=11; s++) {
                 curP += parseFloat(DROP_DATA[s].p);
                 if(rv <= curP) { star = s; break; }
-                star = 2; // 漏れたら★2
+                star = 2; 
             }
         } else {
-            // 通常：全レアリティ抽選
+            // 不退転の力：全抽選
             let rv = Math.random()*100;
             let curP = 0;
             for(let s in DROP_DATA) { 
@@ -310,13 +310,11 @@ function getDropLog(targetCount, isSurvivalBonus) {
             }
         }
 
-        // 条件未達ならランクダウン
-        if (player.maxDmg < DROP_DATA[star].cond) star = isSurvivalBonus ? 2 : 1;
+        if (player.maxDmg < DROP_DATA[star].cond) star = (mode === "noroshi") ? 2 : 1;
         
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
-        if(!isSurvivalBonus && star === 1) cands.push(RELIC_MASTER.find(m => m.id === 106));
+        if(mode !== "noroshi" && star === 1) cands.push(RELIC_MASTER.find(m => m.id === 106));
         
-        // ★10以上は1つまで
         let filtered = cands.filter(m => !(m.star >= 10 && player.inventory[m.id] >= 1));
         if(filtered.length > 0) {
             let sel = filtered[Math.floor(Math.random() * filtered.length)];
@@ -331,7 +329,7 @@ function getDropLog(targetCount, isSurvivalBonus) {
     });
     
     if (items.length === 0) return "";
-    const prefix = isSurvivalBonus ? "【生存報酬】" : "【不退転】";
+    const prefix = (mode === "noroshi") ? "【反撃の狼煙】" : "【不退転】";
     return `<div style="font-size:0.82em; margin-top:2px; border-top:1px dashed #eee; padding-top:2px;">${prefix}：${items.join(", ")}</div>`;
 }
 
