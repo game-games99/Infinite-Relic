@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.0.5</title>
+<title>RELICORE - v3.0.6</title>
 <style>
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --purple-light: #f3f0ff; }
+    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     
@@ -23,7 +23,6 @@
     #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
     .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.0; }
     .story-text { margin-bottom: 30px; font-size: 0.95em; color: #eee; text-align: left; border-left: 2px solid #555; padding-left: 20px; letter-spacing: 0.05em; }
-    .story-majinn { color: #eee; font-weight: normal; display: block; margin: 15px 0; }
     .story-highlight { color: gold; font-weight: bold; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
     
@@ -100,7 +99,7 @@
         <div class="story-text">
             「……まだ、その魂は潰えていないのか。<br>
             肉体は砕け、積み上げた研鑽も……かつて、お前が愛した世界とともに灰へと帰した。<br>
-            <span class="story-majinn">魔神の劫火はお前の『過去』をすべて焼き尽くした。今のお前は、拠り所も力も持らぬ、空っぽの器に過ぎない。</span>
+            魔神の劫火はお前の『過去』をすべて焼き尽くした。今のお前は、拠り所も力も持らぬ、空っぽの器に過ぎない。<br>
             だが、絶望の淵でお前の魂を繋ぎ止める一つの輝きがある。<br>
             決して折れぬ不屈の意志が呼び覚ます、最期の光――<span class="story-highlight">『再起の誓い』</span>。
         </div>
@@ -139,11 +138,11 @@
             <span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>
             ★1遺物の基礎効果が10倍に強化されています。
         </div>
-        <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/64</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
+        <div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div>
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.0.5</div>
+<div class="ver-footer">RELICORE v3.0.6</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -170,15 +169,17 @@ const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 
 const RELIC_MASTER = [
     {id:0, star:8, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    {id:101, star:1, name:"剣士の欠片", atk:7, hp:0, pIdx:0}, {id:102, star:1, name:"狩人の欠片", atk:8, hp:0, pIdx:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9, hp:0, pIdx:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10, hp:0, pIdx:0}, {id:105, star:1, name:"武闘家の欠片", atk:6, hp:0, pIdx:0},
-    {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45, pIdx:1}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55, pIdx:1}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65, pIdx:1}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40, pIdx:1}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50, pIdx:1},
-    {id:111, star:1, name:"魔法使いの欠片", atk:4, hp:35, pIdx:2}, {id:112, star:1, name:"斥候の欠片", atk:3, hp:48, pIdx:2}, {id:113, star:1, name:"冒険者の欠片", atk:5, hp:42, pIdx:2}, {id:114, star:1, name:"見習いの欠片", atk:2, hp:30, pIdx:2}, {id:115, star:1, name:"放浪者の欠片", atk:4, hp:44, pIdx:2}, {id:116, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:3},
-    {id:201, star:2, name:"鉄の剣", atk:20, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:150, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:15, hp:80, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:30, hp:60, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:45, hp:90, pIdx:4},
-    {id:301, star:3, name:"魔力剣", atk:150, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:800, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:150, hp:300, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:350, hp:600, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:500, hp:1000, pIdx:4},
-    {id:401, star:4, name:"王宮の秘宝", atk:6000, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:30000, pIdx:1}, {id:403, star:4, name:"伝説の断片", atk:9000, hp:15000, pIdx:2}, {id:404, star:4, name:"覇道の手引書", atk:20000, hp:35000, pIdx:3}, {id:405, star:4, name:"破滅の引き金", atk:50000, hp:80000, pIdx:4},
-    {id:501, star:5, name:"天界の神剣", atk:700000, hp:0, pIdx:0}, {id:502, star:5, name:"神殺しの刃", atk:1500000, hp:0, pIdx:0}, {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:1000000, pIdx:1}, {id:504, star:5, name:"神格の心臓", atk:0, hp:2500000, pIdx:1}, {id:505, star:5, name:"魔力回路の核", atk:1000000, hp:2000000, pIdx:2}, {id:506, star:5, name:"真理の到達者", atk:2500000, hp:4000000, pIdx:2}, {id:507, star:5, name:"王者の刻印", atk:3500000, hp:6000000, pIdx:3}, {id:508, star:5, name:"大号令の旗", atk:6000000, hp:9000000, pIdx:3}, {id:509, star:5, name:"虚空の魔眼", atk:7000000, hp:12000000, pIdx:4}, {id:510, star:5, name:"魔神の供物", atk:10000000, hp:15000000, pIdx:4}, {id:511, star:5, name:"失われた聖典", atk:1500000, hp:3000000, pIdx:2},
-    {id:601, star:6, name:"【絶】の小太刀", atk:15000000, hp:0, pIdx:0, mult:1.1}, {id:602, star:6, name:"【永】の古盾", atk:0, hp:30000000, pIdx:1, mult:1.1}, {id:603, star:6, name:"【叡】の頁", atk:10000000, hp:20000000, pIdx:2, mult:1.1}, {id:604, star:6, name:"【凱】の徴", atk:20000000, hp:40000000, pIdx:3, mult:1.1}, {id:605, star:6, name:"【零】の塵", atk:50000000, hp:80000000, pIdx:4, mult:1.1}, {id:701, star:6, name:"【絶】の長剣", atk:180000000, hp:0, pIdx:0, mult:1.2}, {id:702, star:6, name:"【永】の鉄壁", atk:0, hp:400000000, pIdx:1, mult:1.2}, {id:703, star:6, name:"【叡】の魔導書", atk:150000000, hp:250000000, pIdx:2, mult:1.2}, {id:704, star:6, name:"【凱】の軍旗", atk:250000000, hp:450000000, pIdx:3, mult:1.2}, {id:705, star:6, name:"【零】の裂け目", atk:300000000, hp:550000000, pIdx:4, mult:1.2},
-    {id:801, star:7, name:"【絶】界の神滅", atk:1200000000, hp:0, pIdx:0, mult:1.5}, {id:802, star:7, name:"【永】劫の聖域", atk:0, hp:2500000000, pIdx:1, mult:1.5}, {id:803, star:7, name:"【叡】智の真理", atk:1000000000, hp:1800000000, pIdx:2, mult:1.5}, {id:804, star:7, name:"【凱】旋の覇道", atk:1800000000, hp:3500000000, pIdx:3, mult:1.5}, {id:805, star:7, name:"【零】の侵食", atk:3000000000, hp:6000000000, pIdx:4, mult:1.5}, {id:901, star:7, name:"【絶】界・多重定義", atk:12000000000, hp:0, pIdx:0, mult:2.0}, {id:902, star:7, name:"【永】死生超越の理", atk:0, hp:25000000000, pIdx:1, mult:2.0}, {id:903, star:7, name:"【叡】真理の法典", atk:11000000000, hp:20000000000, pIdx:2, mult:2.0}, {id:904, star:7, name:"【凱】覇道の極致", atk:18000000000, hp:35000000000, pIdx:3, mult:2.0}, {id:905, star:7, name:"【零】無窮の深淵", atk:30000000000, hp:60000000000, pIdx:4, mult:2.0}, {id:1001, star:7, name:"パンドラの箱", atk:60000000000, hp:100000000000, pIdx:3, mult:100.0}, {id:1101, star:7, name:"終焉の福音", atk:1000000000000, hp:2000000000000, pIdx:4, mult:1000.0}
+    /* ★1: 16種類 */
+    {id:101, star:1, name:"剣士の欠片", atk:7, hp:0}, {id:102, star:1, name:"狩人の欠片", atk:8, hp:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9, hp:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10, hp:0}, {id:105, star:1, name:"武闘家の欠片", atk:6, hp:0},
+    {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50},
+    {id:111, star:1, name:"魔法使いの欠片", atk:4, hp:35}, {id:112, star:1, name:"斥候の欠片", atk:3, hp:48}, {id:113, star:1, name:"冒険者の欠片", atk:5, hp:42}, {id:114, star:1, name:"見習いの欠片", atk:2, hp:30}, {id:115, star:1, name:"放浪者の欠片", atk:4, hp:44}, {id:116, star:1, name:"メモリーダスト", atk:1, hp:10},
+    /* ★2〜★7: 37種類 */
+    {id:201, star:2, name:"鉄の剣", atk:20, hp:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:150}, {id:203, star:2, name:"熟練の証", atk:15, hp:80}, {id:204, star:2, name:"鋼の篭手", atk:30, hp:60}, {id:205, star:2, name:"影の残滓", atk:45, hp:90},
+    {id:301, star:3, name:"魔力剣", atk:150, hp:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:800}, {id:303, star:3, name:"知恵の輪", atk:150, hp:300}, {id:304, star:3, name:"騎士の魂", atk:350, hp:600}, {id:305, star:3, name:"深淵の破片", atk:500, hp:1000},
+    {id:401, star:4, name:"王宮の秘宝", atk:6000, hp:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:30000}, {id:403, star:4, name:"伝説の断片", atk:9000, hp:15000}, {id:404, star:4, name:"覇道の手引書", atk:20000, hp:35000}, {id:405, star:4, name:"破滅の引き金", atk:50000, hp:80000},
+    {id:501, star:5, name:"天界の神剣", atk:700000, hp:0}, {id:502, star:5, name:"神殺しの刃", atk:1500000, hp:0}, {id:503, star:5, name:"慈愛の聖杯", atk:0, hp:1000000}, {id:504, star:5, name:"神格の心臓", atk:0, hp:2500000}, {id:505, star:5, name:"魔力回路の核", atk:1000000, hp:2000000}, {id:506, star:5, name:"真理の到達者", atk:2500000, hp:4000000}, {id:507, star:5, name:"王者の刻印", atk:3500000, hp:6000000}, {id:508, star:5, name:"大号令の旗", atk:6000000, hp:9000000}, {id:509, star:5, name:"虚空の魔眼", atk:7000000, hp:12000000}, {id:510, star:5, name:"魔神の供物", atk:10000000, hp:15000000},
+    {id:601, star:6, name:"【絶】の小太刀", atk:15000000, hp:0, mult:1.1}, {id:602, star:6, name:"【永】の古盾", atk:0, hp:30000000, mult:1.1}, {id:603, star:6, name:"【叡】の頁", atk:10000000, hp:20000000, mult:1.1}, {id:604, star:6, name:"【凱】の徴", atk:20000000, hp:40000000, mult:1.1}, {id:605, star:6, name:"【零】の塵", atk:50000000, hp:80000000, mult:1.1},
+    {id:701, star:7, name:"【絶】界の神滅", atk:1200000000, hp:0, mult:1.5}, {id:702, star:7, name:"【永】劫の聖域", atk:0, hp:2500000000, mult:1.5}, {id:703, star:7, name:"【叡】智の真理", atk:1000000000, hp:1800000000, mult:1.5}, {id:704, star:7, name:"【凱】旋の覇道", atk:1800000000, hp:3500000000, mult:1.5}, {id:705, star:7, name:"【零】の侵食", atk:3000000000, hp:6000000000, mult:1.5}, {id:706, star:7, name:"パンドラの箱", atk:60000000000, hp:100000000000, mult:100.0}, {id:707, star:7, name:"終焉の福音", atk:1000000000000, hp:2000000000000, mult:1000.0}
 ];
 
 function saveGame() { 
@@ -208,14 +209,13 @@ function renderVow() {
     const vowList = document.getElementById('vow-list'); if (!vowList) return;
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
-    const curMinCut = rejStep * 5;
     vowList.innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を獲得する</span><div class="vow-desc">攻撃するたびに深淵に漂う遺物を魂に刻む。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">基礎HPが再起のたびに1〜${player.deathCount.toLocaleString()} 増加</span><div class="vow-desc">再起のたびにHP増加幅が+1される。</div></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">被ダメージを ${curMinCut}% 〜 100% 軽減する</span><div class="vow-desc">因果を歪め、死を遠ざける。</div></div>
-        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志が新たな力を引き寄せる。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘による遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能が強化される。</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起のたびに最終ダメージを微増させる。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘のたびにランダムな遺物を獲得する</span></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">基礎HPが再起のたびに1〜${player.deathCount.toLocaleString()} 増加</span></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">被ダメージを ${rejStep * 5}% 〜 100% 軽減する</span></div>
+        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定獲得する</span></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span></div>
     `;
 }
 
@@ -224,8 +224,7 @@ function attack() {
     const b = getRelicBonus();
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
-    let finalDmgNum = Number(player.baseAtk + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4);
-    let finalDmg = BigInt(Math.floor(finalDmgNum)) || 1n;
+    let finalDmg = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
     
@@ -251,23 +250,16 @@ function attack() {
             player.baseHP += upHP;
             player.deathCount += (1 + bonus); 
             logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${upHP.toLocaleString()})</span></div>`; 
-            
-            // 強化通知判定
-            VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：魂の研磨", `再起回数が ${t.toLocaleString()} に到達。\n再起時の成長と遺物獲得効率が上昇しました。`); });
-            REJECTION_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：因果の拒絶", `再起回数が ${t.toLocaleString()} に到達。\n被ダメージの最低軽減率が 5% 上昇しました。`); });
+            VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：魂の研磨", `再起回数が ${t.toLocaleString()} に到達。\n成長と遺物獲得効率が上昇。`); });
+            REJECTION_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：因果の拒絶", `再起回数が ${t.toLocaleString()} に到達。\n最低軽減率が 5% 上昇。`); });
         }
     }
     
-    // 覇軍の号令 覚醒判定（メモリーダスト[116] 10万個以上かつ 1/100,000 の確率）
     if(!player.hasHado && (player.inventory[116] || 0) >= 100000) {
-        if(Math.random() < 0.00001) {
-            openHadoModal();
-        }
+        if(Math.random() < 0.00001) openHadoModal();
     }
 
-    addLog(logHtml); 
-    saveGame(); 
-    refreshUI();
+    addLog(logHtml); saveGame(); refreshUI();
 }
 
 function getGuaranteedDrop() {
@@ -276,11 +268,10 @@ function getGuaranteedDrop() {
     let roll = Math.random() * 100, curP = 0;
     for(let s in gRates) { curP += gRates[s]; if(roll <= curP) { star = parseInt(s); break; } }
     if (player.maxDmg < DROP_DATA[star].cond) star = 2;
-    let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
-    if(cands.length === 0) cands = RELIC_MASTER.filter(m => m.star === 2);
+    let cands = RELIC_MASTER.filter(m => m.star === star);
     let sel = cands[Math.floor(Math.random() * cands.length)];
     player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
-    return `<div style="font-size:0.82em; margin-top:2px;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}</span></div>`;
+    return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}</span></div>`;
 }
 
 function getDropLog(targetCount) {
@@ -289,13 +280,10 @@ function getDropLog(targetCount) {
         let rv = Math.random()*100, star=1, curP=0;
         for(let s in DROP_DATA) { curP += DROP_DATA[s].p; if(rv <= curP) { star=parseInt(s); break; } }
         if (player.maxDmg < DROP_DATA[star].cond) star=1;
-        let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
-        let filtered = cands.filter(m => !(m.star >= 7 && player.inventory[m.id] >= 1));
-        if(filtered.length > 0) {
-            let sel = filtered[Math.floor(Math.random() * filtered.length)];
-            player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
-            obtained[sel.id] = (obtained[sel.id] || 0) + 1;
-        }
+        let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0);
+        let sel = cands[Math.floor(Math.random() * cands.length)];
+        player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
+        obtained[sel.id] = (obtained[sel.id] || 0) + 1;
     }
     const items = Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; });
     return items.length > 0 ? `<div style="font-size:0.82em;">獲得：${items.join(", ")}</div>` : "";
@@ -318,7 +306,6 @@ function refreshUI() {
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     const finalAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
     const finalHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-    
     document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
     document.getElementById("p-hp").innerText = finalHp.toLocaleString();
     document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
@@ -340,15 +327,15 @@ function renderRelics() {
 function renderStatus() {
     document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
     document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-    let r = "★3以下解放済"; for(let s=7; s>=4; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放済`; break; } }
+    let r = "★3解放済"; for(let s=7; s>=4; s--) { if(player.maxDmg >= DROP_DATA[s].cond) { r = `★${s}解放済`; break; } }
     document.getElementById("st-rank").innerText = r;
-    document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/64`; 
+    document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/54`; 
     document.getElementById("prob-list").innerHTML = Object.entries(DROP_DATA).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p.toFixed(6)}%</td></tr>`).join("");
 }
 
 function checkDropEligibility() { 
-    let msg = "【獲得条件確認】\n最高ダメージ: " + player.maxDmg.toLocaleString() + "\n----------------------------\n"; 
-    Object.entries(DROP_DATA).forEach(([star, data]) => { msg += `★${star}: ${player.maxDmg >= data.cond ? "[解放済]" : "[未到達]"}${data.cond > 0n ? ` (必要: ${data.cond.toLocaleString()})` : " (初期)"}\n`; }); alert(msg); 
+    let msg = "【獲得条件確認】\n最高ダメージ: " + player.maxDmg.toLocaleString() + "\n"; 
+    Object.entries(DROP_DATA).forEach(([star, data]) => { msg += `★${star}: ${player.maxDmg >= data.cond ? "[解放済]" : "[未到達]"}${data.cond > 0n ? ` (必要: ${data.cond.toLocaleString()})` : ""}\n`; }); alert(msg); 
 }
 
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
