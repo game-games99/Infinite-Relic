@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.18</title>
+<title>RELICORE - v3.3.19</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -95,7 +95,7 @@
 
 <div class="nav">
    <button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button>
-   <button onclick="showTab('vow')" id="nav-vow">修練</button>
+   <button onclick="showTab('vow')" id="nav-vow">再起</button>
    <button onclick="showTab('relic')" id="nav-relic">遺物</button>
    <button onclick="showTab('status')" id="nav-status">詳細</button>
 </div>
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.18</div>
+<div class="ver-footer">RELICORE v3.3.19</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -292,7 +292,7 @@ function renderVow() {
        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${expFormatted} の間で上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">障壁：${finalRejMin}% ～ 100% カット</span><span class="vow-sub">経験値 3,000 / 15,000 / 60,000 / 150,000 到達で下限向上。</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時, ★2以上の遺物入手</span><span class="vow-sub">不屈の闘志を燃やし, 新たな力を手に入れる。</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">獲得資格拡大中 (経験値: ${expFormatted})</span><span class="vow-sub">経験値 1,000 / 5,000 / 25,000 / 100,000 / 250,000 到達で効率上昇。段階に応じ遺物獲得数と獲得経験値にボーナス(+)が付与される。</span></div>
+       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">獲得資格拡大中 (経験値: ${expFormatted})</span><span class="vow-sub">経験値段階（1k/5k/25k/100k/250k）に応じ、遺物獲得数と獲得経験値にボーナス(+)が付与される。</span></div>
        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${powerRate.toFixed(3)}%</span><span class="vow-sub">経験値1につき威力+0.004%増加。経験を積むたびに最終ダメージが増加。</span></div>
    `;
 }
