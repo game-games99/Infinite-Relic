@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.17</title>
+<title>RELICORE - v3.3.18</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.17</div>
+<div class="ver-footer">RELICORE v3.3.18</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -180,13 +180,11 @@ function attack() {
     if(isModalOpen) return;
     const b = getRelicBonus();
     const kamaCount = BigInt(player.inventory[406] || 0);
-    const deathRatePerCount = 4n * (1n + (kamaCount / 10n)); // 鎌1つにつき0.004% = 経験値1につき4/100000加算
     const deathFactor = 1000000n + (BigInt(player.deathCount) * 4n * (10n + kamaCount) / 10n); 
     const randNumerator = getBigIntRand(80n, 120n);
 
     let finalDmg = ((player.baseAtk * deathFactor / 1000000n) + b.atk) * randNumerator / 100n;
     if(finalDmg < 1n) finalDmg = 1n;
-
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
     
@@ -248,7 +246,6 @@ function getDropLog(targetCount) {
        let sel = cands[Math.floor(Math.random() * cands.length)];
        player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
        obtained[sel.id] = (obtained[sel.id] || 0) + 1;
-       if(!player.hasHado && star === 1 && Math.random() < 0.00001) openHadoModal();
    }
    const bushinAdd = (player.inventory[401] || 0);
    const currentObtainedIds = Object.keys(obtained);
@@ -280,20 +277,22 @@ function refreshUI() {
 }
 
 function renderVow() {
-   const vowList = document.getElementById('vow-list'); if (!vowList) return;
+   const vowList = document.getElementById('vow-list');
+   if (!vowList) return;
    const bushinCount = (player.inventory[401] || 0);
    const expFormatted = player.deathCount.toLocaleString();
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
    const madoBonus = Math.min(30, player.inventory[403] || 0); 
    const finalRejMin = (rejStep * 5) + madoBonus;
    const kamaCount = BigInt(player.inventory[406] || 0);
-   const powerRate = (BigInt(player.deathCount) * 4n * (10n + kamaCount) / 10n) / 1000n; // %表記
+   const powerRate = (BigInt(player.deathCount) * 4n * (10n + kamaCount) / 10n) / 1000n;
+   
    vowList.innerHTML = `
        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物ボーナス：所持加護により獲得数 +${bushinCount}</span><span class="vow-sub">戦闘をすることで、深淵に漂う遺物を手に入れる。さらに特定の遺物の加護が、獲得数を直接増加させる。</span></div>
        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${expFormatted} の間で上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">障壁：${finalRejMin}% ～ 100% カット</span><span class="vow-sub">経験値 3,000 / 15,000 / 60,000 / 150,000 到達で下限向上。</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時, ★2以上の遺物入手</span><span class="vow-sub">不屈の闘志を燃やし, 新たな力を手に入れる。</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">獲得資格拡大中 (経験値: ${expFormatted})</span><span class="vow-sub">段階(1k/5k/25k/100k/250k)に応じ、遺物獲得数と獲得経験値にボーナス(+)が付与される。</span></div>
+       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">獲得資格拡大中 (経験値: ${expFormatted})</span><span class="vow-sub">経験値 1,000 / 5,000 / 25,000 / 100,000 / 250,000 到達で効率上昇。段階に応じ遺物獲得数と獲得経験値にボーナス(+)が付与される。</span></div>
        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${powerRate.toFixed(3)}%</span><span class="vow-sub">経験値1につき威力+0.004%増加。経験を積むたびに最終ダメージが増加。</span></div>
    `;
 }
