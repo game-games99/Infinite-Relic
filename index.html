@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.6</title>
+<title>RELICORE - v3.2.7</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -111,7 +111,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.6</div>
+<div class="ver-footer">RELICORE v3.2.7</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -146,7 +146,23 @@ const RELIC_MASTER = [
 ];
 
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
-function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString()); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
+function loadGame() { 
+   let saved = localStorage.getItem(SAVE_KEY); 
+   if(saved) { 
+       const p = JSON.parse(saved); 
+       Object.assign(player, p); 
+       player.baseAtk = BigInt(p.baseAtk || "10"); 
+       player.baseHP = BigInt(p.baseHP || "100"); 
+       player.maxDmg = BigInt(p.maxDmg || "0"); 
+       let savedBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString());
+       // HPが0以下で保存されていたら最大HPにリセットして討伐判定バグを防ぐ
+       currentBossHP = (savedBossHP <= 0n) ? BOSS_MAX_HP_BASE : savedBossHP;
+   } 
+   if(!player.storySeen) {
+       isModalOpen = true;
+       document.getElementById("story-modal").style.display = "flex"; 
+   }
+}
 function openUpgradeModal(title, msg) { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("upgrade-title").innerText = title; document.getElementById("upgrade-msg").innerText = msg; document.getElementById("upgrade-modal").style.display = "flex"; }
 function closeUpgradeModal() { document.getElementById("upgrade-modal").style.display = "none"; isModalOpen = false; }
 function openHadoModal() { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("hado-awaken-modal").style.display = "flex"; }
@@ -203,11 +219,9 @@ function attack() {
        document.getElementById("clear-modal").style.display = "flex"; 
    } else {
        const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-       
-       // 【因果の拒絶】と【魔導王の記憶】の下限合算処理
        let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
-       let lowerLimit = rejStep * 5; // 再起スキル分(最大20)
-       if(player.inventory[403]) lowerLimit += 30; // 魔導王分(30)を加算し、下限50へ
+       let lowerLimit = rejStep * 5; 
+       if(player.inventory[403]) lowerLimit += 30; 
        
        let actualCutPercent = Math.floor(Math.random() * (101 - lowerLimit)) + lowerLimit;
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
@@ -310,8 +324,8 @@ function checkDropEligibility() {
 
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
 function addLog(html) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className="log-set"; d.innerHTML=html; l.prepend(d); while(l.childNodes.length > 20) l.removeChild(l.lastChild); }
-function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
-function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; refreshUI(); }
+function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; isModalOpen = false; saveGame(); }
+function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; saveGame(); refreshUI(); }
 function resetData() { if(confirm("全リセットしますか？")) { localStorage.clear(); location.reload(); } }
 
 const btn = document.getElementById("attackBtn");
