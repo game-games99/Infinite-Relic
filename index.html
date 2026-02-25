@@ -176,7 +176,7 @@ function attack() {
    
    // 最終ダメージ算出：(基礎ATK + 遺物ATK合計) × 遺物倍率 × 死を刻む倍率
    const currentTotalAtkRaw = player.baseAtk + b.atk;
-   let finalDmg = BigInt(Math.floor(Number(currentTotalAtkRaw) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
+   let finalDmg = BigInt(Math.floor(Number(currentTotalAtkRaw) * b.mult * deathDmgMult * ( Math.random()*0.4))) || 1n;
    
    if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
    currentBossHP -= finalDmg;
