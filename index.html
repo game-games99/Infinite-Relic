@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.27</title>
+<title>RELICORE - v3.3.28</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -93,11 +93,11 @@
        <button class="story-btn" onclick="closeStory()">魂に刻印する</button>
    </div>
 </div>
-<div id="clear-modal"><div class="modal-content"><h3>討伐成功</h3><p>終末神アポカリス＝ディアを討伐しました。</p><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
+<div id="clear-modal"><div class="modal-content"><h3>討伐成功</h3><p>終末神アポカリス＝ティアを討伐しました。</p><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 
 <div id="header">
    <div class="boss-area">
-       <div class="boss-name" id="boss-display-name">終末神アポカリス＝ディア</div>
+       <div class="boss-name" id="boss-display-name">終末神アポカリス＝ティア</div>
        <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
        <div class="hp-val-display" id="bosshp-cur">0</div>
    </div>
@@ -127,7 +127,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.27</div>
+<div class="ver-footer">RELICORE v3.3.28</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -158,7 +158,7 @@ const RELIC_MASTER = [
    {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
    {id:501, star:5, name:"慈愛の権能", atk:250000, hp:800000}, {id:502, star:5, name:"強欲の権能", atk:450000, hp:550000}, {id:503, star:5, name:"忍耐の権能", atk:200000, hp:950000}, {id:504, star:5, name:"知恵の権能", atk:350000, hp:720000},
    {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
-   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"災厄が詰まった箱。所持して倒すと……？"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
+   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"災厄が詰まった箱。神を討つための鍵。"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
 
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
@@ -209,14 +209,29 @@ function attack() {
    let finalDmg = BigInt(Math.floor(rawBase * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
    
    if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
-   currentBossHP -= finalDmg;
    
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
    
-   if(currentBossHP <= 0n) { 
-       currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
+   // 神の不死ギミック判定
+   if(finalDmg >= currentBossHP) {
+       const hasPandora = (player.inventory[701] || 0) > 0;
+       if(hasPandora) {
+           currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex";
+       } else {
+           currentBossHP = BOSS_MAX_HP_BASE;
+           logHtml += `<div><span style="color:#ff0000; font-weight:bold;">神の権能：終焉の回帰……！ 絶望が理を塗り替える。(HP全回復)</span></div>`;
+       }
    } else {
+       currentBossHP -= finalDmg;
+       // HPが1未満になる場合は全回復（上記の判定で漏れるケース用）
+       if(currentBossHP < 1n) {
+           currentBossHP = BOSS_MAX_HP_BASE;
+           logHtml += `<div><span style="color:#ff0000; font-weight:bold;">神の権能：終焉の回帰……！ (HP全回復)</span></div>`;
+       }
+   }
+   
+   if(currentBossHP > 0n) {
        const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
        let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
        const madoCount = player.inventory[403] || 0;
