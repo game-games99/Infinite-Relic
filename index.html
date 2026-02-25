@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.0.1</title>
+<title>RELICORE - v3.0.2</title>
 <style>
-    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --purple: #6610f2; --purple-light: #f3f0ff; }
+    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; /* 成長色：ピンク */ --purple-light: #f3f0ff; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     
@@ -143,7 +143,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.0.1</div>
+<div class="ver-footer">RELICORE v3.0.2</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -160,7 +160,6 @@ const DROP_DATA = {
     7: { p: 0.000001, cond: 100000000n } 
 };
 
-// 基礎値管理を初期化
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, storySeen: false, hasHado: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
@@ -247,11 +246,11 @@ function attack() {
         if (currentTotalHP > mitigatedDmg) { 
             logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
         } else { 
-            // 刹那の堆積：HP上昇処理
             let upHP = BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
             player.baseHP += upHP;
             player.deathCount += (1 + bonus); 
-            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た (基礎HP+${upHP.toLocaleString()})</span></div>`; 
+            // HP上昇ログの色を赤からピンク(#ff69b4)へ変更
+            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${upHP.toLocaleString()})</span></div>`; 
         }
     }
     addLog(logHtml); 
