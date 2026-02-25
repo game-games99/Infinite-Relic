@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.0.4</title>
+<title>RELICORE - v3.0.5</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --purple-light: #f3f0ff; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -143,7 +143,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.0.4</div>
+<div class="ver-footer">RELICORE v3.0.5</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -211,7 +211,7 @@ function renderVow() {
     const curMinCut = rejStep * 5;
     vowList.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を獲得する</span><div class="vow-desc">攻撃するたびに深淵に漂う遺物を魂に刻む。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">基礎HPが再起のたびに1〜${player.deathCount.toLocaleString()} 増加</span><div class="vow-desc">再起のたびに生命の核が強化される。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">基礎HPが再起のたびに1〜${player.deathCount.toLocaleString()} 増加</span><div class="vow-desc">再起のたびにHP増加幅が+1される。</div></div>
         <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">被ダメージを ${curMinCut}% 〜 100% 軽減する</span><div class="vow-desc">因果を歪め、死を遠ざける。</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志が新たな力を引き寄せる。</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘による遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能が強化される。</div></div>
@@ -258,10 +258,11 @@ function attack() {
         }
     }
     
-    // 覇軍の号令 覚醒判定
-    if(!player.hasHado) {
-        const h1Count = RELIC_MASTER.filter(m => m.star === 1 && player.inventory[m.id] > 0).length;
-        if(h1Count >= 15) openHadoModal();
+    // 覇軍の号令 覚醒判定（メモリーダスト[116] 10万個以上かつ 1/100,000 の確率）
+    if(!player.hasHado && (player.inventory[116] || 0) >= 100000) {
+        if(Math.random() < 0.00001) {
+            openHadoModal();
+        }
     }
 
     addLog(logHtml); 
