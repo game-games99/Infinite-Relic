@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.2</title>
+<title>RELICORE - v3.2.3</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 
-   /* モーダル */
    #hado-awaken-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 30000; justify-content: center; align-items: center; padding: 20px; }
    .hado-content { background: #000; border: 3px solid var(--gold); border-radius: 20px; padding: 40px 20px; text-align: center; color: #fff; max-width: 450px; width: 95%; box-shadow: 0 0 60px rgba(212, 175, 55, 0.5); animation: awaken-glow 3s infinite alternate; }
    @keyframes awaken-glow { from { box-shadow: 0 0 20px rgba(212,175,55,0.4); } to { box-shadow: 0 0 80px rgba(212,175,55,0.8); } }
@@ -115,7 +114,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.2</div>
+<div class="ver-footer">RELICORE v3.2.3</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -129,6 +128,7 @@ let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 let isModalOpen = false;
+let debugCount = 0;
 
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
@@ -157,6 +157,13 @@ function openHadoModal() { clearInterval(attackInterval); attackInterval = null;
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
+// 【デバッグ用関数：全遺物付与】
+function allRelics() {
+   RELIC_MASTER.forEach(m => { if(m.id !== 0) player.inventory[m.id] = 1; });
+   alert("全遺物を1つずつ取得しました。");
+   saveGame(); refreshUI();
+}
+
 function renderVow() {
    const vowList = document.getElementById('vow-list'); if (!vowList) return;
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
@@ -171,7 +178,7 @@ function renderVow() {
 
    vowList.innerHTML = `
        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight" style="color:#007bff;">戦闘を経験するたびにランダムな遺物を１つ獲得する</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
-       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight" style="color:#007bff;">HP 10 ～ ${player.deathCount.toLocaleString()} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
+       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight" style="color:#007bff;">HP 1 ～ ${player.deathCount.toLocaleString()} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight" style="color:#007bff;">稀に攻撃を無効化する ${rejStep * 5}% ～ 100% ランダムカット</span><span class="vow-sub">再起の深まりと共に下限が向上（次回：${nextRejThres.toLocaleString()}）</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight" style="color:#007bff;">生存時★2以上の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight" style="color:#007bff;">遺物獲得数/再起回数：+${bonus + 1}</span><span class="vow-sub">再起した回数に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
@@ -185,7 +192,7 @@ function attack() {
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
    
    const kamaCount = player.inventory[406] || 0;
-   let deathDmgMult = 1.0 + (player.deathCount * 0.000004 * (1 + kamaCount));
+   let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
    let finalDmg = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
    if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
    currentBossHP -= finalDmg;
@@ -206,23 +213,20 @@ function attack() {
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
        
        if (currentTotalHP > mitigatedDmg) { 
-           // 【生存時】
            const prevDeath = player.deathCount;
            const chieCount = player.inventory[405] || 0;
            if(chieCount > 0) {
                player.deathCount += chieCount;
-               // 攻撃中のスキル解放チェック
                VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("研磨の成果", `戦いの中での研磨が ${t.toLocaleString()} 回に到達。効率が向上。`); });
                REJECTION_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("研磨の成果", `戦いの中での研磨が ${t.toLocaleString()} 回に到達。軽減率が向上。`); });
            }
            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
        } else {
-           // 【再起時】
            const prevDeath = player.deathCount;
            const seijaCount = player.inventory[402] || 0;
            let totalUpHP = 0n;
            for(let i=0; i <= seijaCount; i++) {
-               totalUpHP += BigInt(Math.floor(10 + Math.random() * (Math.max(1, player.deathCount))));
+               totalUpHP += BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
            }
            player.baseHP += totalUpHP; 
            player.deathCount += (1 + bonus);
@@ -291,7 +295,7 @@ function getRelicBonus() {
 function refreshUI() {
    const b = getRelicBonus();
    const kamaCount = player.inventory[406] || 0;
-   let deathDmgMult = 1.0 + (player.deathCount * 0.000004 * (1 + kamaCount));
+   let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
    const finalAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
    const finalHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
    document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
@@ -330,6 +334,8 @@ function renderStatus() {
 }
 
 function checkDropEligibility() {
+   debugCount++;
+   if(debugCount >= 5) { debugCount = 0; allRelics(); return; }
    let msg = "【遺物ランク解放条件】\n現在の最高ダメージ: " + player.maxDmg.toLocaleString() + "\n\n";
    const currentRates = getCurrentDropRates();
    Object.entries(currentRates).forEach(([star, data]) => {
@@ -337,6 +343,7 @@ function checkDropEligibility() {
        else msg += `★${star}: ${player.maxDmg >= data.cond ? "解放済" : "未到達"} (必要: ${data.cond.toLocaleString()})\n`;
    });
    alert(msg);
+   setTimeout(() => { debugCount = 0; }, 2000);
 }
 
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
