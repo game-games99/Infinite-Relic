@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.9</title>
+<title>RELICORE - v3.3.10</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.9</div>
+<div class="ver-footer">RELICORE v3.3.10</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -143,9 +143,9 @@ let isModalOpen = false;
 
 const RELIC_MASTER = [
    {id:0, star:8, name:"再起の誓い", atk:0n, hp:0n, desc:"不屈の魂に刻まれた、再誕の原点。"},
-   {id:101, star:1, name:"剣士の欠片", atk:7n, hp:0n}, {id:102, star:1, name:"狩人の欠片", atk:8n, hp:0n}, {id:103, star:1, name:"暗殺者の欠片", atk:9n, hp:0n}, {id:104, star:1, name:"狂戦士の欠片", atk:10n, hp:0n}, {id:105, star:1, name:"武闘家の欠片", atk:6n, hp:0n}, {id:106, star:1, name:"衛兵の欠片", atk:0n, hp:45n}, {id:107, star:1, name:"騎士の欠片", atk:0n, hp:55n}, {id:108, star:1, name:"重装兵の欠片", atk:0n, hp:65n}, {id:109, star:1, name:"修道士の欠片", atk:0n, hp:40n}, {id:110, star:1, name:"盾持ちの欠片", atk:0n, hp:50n}, {id:111, star:1, name:"魔法使いの欠片", atk:4n, hp:35n}, {id:112, star:1, name:"斥候の欠片", atk:3n, hp:48n}, {id:113, star:1, name:"冒険者の欠片", atk:5n, hp:42n}, {id:114, star:1, name:"見習いの欠片", atk:2n, hp:30n}, {id:115, star:1, name:"放浪者の欠片", atk:4n, hp:44n}, {id:116, star:1, name:"メモリーダスト", atk:1n, hp:10n},
-   {id:201, star:2, name:"聖騎士の欠片", atk:412n, hp:6824n}, {id:202, star:2, name:"龍騎士の欠片", atk:867n, hp:4231n}, {id:203, star:2, name:"暗黒騎士の欠片", atk:1342n, hp:0n}, {id:204, star:2, name:"賢者の欠片", atk:521n, hp:7112n}, {id:205, star:2, name:"大魔道士の欠片", atk:1189n, hp:243n}, {id:206, star:2, name:"暗殺王の欠片", atk:1563n, hp:127n}, {id:207, star:2, name:"重装騎士の欠片", atk:0n, hp:12486n}, {id:208, star:2, name:"拳聖の欠片", atk:992n, hp:3154n}, {id:209, star:2, name:"神官の欠片", atk:42n, hp:14867n}, {id:210, star:2, name:"冒険王の欠片", atk:733n, hp:5941n},
-   {id:301, star:3, name:"聖龍騎士の欠片", atk:8743n, hp:69241n}, {id:302, star:3, name:"深淵魔導の欠片", atk:13241n, hp:2147n}, {id:303, star:3, name:"金剛武神の欠片", atk:4128n, hp:148632n}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15684n, hp:0n}, {id:305, star:3, name:"大聖者の欠片", atk:527n, hp:152414n}, {id:306, star:3, name:"影の支配者の欠片", atk:14109n, hp:1284n}, {id:307, star:3, name:"竜血闘士の欠片", atk:10242n, hp:42109n}, {id:308, star:3, name:"天界騎士の欠片", atk:6127n, hp:98451n}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16248n, hp:421n}, {id:310, star:3, name:"極大賢者の欠片", atk:5421n, hp:118407n},
+   {id:101, star:1, name:"剣士의 欠片", atk:7n, hp:0n}, {id:102, star:1, name:"狩人의 欠片", atk:8n, hp:0n}, {id:103, star:1, name:"暗殺者의 欠片", atk:9n, hp:0n}, {id:104, star:1, name:"狂戦士의 欠片", atk:10n, hp:0n}, {id:105, star:1, name:"武闘家의 欠片", atk:6n, hp:0n}, {id:106, star:1, name:"衛兵의 欠片", atk:0n, hp:45n}, {id:107, star:1, name:"騎士의 欠片", atk:0n, hp:55n}, {id:108, star:1, name:"重装兵의 欠片", atk:0n, hp:65n}, {id:109, star:1, name:"修道士의 欠片", atk:0n, hp:40n}, {id:110, star:1, name:"盾持ち의 欠片", atk:0n, hp:50n}, {id:111, star:1, name:"魔法使い의 欠片", atk:4n, hp:35n}, {id:112, star:1, name:"斥候의 欠片", atk:3n, hp:48n}, {id:113, star:1, name:"冒険者의 欠片", atk:5n, hp:42n}, {id:114, star:1, name:"見習い의 欠片", atk:2n, hp:30n}, {id:115, star:1, name:"放浪者의 欠片", atk:4n, hp:44n}, {id:116, star:1, name:"メモリーダスト", atk:1n, hp:10n},
+   {id:201, star:2, name:"聖騎士의 欠片", atk:412n, hp:6824n}, {id:202, star:2, name:"龍騎士의 欠片", atk:867n, hp:4231n}, {id:203, star:2, name:"暗黒騎士의 欠片", atk:1342n, hp:0n}, {id:204, star:2, name:"賢者의 欠片", atk:521n, hp:7112n}, {id:205, star:2, name:"大魔道士의 欠片", atk:1189n, hp:243n}, {id:206, star:2, name:"暗殺王의 欠片", atk:1563n, hp:127n}, {id:207, star:2, name:"重装騎士의 欠片", atk:0n, hp:12486n}, {id:208, star:2, name:"拳聖의 欠片", atk:992n, hp:3154n}, {id:209, star:2, name:"神官의 欠片", atk:42n, hp:14867n}, {id:210, star:2, name:"冒険王의 欠片", atk:733n, hp:5941n},
+   {id:301, star:3, name:"聖龍騎士의 欠片", atk:8743n, hp:69241n}, {id:302, star:3, name:"深淵魔導의 欠片", atk:13241n, hp:2147n}, {id:303, star:3, name:"金剛武神의 欠片", atk:4128n, hp:148632n}, {id:304, star:3, name:"暗黒皇帝의 欠片", atk:15684n, hp:0n}, {id:305, star:3, name:"大聖者의 欠片", atk:527n, hp:152414n}, {id:306, star:3, name:"影의 支配者의 欠片", atk:14109n, hp:1284n}, {id:307, star:3, name:"竜血闘士의 欠片", atk:10242n, hp:42109n}, {id:308, star:3, name:"天界騎士의 欠片", atk:6127n, hp:98451n}, {id:309, star:3, name:"虚空의 暗殺者의 欠片", atk:16248n, hp:421n}, {id:310, star:3, name:"極大賢者의 欠片", atk:5421n, hp:118407n},
    {id:401, star:4, name:"【不退転】武神の魂", atk:65000n, hp:180000n, desc: "通常ドロップ群から1つをランダムに選び、所持数分を加算する。"}, 
    {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000n, hp:250000n, desc: "再起時のHP上昇抽選を (1+所持数) 回行う。"}, 
    {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000n, hp:150000n, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"}, 
@@ -157,11 +157,7 @@ const RELIC_MASTER = [
    {id:701, star:7, name:"パンドラの箱", atk:150000000n, hp:350000000n, mult:1000000n, desc:"災厄が詰まった箱。所持して倒すと……？"}, {id:702, star:7, name:"終焉の福音", atk:200000000n, hp:450000000n, mult:1500000n}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000n, hp:550000000n, mult:2000000n}
 ];
 
-function getBigIntRand(min, max) { 
-    const range = BigInt(max) - BigInt(min) + 1n;
-    return BigInt(Math.floor(Math.random() * Number(range))) + BigInt(min);
-}
-
+function getBigIntRand(min, max) { const range = BigInt(max) - BigInt(min) + 1n; return BigInt(Math.floor(Math.random() * Number(range))) + BigInt(min); }
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
 function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString()); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
 function openUpgradeModal(title, msg) { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("upgrade-title").innerText = title; document.getElementById("upgrade-msg").innerText = msg; document.getElementById("upgrade-modal").style.display = "flex"; }
@@ -169,12 +165,11 @@ function closeUpgradeModal() { document.getElementById("upgrade-modal").style.di
 function openHadoModal() { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("hado-awaken-modal").style.display = "flex"; }
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 
-// 修正：加算と乗算を完全に分離して累積バグを防止
+// 修正：累乗による爆発を避け、％加算方式に統一
 function getRelicBonus() {
     let totalAtkAdd = 0n; let totalHpAdd = 0n; 
-    let totalMultNumerator = RATIO_BASE; 
+    let totalBonusPct = 10000n; // 100%基準
     
-    // 1. 全遺物の加算値を合計
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id); if(!r) return;
         let c = BigInt(count);
@@ -183,17 +178,14 @@ function getRelicBonus() {
         if(player.hasHado && r.star === 1) { baseA *= 10n; baseH *= 10n; }
         totalAtkAdd += baseA; 
         totalHpAdd += baseH;
-    });
-
-    // 2. 乗算遺物の倍率を計算（加算とは独立して算出）
-    Object.entries(player.inventory).forEach(([id, count]) => {
-        const r = RELIC_MASTER.find(m => m.id == id); if(!r || !r.mult) return;
-        for(let i=0; i<count; i++) {
-            totalMultNumerator = (totalMultNumerator * BigInt(r.mult)) / RATIO_BASE;
+        
+        if(r.mult) {
+            // 例：1.1倍(11000)なら、1個につき+10%(1000)を加算
+            let perBonus = BigInt(r.mult) - RATIO_BASE;
+            totalBonusPct += perBonus * c;
         }
     });
-
-    return { atk: totalAtkAdd, hp: totalHpAdd, multNum: totalMultNumerator };
+    return { atk: totalAtkAdd, hp: totalHpAdd, multNum: totalBonusPct };
 }
 
 function attack() {
@@ -205,7 +197,7 @@ function attack() {
     const deathFactor = 10000n + deathBonusNum;
     const randNumerator = getBigIntRand(80n, 120n);
 
-    // ステータス倍率の適用
+    // 加算ベースの倍率適用（暴走回避）
     let dmgStep1 = (player.baseAtk + b.atk) * b.multNum / RATIO_BASE; 
     let dmgStep2 = dmgStep1 * deathFactor / 10000n;
     let finalDmg = dmgStep2 * randNumerator / 100n;
@@ -262,24 +254,15 @@ function getGuaranteedDrop() {
 function getDropLog(targetCount) {
    let obtained = {};
    const currentRates = player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA;
-   
-   // 1. 通常ドロップ判定
    for(let i=0; i<targetCount; i++) {
        let rv = Math.random()*100, star=1, curP=0;
        for(let s in currentRates) { curP += currentRates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
        let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0);
        let sel = cands[Math.floor(Math.random() * cands.length)];
-       
        player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
        obtained[sel.id] = (obtained[sel.id] || 0) + 1;
-
-       // 【破軍の号令】判定: ★1遺物獲得時に1/100,000の確率で発現
-       if(!player.hasHado && star === 1) {
-           if(Math.random() < 0.00001) { openHadoModal(); }
-       }
+       if(!player.hasHado && star === 1 && Math.random() < 0.00001) openHadoModal();
    }
-
-   // 2. 武神の魂（追撃）: 1クリックにつき「1回のみ」発動
    const bushinAdd = (player.inventory[401] || 0);
    const currentObtainedIds = Object.keys(obtained);
    if(bushinAdd > 0 && currentObtainedIds.length > 0) {
@@ -287,14 +270,9 @@ function getDropLog(targetCount) {
        player.inventory[targetId] += bushinAdd;
        obtained[targetId] += bushinAdd;
    }
-
    const entries = Object.entries(obtained);
    if (entries.length === 0) return "";
-   
-   const items = entries.map(([id, c]) => { 
-       const m = RELIC_MASTER.find(x=>x.id==id); 
-       return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; 
-   });
+   const items = entries.map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; });
    return `<div style="font-size:0.82em;">獲得：${items.join(", ")}</div>`;
 }
 
@@ -336,10 +314,16 @@ function renderRelics() {
    const sorted = Object.entries(player.inventory).filter(([id, c]) => c > 0).sort((a,b) => { const ra = RELIC_MASTER.find(x=>x.id==a[0]), rb = RELIC_MASTER.find(x=>x.id==b[0]); return ra.star - rb.star; });
    container.innerHTML = sorted.map(([id, c]) => {
        const m = RELIC_MASTER.find(x => x.id == id);
-       let calcAtk = (m.atk || 0n) * (player.hasHado && m.star == 1 ? 10n : 1n);
-       let calcHp = (m.hp || 0n) * (player.hasHado && m.star == 1 ? 10n : 1n);
-       let statusText = (calcAtk ? `ATK+${calcAtk.toLocaleString()} ` : ``) + (calcHp ? `HP+${calcHp.toLocaleString()}` : ``);
-       return `<div class="relic-card"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${m.desc ? m.desc : statusText}</div></div>`;
+       let desc = m.desc || "";
+       if(!desc && m.mult) { 
+           let pct = (BigInt(m.mult) - RATIO_BASE) / 100n;
+           desc = `ATK・HP +${pct}% (加算)`; 
+       } else if(!desc) {
+           let calcAtk = (m.atk || 0n) * (player.hasHado && m.star == 1 ? 10n : 1n);
+           let calcHp = (m.hp || 0n) * (player.hasHado && m.star == 1 ? 10n : 1n);
+           desc = (calcAtk ? `ATK+${calcAtk.toLocaleString()} ` : ``) + (calcHp ? `HP+${calcHp.toLocaleString()}` : ``);
+       }
+       return `<div class="relic-card"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${desc}</div></div>`;
    }).join("");
 }
 
