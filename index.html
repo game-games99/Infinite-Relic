@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.12</title>
+<title>RELICORE - v3.3.13</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.12</div>
+<div class="ver-footer">RELICORE v3.3.13</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -154,7 +154,7 @@ const RELIC_MASTER = [
    {id:406, star:4, name:"【死刻】死神の鎌", atk:110000n, hp:80000n, desc: "「死を刻む」の上昇量に 1つにつき +0.04% 加算する。"},
    {id:501, star:5, name:"慈愛の権能", atk:250000n, hp:800000n}, {id:502, star:5, name:"強欲の権能", atk:450000n, hp:550000n}, {id:503, star:5, name:"忍耐の権能", atk:200000n, hp:950000n}, {id:504, star:5, name:"知恵の権能", atk:350000n, hp:720000n},
    {id:601, star:6, name:"支配の権能", atk:1500000n, hp:4500000n}, {id:602, star:6, name:"秩序の権能", atk:2500000n, hp:3500000n}, {id:603, star:6, name:"虚無の権能", atk:2000000n, hp:4000000n}, {id:604, star:6, name:"創造の権能", atk:1200000n, hp:5000000n},
-   {id:701, star:7, name:"パンドラの箱", atk:150000000n, hp:350000000n, mult:1000000n, desc:"災厄が詰まった箱。所持して倒すと……？"}, {id:702, star:7, name:"終焉の福音", atk:200000000n, hp:450000000n, mult:1500000n}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000n, hp:550000000n, mult:2000000n}
+   {id:701, star:7, name:"パンドラの箱", atk:150000000n, hp:350000000n}, {id:702, star:7, name:"終焉の福音", atk:200000000n, hp:450000000n}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000n, hp:550000000n}
 ];
 
 function getBigIntRand(min, max) { const range = BigInt(max) - BigInt(min) + 1n; return BigInt(Math.floor(Math.random() * Number(range))) + BigInt(min); }
@@ -167,16 +167,14 @@ function closeHadoModal() { document.getElementById("hado-awaken-modal").style.d
 
 function getRelicBonus() {
     let totalAtkAdd = 0n; let totalHpAdd = 0n; 
-    let totalBonusPct = 10000n;
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id); if(!r) return;
         let c = BigInt(count);
         let baseA = (r.atk || 0n) * c; let baseH = (r.hp || 0n) * c;
         if(player.hasHado && r.star === 1) { baseA *= 10n; baseH *= 10n; }
         totalAtkAdd += baseA; totalHpAdd += baseH;
-        if(r.mult) { let perBonus = BigInt(r.mult) - RATIO_BASE; totalBonusPct += perBonus * c; }
     });
-    return { atk: totalAtkAdd, hp: totalHpAdd, multNum: totalBonusPct };
+    return { atk: totalAtkAdd, hp: totalHpAdd };
 }
 
 function attack() {
@@ -187,11 +185,8 @@ function attack() {
     const deathFactor = 10000n + (BigInt(player.deathCount) * deathRatePerCount / 100n);
     const randNumerator = getBigIntRand(80n, 120n);
 
-    // インフレ沈静化：再起倍率を「基礎+遺物加算」の全体に掛けるのではなく、
-    // 特大遺物の加算値に対しては倍率の掛かりを抑制する設計へ変更。
-    let baseDmg = (player.baseAtk * deathFactor / 10000n) + b.atk; 
-    let dmgStep1 = baseDmg * b.multNum / RATIO_BASE; 
-    let finalDmg = dmgStep1 * randNumerator / 100n;
+    // インフレ抑制：再起倍率は「基礎値」にのみ掛かり、遺物上昇分は純粋な加算とする。
+    let finalDmg = ((player.baseAtk * deathFactor / 10000n) + b.atk) * randNumerator / 100n;
     if(finalDmg < 1n) finalDmg = 1n;
 
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
@@ -203,7 +198,7 @@ function attack() {
     if(currentBossHP <= 0n) { 
         currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
     } else {
-        const currentTotalHP = (player.baseHP + b.hp) * b.multNum / RATIO_BASE;
+        const currentTotalHP = player.baseHP + b.hp;
         let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
         const madoCount = player.inventory[403] || 0;
         const madoBonus = Math.min(30, madoCount); 
@@ -269,9 +264,8 @@ function refreshUI() {
    const b = getRelicBonus();
    const deathRate = 4n * (1n + BigInt(player.inventory[406] || 0));
    const dFactor = 10000n + (BigInt(player.deathCount) * deathRate / 100n);
-   // UI上の表示計算もattack内と同じ沈静化ロジックに統一
-   const displayAtk = ((player.baseAtk * dFactor / 10000n) + b.atk) * b.multNum / RATIO_BASE;
-   const displayHp = (player.baseHP + b.hp) * b.multNum / RATIO_BASE;
+   const displayAtk = (player.baseAtk * dFactor / 10000n) + b.atk;
+   const displayHp = player.baseHP + b.hp;
    document.getElementById("p-atk").innerText = displayAtk.toLocaleString();
    document.getElementById("p-hp").innerText = displayHp.toLocaleString();
    document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
@@ -307,10 +301,7 @@ function renderRelics() {
    container.innerHTML = sorted.map(([id, c]) => {
        const m = RELIC_MASTER.find(x => x.id == id);
        let desc = m.desc || "";
-       if(!desc && m.mult) { 
-           let pct = (BigInt(m.mult) - RATIO_BASE) / 100n;
-           desc = `ATK・HP +${pct}% (加算)`; 
-       } else if(!desc) {
+       if(!desc) {
            let calcAtk = (m.atk || 0n) * (player.hasHado && m.star == 1 ? 10n : 1n);
            let calcHp = (m.hp || 0n) * (player.hasHado && m.star == 1 ? 10n : 1n);
            desc = (calcAtk ? `ATK+${calcAtk.toLocaleString()} ` : ``) + (calcHp ? `HP+${calcHp.toLocaleString()}` : ``);
