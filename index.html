@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.9.7</title>
+<title>RELICORE - v2.9.8</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --purple: #6610f2; --purple-light: #f3f0ff; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -143,7 +143,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.9.7</div>
+<div class="ver-footer">RELICORE v2.9.8</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -160,6 +160,7 @@ const DROP_DATA = {
     7: { p: 0.000001, cond: 100000000n } 
 };
 
+// 修正：初期値を明示的に10n, 100nに固定
 let player = { inventory: {0: 1}, deathCount: 0, baseAtk: 10n, baseHP: 100n, maxDmg: 0n, storySeen: false, hasHado: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
@@ -170,7 +171,6 @@ const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 
 const RELIC_MASTER = [
     {id:0, star:8, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    // ★1: 下級職業の欠片 (10種類)
     {id:101, star:1, name:"戦士の欠片", atk:72, hp:410, pIdx:0},
     {id:102, star:1, name:"守護者の欠片", atk:15, hp:542, pIdx:1},
     {id:103, star:1, name:"魔術師の欠片", atk:94, hp:310, pIdx:2},
@@ -181,7 +181,6 @@ const RELIC_MASTER = [
     {id:108, star:1, name:"騎士の欠片", atk:30, hp:530, pIdx:1},
     {id:109, star:1, name:"暗殺者の欠片", atk:98, hp:210, pIdx:4},
     {id:110, star:1, name:"斥候の欠片", atk:42, hp:480, pIdx:3},
-
     {id:201, star:2, name:"鉄の剣", atk:20, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:150, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:15, hp:80, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:30, hp:60, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:45, hp:90, pIdx:4},
     {id:301, star:3, name:"魔力剣", atk:150, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:800, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:150, hp:300, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:350, hp:600, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:500, hp:1000, pIdx:4},
     {id:401, star:4, name:"王宮の秘宝", atk:6000, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:30000, pIdx:1}, {id:403, star:4, name:"伝説の断片", atk:9000, hp:15000, pIdx:2}, {id:404, star:4, name:"覇道の手引書", atk:20000, hp:35000, pIdx:3}, {id:405, star:4, name:"破滅の引き金", atk:50000, hp:80000, pIdx:4},
@@ -200,8 +199,9 @@ function loadGame() {
     if(saved) { 
         const p = JSON.parse(saved); 
         Object.assign(player, p); 
-        player.baseAtk = BigInt(p.baseAtk || "10"); 
-        player.baseHP = BigInt(p.baseHP || "100"); 
+        // 修正：ロード時も初期ステータスを厳密に適用
+        player.baseAtk = 10n; 
+        player.baseHP = 100n; 
         player.maxDmg = BigInt(p.maxDmg || "0"); 
         currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString()); 
     } 
@@ -234,14 +234,16 @@ function attack() {
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let relicKindBonus = 1.0 + (Object.keys(player.inventory).length * 0.2);
-    let finalDmgNum = Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult * (0.8 + Math.random()*0.4);
+    // 修正：ステータス計算を (10 + 遺物合計) に固定
+    let finalDmgNum = Number(10n + b.atk) * b.mult * relicKindBonus * deathDmgMult * (0.8 + Math.random()*0.4);
     let finalDmg = BigInt(Math.floor(finalDmgNum)) || 1n;
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
     let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
     if(currentBossHP <= 0n) { currentBossHP = 0n; logHtml += `<div class="c8">【討伐成功】魔神の消滅を確認。</div>`; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; }
     else {
-        const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
+        // 修正：現在HPの算出を (100 + 遺物合計) に固定
+        const currentTotalHP = BigInt(Math.floor(Number(100n + b.hp) * b.mult));
         let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
         const minCut = rejStep * 5; 
         const actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut; 
@@ -249,6 +251,7 @@ function attack() {
         if (currentTotalHP > mitigatedDmg) { logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); }
         else { 
             player.deathCount += (1 + bonus); 
+            // 注意：再起時のHP微増は既存機能として維持
             player.baseHP += BigInt(Math.floor(1 + Math.random() * (Number(player.deathCount)))); 
             logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>`; 
         }
@@ -293,7 +296,6 @@ function getRelicBonus() {
         const r = RELIC_MASTER.find(m => m.id == id); if(!r) return;
         let baseA = BigInt(r.atk || 0) * BigInt(count);
         let baseH = BigInt(r.hp || 0) * BigInt(count);
-        // ★1遺物（職業の欠片）すべてを破軍の号令の強化対象にする
         if(player.hasHado && r.star === 1) { baseA *= 10n; baseH *= 10n; }
         atk += baseA; hp += baseH; if(r.mult) mult *= Math.pow(r.mult, count);
     });
@@ -304,8 +306,13 @@ function refreshUI() {
     const b = getRelicBonus();
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let relicKindBonus = 1.0 + (Object.keys(player.inventory).length * 0.2);
-    document.getElementById("p-atk").innerText = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult)).toLocaleString();
-    document.getElementById("p-hp").innerText = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult)).toLocaleString();
+    
+    // 修正：表示時に 10 + 遺物合計 / 100 + 遺物合計 を強制適用し、不整合を解消
+    const finalAtk = BigInt(Math.floor(Number(10n + b.atk) * b.mult * relicKindBonus * deathDmgMult));
+    const finalHp = BigInt(Math.floor(Number(100n + b.hp) * b.mult));
+    
+    document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
+    document.getElementById("p-hp").innerText = finalHp.toLocaleString();
     document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
     document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
     document.getElementById("hado-box").style.display = player.hasHado ? "block" : "none";
