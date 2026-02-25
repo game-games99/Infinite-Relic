@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.7.5</title>
+<title>RELICORE - v2.7.7</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -52,7 +52,8 @@
     
     .power-section { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 15px; background: #fdfdfd; }
     .power-head { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid var(--panel); padding-bottom: 5px; margin-bottom: 10px; color: var(--dark); }
-    .skill-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.8em; }
+    .skill-list { display: flex; flex-direction: column; gap: 8px; }
+    .skill-row { display: flex; align-items: center; gap: 8px; font-size: 0.8em; }
     .skill-row.locked { opacity: 0.5; }
     .skill-chip { background: var(--panel); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; font-weight: bold; white-space: nowrap; }
     .skill-effect { color: #555; }
@@ -138,7 +139,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.7.5</div>
+<div class="ver-footer">RELICORE v2.7.7</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -175,7 +176,7 @@ const RELIC_MASTER = [
     {id:901, star:9, name:"【絶】界・多重定義", atk:10000000000, hp:0, pIdx:0, mult:2.0}, {id:902, star:9, name:"【永】死生超越の理", atk:0, hp:20000000000, pIdx:1, mult:2.0}, {id:903, star:9, name:"【叡】真理の法典", atk:9999999999, hp:150000000000, pIdx:2, mult:2.0}, {id:904, star:9, name:"【凱】覇道の極致", atk:15000000000, hp:25000000000, pIdx:3, mult:2.0}, {id:905, star:9, name:"【零】無窮の深淵", atk:25000000000, hp:40000000000, pIdx:4, mult:2.0},
     {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:88888888888, pIdx:3, mult:100.0},
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, pIdx:4, mult:1000.0},
-    {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:-1, desc:"遥か古の、誰かの記憶が結晶化した微かな塵。たくさん集めると…？"}
+    {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:-1}
 ];
 
 function saveGame() { 
@@ -216,16 +217,14 @@ function renderVow() {
     let bonus = 0; 
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
     const nextThreshold = VOW_THRESHOLDS[bonus] || 'MAX';
-    
     const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
 
     vowList.innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに深淵に漂う遺物を魂に刻む。</div></div>
-        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。数多もの戦闘が核に刻みこまれる。</div></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">常時発動：障壁が攻撃を大幅減衰させる (${minCut}%〜)</span><div class="vow-desc">因果を歪め、魔神の攻撃を劇的に減衰させる。</div></div>
-        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志を燃やし、新たな力を手に入れる。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
-        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">攻撃のたびにランダムな遺物を獲得する</span><div class="vow-desc">剣を振るうその刹那、戦いの経験が力へと変換される。</div></div>
+        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅が拡張。死の痛みを強固な盾とする。</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">常時発動：障壁が攻撃を大幅減衰。さらに生存時★2以上確定ドロップ</span><div class="vow-desc">因果を歪めて生存し、戦場に漂う高純度の遺物を奪い取る。</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">再起回数増加ボーナス：+${bonus}</span><div class="vow-desc">再起した回数に応じて、一死あたりの成長率が向上。</div></div>
+        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージが永続的に底上げされる。</div></div>
     `;
 }
 
@@ -240,77 +239,84 @@ function attack() {
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
 
+    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+    
+    // 【基本報酬】攻撃による通常ドロップ
+    let baseDropLog = getDropLog(1 + bonus, false);
+
     if(!player.hasHado && (player.inventory[106] || 0) >= 100000) {
         if(Math.random() < 0.0001) {
             player.hasHado = true;
-            openUpgradeModal("スキル【破軍の号令】覚醒", "塵が積もり、魂の記憶が繋がった。\n★1遺物の基礎効果が10倍に強化される。");
+            openUpgradeModal("スキル【破軍の号令】覚醒", "魂の底から過去の記憶が溢れ出した。\n★1遺物の基礎効果が10倍に強化される。");
             return;
         }
     }
 
     let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>`;
-    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
 
     if(currentBossHP <= 0n) { 
-        logHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>` + getDropLog(5 + bonus);
+        logHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>` + getDropLog(10 + bonus, false);
         isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
     } else {
         const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-        
-        // パッシブ「因果の拒絶」: 常に発動し、ランダムなカットを適用
         const minCut = Math.min(40, 10 + Math.floor(player.deathCount / 8000));
-        // より「バラバラな」数値にするため、0.01%単位で計算
         const actualCutRate = (Math.random() * (99.99 - minCut) + minCut) / 100; 
         const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutRate)));
 
         if (currentTotalHP > mitigatedDmg) {
-            // 生存: カット後の生々しい数値を表示
-            let guaranteedDrop = getGuaranteedDrop(); 
-            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。光の障壁が因果を拒絶した！</span></div>` + guaranteedDrop;
+            // 【生存時】
+            let survivalDropLog = getDropLog(1, true); // ★2以上確定
+            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。光の障壁が因果を拒絶した！</span></div>`;
+            logHtml += baseDropLog;
+            logHtml += survivalDropLog;
         } else {
-            // 再起: カットしてもなお耐えきれなかった場合
+            // 【再起時】
             const incrementBase = player.deathCount; 
             player.deathCount += (1 + bonus); 
             player.baseHP += BigInt(Math.floor(10 + Math.random() * (Number(incrementBase) * 10)));
             
             let currentBonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) currentBonus++; });
             if(currentBonus > prevBonus) {
-                openUpgradeModal("再起の誓い、共鳴", "再起の誓いが、呼び掛けに応える…\n【魂の研磨】が強化された。");
+                openUpgradeModal("再起の誓い、共鳴", "絶望の淵で、新たな可能性が芽吹く…\n【魂の研磨】が強化された。");
                 addLog(logHtml); saveGame(); refreshUI();
                 return;
             }
-            // 死ぬ瞬間も、障壁によるわずかな減衰（生々しい数値）を表示する
-            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>` + getDropLog(1 + bonus);
+            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>` + baseDropLog;
         }
     }
     addLog(logHtml); saveGame(); refreshUI();
 }
 
-function getGuaranteedDrop() {
-    let rv = Math.random() * 100;
-    let star = 2; 
-    let curP = 0;
-    for(let s in DROP_DATA) {
-        if (s === "1") continue; 
-        curP += parseFloat(DROP_DATA[s].p);
-        if(rv <= curP) { star = parseInt(s); break; }
-    }
-    if (player.maxDmg < DROP_DATA[star].cond) star = 2;
-    let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
-    if(cands.length === 0) cands = RELIC_MASTER.filter(m => m.star === 2);
-    let sel = cands[Math.floor(Math.random() * cands.length)];
-    player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
-    return `<div style="font-size:0.82em; margin-top:2px; border-top:1px dashed #eee; padding-top:2px;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×1</span></div>`;
-}
-
-function getDropLog(targetCount) {
+function getDropLog(targetCount, isSurvivalBonus) {
     let obtained = {};
     for(let i=0; i<targetCount; i++) {
-        let rv = Math.random()*100, star=1, curP=0;
-        for(let s in DROP_DATA) { curP += parseFloat(DROP_DATA[s].p); if(rv <= curP) { star=parseInt(s); break; } }
-        if (player.maxDmg < DROP_DATA[star].cond) star=1;
+        let star = 1;
+        if (isSurvivalBonus) {
+            // 生存報酬：★2以上確定抽選
+            let rv = Math.random() * 0.1111111; // ★2以上の確率合計値付近で調整
+            let curP = 0;
+            for(let s=2; s<=11; s++) {
+                curP += parseFloat(DROP_DATA[s].p);
+                if(rv <= curP) { star = s; break; }
+                star = 2; // 漏れたら★2
+            }
+        } else {
+            // 通常：全レアリティ抽選
+            let rv = Math.random()*100;
+            let curP = 0;
+            for(let s in DROP_DATA) { 
+                curP += parseFloat(DROP_DATA[s].p); 
+                if(rv <= curP) { star=parseInt(s); break; } 
+            }
+        }
+
+        // 条件未達ならランクダウン
+        if (player.maxDmg < DROP_DATA[star].cond) star = isSurvivalBonus ? 2 : 1;
+        
         let cands = RELIC_MASTER.filter(m => m.star === star && m.pIdx !== -1);
-        if(star === 1) cands.push(RELIC_MASTER.find(m => m.id === 106));
+        if(!isSurvivalBonus && star === 1) cands.push(RELIC_MASTER.find(m => m.id === 106));
+        
+        // ★10以上は1つまで
         let filtered = cands.filter(m => !(m.star >= 10 && player.inventory[m.id] >= 1));
         if(filtered.length > 0) {
             let sel = filtered[Math.floor(Math.random() * filtered.length)];
@@ -318,11 +324,15 @@ function getDropLog(targetCount) {
             obtained[sel.id] = (obtained[sel.id] || 0) + 1;
         }
     }
+    
     const items = Object.entries(obtained).map(([id, c]) => {
         const m = RELIC_MASTER.find(x=>x.id==id);
         return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`;
     });
-    return items.length > 0 ? `<div style="font-size:0.82em; margin-top:2px; border-top:1px dashed #eee; padding-top:2px;">獲得：${items.join(", ")}</div>` : "";
+    
+    if (items.length === 0) return "";
+    const prefix = isSurvivalBonus ? "【生存報酬】" : "【不退転】";
+    return `<div style="font-size:0.82em; margin-top:2px; border-top:1px dashed #eee; padding-top:2px;">${prefix}：${items.join(", ")}</div>`;
 }
 
 function getRelicBonus() {
