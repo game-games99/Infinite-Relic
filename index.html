@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.8.0</title>
+<title>RELICORE - v2.8.1</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     
-    /* 覚醒専用ウィンドウ */
     #hado-awaken-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 30000; justify-content: center; align-items: center; padding: 20px; }
     .hado-content { background: #000; border: 3px solid var(--gold); border-radius: 20px; padding: 40px 20px; text-align: center; color: #fff; max-width: 450px; width: 95%; box-shadow: 0 0 60px rgba(212, 175, 55, 0.5); animation: awaken-glow 3s infinite alternate; }
     @keyframes awaken-glow { from { box-shadow: 0 0 20px rgba(212,175,55,0.4); } to { box-shadow: 0 0 80px rgba(212,175,55,0.8); } }
@@ -27,7 +26,6 @@
     .story-majinn { color: #eee; font-weight: normal; display: block; margin: 15px 0; }
     .story-highlight { color: gold; font-weight: bold; }
     .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; }
-    .story-btn:hover { background: rgba(212, 175, 55, 0.1); }
     
     .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #d9534f; font-weight: bold; } .c8 { color: #ff0000; font-weight: bold; } 
     .c9 { color: #9400d3; font-weight: bold; text-shadow: 0 0 2px rgba(148,0,211,0.3); } 
@@ -158,7 +156,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.8.0</div>
+<div class="ver-footer">RELICORE v2.8.1</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -179,7 +177,7 @@ const POWERS = [
     { name: "不滅", skills: [{name: "生命の根源", desc: "基礎HP +30%"}, {name: "再誕の輝き", desc: "再起ボーナス 1.5倍"}, {name: "不撓不屈の魂", desc: "現在HP割合に応じてATK増"}, {name: "死を超越せし者", desc: "再起数で全ステータス乗算"}, {name: "不滅 of 王土", desc: "再起数で最終ダメ/HP指数増"}]},
     { name: "魔導", skills: [{name: "魔力回路", desc: "遺物効果 +20%上乗せ"}, {name: "魔力奔流", desc: "全スキル効果 1.5倍"}, {name: "理の解析", desc: "遺物ドロップ判定 +1回"}, {name: "古の叡智", desc: "遺物ボーナス 1.2倍計算"}, {name: "真理の扉", desc: "★5以上所持数で特大乗算"}]},
     { name: "覇王", skills: [{name: "万軍の主", desc: "遺物★合計に応じてATK加算"}, {name: "覇王の威光", desc: "★6以上1つ毎に倍率UP"}, {name: "統率の理", desc: "★1〜3遺物効果 10倍補正"}, {name: "覇道の足跡", desc: "遺物種類数 × 0.2 倍率加算"}, {name: "終焉の号令", desc: "全遺物効果 1.5倍"}]},
-    { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃（※表示のみ）"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
+    { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵의理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃（※表示のみ）"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
 ];
 
 const RELIC_MASTER = [
@@ -230,7 +228,6 @@ function closeUpgradeModal() {
     isModalOpen = false;
 }
 
-// 破軍の号令 覚醒演出
 function openHadoModal() {
     clearInterval(attackInterval);
     attackInterval = null;
@@ -253,7 +250,7 @@ function renderVow() {
     const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
 
     vowList.innerHTML = `
-        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに深淵に漂う遺物を魂に刻む。</div></div>
+        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">攻撃するたびに深淵に漂う遺物を魂に刻む。</div></div>
         <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。数多もの戦闘が核に刻みこまれる。</div></div>
         <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${minCut}% 〜 100% ランダムカット</span><div class="vow-desc">攻撃を軽減または無効化する</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志を燃やし、新たな力を手に入れる。</div></div>
@@ -266,6 +263,11 @@ function attack() {
     if(isModalOpen) return;
     let prevBonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) prevBonus++; });
     const b = getRelicBonus();
+    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+
+    // 不退転の力：戦闘（攻撃）するたびに遺物獲得
+    let fightDropLog = getDropLog(1 + bonus);
+
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
     let relicKindBonus = 1.0 + (Object.keys(player.inventory).length * 0.2);
     let finalDmgNum = Number(player.baseAtk + b.atk) * b.mult * relicKindBonus * deathDmgMult * (0.8 + Math.random()*0.4);
@@ -273,7 +275,6 @@ function attack() {
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
 
-    // 隠しスキル覚醒判定 (0.0001%)
     if(!player.hasHado && (player.inventory[106] || 0) >= 100000) {
         if(Math.random() < 0.000001) {
             player.hasHado = true;
@@ -283,8 +284,7 @@ function attack() {
         }
     }
 
-    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>`;
-    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + fightDropLog;
 
     if(currentBossHP <= 0n) { 
         logHtml += `<div class="c11">【討伐成功】魔神の消滅を確認。</div>` + getDropLog(5 + bonus);
@@ -296,7 +296,6 @@ function attack() {
         const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
 
         if (currentTotalHP > mitigatedDmg) {
-            // 生存報酬：反撃の狼煙（★2以上確定）
             let guaranteedDrop = getGuaranteedDrop(); 
             logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ（${actualCutPercent}%カット）。光の障壁が展開された！</span></div>` + guaranteedDrop;
         } else {
@@ -317,10 +316,9 @@ function attack() {
 }
 
 function getGuaranteedDrop() {
-    let rv = Math.random() * 0.11; // ★2(0.1)+★3(0.01)等に合わせた範囲
+    let rv = Math.random() * 0.11;
     let star = 2; 
     let curP = 0;
-    // 1(★1)を除外し、高レアリティの出現率に準拠
     for(let s in DROP_DATA) {
         if (s === "1") continue; 
         curP += parseFloat(DROP_DATA[s].p);
@@ -378,7 +376,6 @@ function refreshUI() {
     document.getElementById("p-hp").innerText = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult)).toLocaleString();
     document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
     document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
-    // 習得済みの場合のみ詳細タブのボックスを表示
     document.getElementById("hado-box").style.display = player.hasHado ? "block" : "none";
     const tid = document.querySelector(".tab.active").id;
     if(tid === 'vow') renderVow(); 
