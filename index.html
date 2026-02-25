@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.8.2</title>
+<title>RELICORE - v2.8.3</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -156,7 +156,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.8.2</div>
+<div class="ver-footer">RELICORE v2.8.3</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -171,7 +171,7 @@ let attackInterval = null;
 let isModalOpen = false;
 
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
-const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000]; // 因果の拒絶用
+const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000]; 
 const POWER_UNLOCK_STEPS = [1000, 5000, 25000, 100000, 250000];
 const POWERS = [
     { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +20%"}, {name: "心気一致", desc: "所持遺物種数でダメージ増"}, {name: "万象一掃", desc: "再起回数でダメージ増"}, {name: "天断の極意", desc: "常時追加ダメージ100%"}, {name: "極限一閃・無双", desc: "最終ダメージ倍率 x5.0"}]},
@@ -244,21 +244,24 @@ function closeHadoModal() {
 function renderVow() {
     const vowList = document.getElementById('vow-list');
     if (!vowList) return;
+    
+    // 魂の研磨
     let bonus = 0; 
     VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-    const nextThreshold = VOW_THRESHOLDS[bonus] || 'MAX';
+    const nextVowThreshold = VOW_THRESHOLDS[bonus] || 'MAX';
     
-    // 因果の拒絶の現在段階を計算
+    // 因果の拒絶
     let rejStep = 0;
     REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
     const curMinCut = rejStep * 5;
+    const nextRejThreshold = REJECTION_THRESHOLDS[rejStep] || 'MAX';
 
     vowList.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">攻撃するたびに深淵に漂う遺物を魂に刻む。</div></div>
         <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。数多もの戦闘が核に刻みこまれる。</div></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${curMinCut}% 〜 100% ランダムカット</span><div class="vow-desc">再起の深まりと共に下限が向上（現在：第${rejStep}段階）</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${curMinCut}% 〜 100% ランダムカット</span><div class="vow-desc">再起の深まりと共に下限が向上（現在：第${rejStep}段階 / 次回：${nextRejThreshold}）</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志を燃やし、新たな力を手に入れる。</div></div>
-        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
+        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextVowThreshold}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
     `;
 }
@@ -296,10 +299,9 @@ function attack() {
     } else {
         const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
         
-        // 因果の拒絶ロジック修正
         let rejStep = 0;
         REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
-        const minCut = rejStep * 5; // 0, 5, 10, 15, 20
+        const minCut = rejStep * 5; 
         const actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut; 
         const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
 
