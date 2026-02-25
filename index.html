@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.8.6</title>
+<title>RELICORE - v2.8.7</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -156,7 +156,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.8.6</div>
+<div class="ver-footer">RELICORE v2.8.7</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -174,11 +174,11 @@ const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000]; 
 const POWER_UNLOCK_STEPS = [1000, 5000, 25000, 100000, 250000];
 const POWERS = [
-    { name: "剣神", skills: [{name: "一の太刀", desc: "基礎ATK +20%"}, {name: "心気一致", desc: "所持遺物種数でダメージ増"}, {name: "万象一掃", desc: "再起回数でダメージ増"}, {name: "天断の極意", desc: "常時追加ダメージ100%"}, {name: "極限一閃・無双", desc: "最終ダメージ倍率 x5.0"}]},
-    { name: "不滅", skills: [{name: "生命の根源", desc: "基礎HP +30%"}, {name: "再誕の輝き", desc: "再起ボーナス 1.5倍"}, {name: "不撓不屈の魂", desc: "現在HP割合に応じてATK増"}, {name: "死を超越せし者", desc: "再起数で全ステータス乗算"}, {name: "不滅 of 王土", desc: "再起数で最終ダメ/HP指数増"}]},
-    { name: "魔導", skills: [{name: "魔力回路", desc: "遺物効果 +20%上乗せ"}, {name: "魔力奔流", desc: "全スキル効果 1.5倍"}, {name: "理の解析", desc: "遺物ドロップ判定 +1回"}, {name: "古の叡智", desc: "遺物ボーナス 1.2倍計算"}, {name: "真理の扉", desc: "★5以上所持数で特大乗算"}]},
-    { name: "覇王", skills: [{name: "万軍の主", desc: "遺物★合計に応じてATK加算"}, {name: "覇王の威光", desc: "★6以上1つ毎に倍率UP"}, {name: "統率の理", desc: "★1〜3遺物効果 10倍補正"}, {name: "覇道の足跡", desc: "遺物種類数 × 0.2 倍率加算"}, {name: "終焉の号令", desc: "全遺物効果 1.5倍"}]},
-    { name: "虚無", skills: [{name: "忘却の彼方", desc: "基礎ATK +50%底上げ"}, {name: "深淵の理", desc: "★合計100毎に倍率 +1.0"}, {name: "残滓の追撃", desc: "常に2回連続攻撃（※表示のみ）"}, {name: "無に帰す一撃", desc: "倍率に(再起数/100)を加算"}, {name: "虚無の深淵", desc: "最終ダメージ倍率 x3.0"}]}
+    { name: "剣神", skills: [{name: "第一", desc: "基礎ATK +20%"}, {name: "第二", desc: "所持遺物種数でダメージ増"}, {name: "第三", desc: "再起回数でダメージ増"}, {name: "第四", desc: "常時追加ダメージ100%"}, {name: "第五", desc: "最終ダメージ倍率 x5.0"}]},
+    { name: "不滅", skills: [{name: "第一", desc: "基礎HP +30%"}, {name: "第二", desc: "再起ボーナス 1.5倍"}, {name: "第三", desc: "現在HP割合に応じてATK増"}, {name: "第四", desc: "再起数で全ステータス乗算"}, {name: "第五", desc: "再起数で最終ダメ/HP指数増"}]},
+    { name: "魔導", skills: [{name: "第一", desc: "遺物効果 +20%上乗せ"}, {name: "第二", desc: "全スキル効果 1.5倍"}, {name: "第三", desc: "遺物ドロップ判定 +1回"}, {name: "第四", desc: "遺物ボーナス 1.2倍計算"}, {name: "第五", desc: "★5以上所持数で特大乗算"}]},
+    { name: "覇王", skills: [{name: "第一", desc: "遺物★合計に応じてATK加算"}, {name: "第二", desc: "★6以上1つ毎に倍率UP"}, {name: "第三", desc: "★1〜3遺物効果 10倍補正"}, {name: "第四", desc: "遺物種類数 × 0.2 倍率加算"}, {name: "第五", desc: "全遺物効果 1.5倍"}]},
+    { name: "虚無", skills: [{name: "第一", desc: "基礎ATK +50%底上げ"}, {name: "第二", desc: "★合計100毎に倍率 +1.0"}, {name: "第三", desc: "常に2回連続攻撃（※表示のみ）"}, {name: "第四", desc: "倍率に(再起数/100)を加算"}, {name: "第五", desc: "最終ダメージ倍率 x3.0"}]}
 ];
 
 const RELIC_MASTER = [
@@ -408,7 +408,7 @@ function renderPower(pts) {
             <div class="power-head"><span>${p.name}</span><span>${pts[i].toLocaleString()} pt</span></div>
             <div class="skill-list">${p.skills.map((s, si) => { 
                 const req = POWER_UNLOCK_STEPS[si]; const lock = pts[i] < req; 
-                return `<div class="skill-row ${lock?'locked':''}"><div class="skill-chip">${lock?'未覚醒':s.name}</div><span class="skill-effect">${lock?'？？？':s.desc}</span></div>`; 
+                return `<div class="skill-row ${lock?'locked':''}"><div class="skill-chip">${s.name}</div><span class="skill-effect">${lock?'？？？':s.desc}</span></div>`; 
             }).join("")}</div>
         </div>`).join("");
 }
@@ -420,7 +420,6 @@ function renderRelics() {
     });
     document.getElementById("relic-list").innerHTML = sorted.map(([id, c]) => {
         const m = RELIC_MASTER.find(x => x.id == id);
-        // ロジック変更：descがある場合は優先表示
         const effectStr = m.desc ? m.desc : (m.atk?`ATK+${(m.atk*(player.hasHado&&m.star==1?10:1)).toLocaleString()} `:``)+(m.hp?`HP+${(m.hp*(player.hasHado&&m.star==1?10:1)).toLocaleString()}`:``);
         return `<div class="relic-card"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${effectStr}</div>${m.pIdx>=0?`<div class="relic-power-pt">${POWERS[m.pIdx].name}pt: ${m.star*c}</div>`:``}</div>`;
     }).join("");
