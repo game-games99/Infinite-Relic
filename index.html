@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.0.3</title>
+<title>RELICORE - v3.0.4</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --purple-light: #f3f0ff; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -143,7 +143,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.0.3</div>
+<div class="ver-footer">RELICORE v3.0.4</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -202,7 +202,7 @@ function loadGame() {
 function openUpgradeModal(title, msg) { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("upgrade-title").innerText = title; document.getElementById("upgrade-msg").innerText = msg; document.getElementById("upgrade-modal").style.display = "flex"; }
 function closeUpgradeModal() { document.getElementById("upgrade-modal").style.display = "none"; isModalOpen = false; }
 function openHadoModal() { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("hado-awaken-modal").style.display = "flex"; }
-function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; }
+function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 
 function renderVow() {
     const vowList = document.getElementById('vow-list'); if (!vowList) return;
@@ -246,13 +246,24 @@ function attack() {
         if (currentTotalHP > mitigatedDmg) { 
             logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
         } else { 
+            const prevDeath = player.deathCount;
             let upHP = BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
             player.baseHP += upHP;
             player.deathCount += (1 + bonus); 
-            // メッセージ部分をダメージと同じ青色(#007bff)に、上昇値をピンクに変更
             logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${upHP.toLocaleString()})</span></div>`; 
+            
+            // 強化通知判定
+            VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：魂の研磨", `再起回数が ${t.toLocaleString()} に到達。\n再起時の成長と遺物獲得効率が上昇しました。`); });
+            REJECTION_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：因果の拒絶", `再起回数が ${t.toLocaleString()} に到達。\n被ダメージの最低軽減率が 5% 上昇しました。`); });
         }
     }
+    
+    // 覇軍の号令 覚醒判定
+    if(!player.hasHado) {
+        const h1Count = RELIC_MASTER.filter(m => m.star === 1 && player.inventory[m.id] > 0).length;
+        if(h1Count >= 15) openHadoModal();
+    }
+
     addLog(logHtml); 
     saveGame(); 
     refreshUI();
