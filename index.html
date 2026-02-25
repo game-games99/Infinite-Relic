@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.3</title>
+<title>RELICORE - v3.2.4</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -114,7 +114,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.3</div>
+<div class="ver-footer">RELICORE v3.2.4</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -140,7 +140,7 @@ const RELIC_MASTER = [
    {id:301, star:3, name:"聖龍騎士の欠片", atk:8743, hp:69241}, {id:302, star:3, name:"深淵魔導の欠片", atk:13241, hp:2147}, {id:303, star:3, name:"金剛武神の欠片", atk:4128, hp:148632}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15684, hp:0}, {id:305, star:3, name:"大聖者の欠片", atk:527, hp:152414}, {id:306, star:3, name:"影の支配者の欠片", atk:14109, hp:1284}, {id:307, star:3, name:"竜血闘士の欠片", atk:10242, hp:42109}, {id:308, star:3, name:"天界騎士の欠片", atk:6127, hp:98451}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16248, hp:421}, {id:310, star:3, name:"極大賢者の欠片", atk:5421, hp:118407},
    {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得する遺物個数を (1+所持数) 倍にする。"}, 
    {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "再起時のHP上昇抽選を (1+所持数) 回行う。"}, 
-   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "ダメージカット率の上限を 50% に固定する。"}, 
+   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "ダメージカット率の下限を1つにつき1%上昇させる(最大30%)。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"}, 
    {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに再起回数が (所持数) 増加する。"}, 
    {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
@@ -157,7 +157,6 @@ function openHadoModal() { clearInterval(attackInterval); attackInterval = null;
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
-// 【デバッグ用関数：全遺物付与】
 function allRelics() {
    RELIC_MASTER.forEach(m => { if(m.id !== 0) player.inventory[m.id] = 1; });
    alert("全遺物を1つずつ取得しました。");
@@ -205,10 +204,20 @@ function attack() {
        document.getElementById("clear-modal").style.display = "flex"; 
    } else {
        const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-       let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
        
-       let actualCutPercent = Math.floor(Math.random() * (101 - (rejStep * 5))) + (rejStep * 5);
-       if(player.inventory[403]) actualCutPercent = Math.min(50, actualCutPercent);
+       // 再起による下限
+       let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
+       let baseLowerLimit = rejStep * 5;
+       
+       // 魔導王の遺物による下限加算 (1個につき1%, 最大30%)
+       const madoCount = player.inventory[403] || 0;
+       const madoBonus = Math.min(30, madoCount);
+       
+       let finalLowerLimit = baseLowerLimit + madoBonus;
+       if (finalLowerLimit > 100) finalLowerLimit = 100;
+
+       // 抽選
+       let actualCutPercent = Math.floor(Math.random() * (101 - finalLowerLimit)) + finalLowerLimit;
        
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
        
