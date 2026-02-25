@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.5</title>
+<title>RELICORE - v3.2.6</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -114,7 +114,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.5</div>
+<div class="ver-footer">RELICORE v3.2.6</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -128,7 +128,6 @@ let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 let isModalOpen = false;
-let debugCount = 0;
 
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
@@ -140,7 +139,7 @@ const RELIC_MASTER = [
    {id:301, star:3, name:"聖龍騎士の欠片", atk:8743, hp:69241}, {id:302, star:3, name:"深淵魔導の欠片", atk:13241, hp:2147}, {id:303, star:3, name:"金剛武神の欠片", atk:4128, hp:148632}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15684, hp:0}, {id:305, star:3, name:"大聖者の欠片", atk:527, hp:152414}, {id:306, star:3, name:"影の支配者の欠片", atk:14109, hp:1284}, {id:307, star:3, name:"竜血闘士の欠片", atk:10242, hp:42109}, {id:308, star:3, name:"天界騎士の欠片", atk:6127, hp:98451}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16248, hp:421}, {id:310, star:3, name:"極大賢者の欠片", atk:5421, hp:118407},
    {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得する遺物個数を (1+所持数) 倍にする。"}, 
    {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "再起時のHP上昇抽選を (1+所持数) 回行う。"}, 
-   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "ダメージカット率の上限を 50% に固定する。"}, 
+   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"}, 
    {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに再起回数が (所持数) 増加する。"}, 
    {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
@@ -160,38 +159,40 @@ function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_D
 function renderVow() {
    const vowList = document.getElementById('vow-list'); if (!vowList) return;
    
-   // 1. 不退転の力 (獲得数倍率)
+   // 1. 不退転の力
    const bushinCount = player.inventory[401] || 0;
    const dropMultDisplay = 1 + bushinCount;
 
-   // 2. 刹那の堆積 (HP上昇幅)
-   const seijaCount = player.inventory[402] || 0;
+   // 2. 刹那の堆積
    const hpMaxRange = player.deathCount.toLocaleString();
 
-   // 3. 因果の拒絶 (軽減率)
+   // 3. 因果の拒絶 (魔導王補正)
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
+   const madoCount = player.inventory[403] || 0;
+   const madoBonus = Math.min(30, madoCount); 
+   const baseRejMin = rejStep * 5;
+   const finalRejMin = baseRejMin + madoBonus;
    let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
 
    // 4. 反撃の狼煙
    const zankoCount = player.inventory[404] || 0;
    let starLabel = zankoCount > 0 ? "★3以上" : "★2以上";
 
-   // 5. 魂の研磨 (再起時ボーナス)
+   // 5. 魂の研磨
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
    let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
    const chieCount = player.inventory[405] || 0;
    let totalPolish = bonus + 1 + chieCount;
 
-   // 6. 死を刻む (威力補正)
+   // 6. 死を刻む
    const kamaCount = player.inventory[406] || 0;
-   const baseRate = 0.0004;
-   const finalRate = baseRate * (1 + kamaCount);
+   const finalRate = 0.0004 * (1 + kamaCount);
    const powerRate = (player.deathCount * finalRate).toFixed(4);
 
    vowList.innerHTML = `
        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を ${dropMultDisplay} つ獲得する</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
-       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
-       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${rejStep * 5}% ～ 100% ランダムカット</span><span class="vow-sub">再起の深まりと共に下限が向上（次回：${nextRejThres.toLocaleString()}）</span></div>
+       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
+       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">再起の深まりと共に下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
        <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${totalPolish}</span><span class="vow-sub">再起した回数に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">再起するたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>
@@ -211,18 +212,21 @@ function attack() {
    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
    
    if(currentBossHP <= 0n) { 
-       currentBossHP = 0n; 
-       isModalOpen = true; 
-       document.getElementById("clear-modal").style.display = "flex"; 
+       currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; 
    } else {
        const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
+       
+       // 因果の拒絶計算（魔導王補正込み）
        let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
-       let actualCutPercent = Math.floor(Math.random() * (101 - (rejStep * 5))) + (rejStep * 5);
-       if(player.inventory[403]) actualCutPercent = Math.min(50, actualCutPercent);
+       const madoCount = player.inventory[403] || 0;
+       const madoBonus = Math.min(30, madoCount); 
+       let minCut = (rejStep * 5) + madoBonus;
+       let actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut;
+       if(actualCutPercent > 100) actualCutPercent = 100;
+
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
        
        if (currentTotalHP > mitigatedDmg) { 
-           const prevDeath = player.deathCount;
            const chieCount = player.inventory[405] || 0;
            if(chieCount > 0) player.deathCount += chieCount;
            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
@@ -237,42 +241,35 @@ function attack() {
            VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：魂の研磨", `再起回数 ${t.toLocaleString()} 到達。効率上昇。`); });
        }
    }
-   if(!player.hasHado && (player.inventory[116] || 0) >= 100000) { if(Math.random() < 0.00001) openHadoModal(); }
    addLog(logHtml); saveGame(); refreshUI();
 }
 
 function getGuaranteedDrop() {
    const zankoCount = player.inventory[404] || 0;
-   let star = 2;
-   if(zankoCount > 0) {
-       star = 3;
-       let s4Prob = 0.001 + ((zankoCount - 1) * 0.0001); 
-       if(Math.random() < s4Prob) star = 4;
-   }
+   let star = (zankoCount > 0) ? 3 : 2;
+   if(zankoCount > 0 && Math.random() < (0.001 + (zankoCount-1)*0.0001)) star = 4;
+   
    const currentRates = getCurrentDropRates();
    if (player.maxDmg < currentRates[star].cond) star = 2;
    let cands = RELIC_MASTER.filter(m => m.star === star);
    let sel = cands[Math.floor(Math.random() * cands.length)];
-   const bushinCount = player.inventory[401] || 0;
-   const dropMult = 1 + bushinCount;
-   player.inventory[sel.id] = (player.inventory[sel.id] || 0) + (1 * dropMult);
+   const dropMult = 1 + (player.inventory[401] || 0);
+   player.inventory[sel.id] = (player.inventory[sel.id] || 0) + dropMult;
    return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}${dropMult > 1 ? ' ×' + dropMult : ''}</span></div>`;
 }
 
 function getDropLog(targetCount) {
    let obtained = {};
    const currentRates = getCurrentDropRates();
-   const bushinCount = player.inventory[401] || 0;
-   const dropMult = 1 + bushinCount;
+   const dropMult = 1 + (player.inventory[401] || 0);
    for(let i=0; i<targetCount; i++) {
        let rv = Math.random()*100, star=1, curP=0;
        for(let s in currentRates) { curP += currentRates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
        if (player.maxDmg < currentRates[star].cond) star=1;
        let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0);
        let sel = cands[Math.floor(Math.random() * cands.length)];
-       const addCount = 1 * dropMult;
-       player.inventory[sel.id] = (player.inventory[sel.id] || 0) + addCount;
-       obtained[sel.id] = (obtained[sel.id] || 0) + addCount;
+       player.inventory[sel.id] = (player.inventory[sel.id] || 0) + dropMult;
+       obtained[sel.id] = (obtained[sel.id] || 0) + dropMult;
    }
    const items = Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; });
    return items.length > 0 ? `<div style="font-size:0.82em;">獲得：${items.join(", ")}</div>` : "";
