@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.7</title>
+<title>RELICORE - v3.3.8</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.7</div>
+<div class="ver-footer">RELICORE v3.3.8</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -238,38 +238,44 @@ function attack() {
     addLog(logHtml); saveGame(); refreshUI();
 }
 
-// 修正：反撃の狼煙（確定ドロップ）には武神の魂を乗せないように変更
 function getGuaranteedDrop() {
    const zankoCount = player.inventory[404] || 0;
    let star = (zankoCount > 0) ? 3 : 2;
    if(zankoCount > 0 && Math.random() < 0.001) star = 4;
-   
    let cands = RELIC_MASTER.filter(m => m.star === star);
    let sel = cands[Math.floor(Math.random() * cands.length)];
-   
-   // 武神の魂の加算処理を削除し、常に1個獲得
-   const totalGet = 1; 
-   player.inventory[sel.id] = (player.inventory[sel.id] || 0) + totalGet;
+   player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
    return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}</span></div>`;
 }
 
+// 修正：武神の重複加算を排除し、破軍の号令（1/10万）の判定を追加
 function getDropLog(targetCount) {
    let obtained = {};
    const currentRates = player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA;
-   const bushinAdd = (player.inventory[401] || 0);
    
-   const bushinTargetIdx = Math.floor(Math.random() * targetCount);
-
+   // 1. 通常ドロップ判定
    for(let i=0; i<targetCount; i++) {
        let rv = Math.random()*100, star=1, curP=0;
        for(let s in currentRates) { curP += currentRates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
        let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0);
        let sel = cands[Math.floor(Math.random() * cands.length)];
        
-       let addCount = (i === bushinTargetIdx) ? (1 + bushinAdd) : 1;
-       
-       player.inventory[sel.id] = (player.inventory[sel.id] || 0) + addCount;
-       obtained[sel.id] = (obtained[sel.id] || 0) + addCount;
+       player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
+       obtained[sel.id] = (obtained[sel.id] || 0) + 1;
+
+       // 【破軍の号令】判定: ★1遺物獲得時に1/100,000の確率で発現
+       if(!player.hasHado && star === 1) {
+           if(Math.random() < 0.00001) { openHadoModal(); }
+       }
+   }
+
+   // 2. 武神の魂（追撃）: 1クリックにつき「1回のみ」発動
+   const bushinAdd = (player.inventory[401] || 0);
+   const currentObtainedIds = Object.keys(obtained);
+   if(bushinAdd > 0 && currentObtainedIds.length > 0) {
+       let targetId = currentObtainedIds[Math.floor(Math.random() * currentObtainedIds.length)];
+       player.inventory[targetId] += bushinAdd;
+       obtained[targetId] += bushinAdd;
    }
 
    const entries = Object.entries(obtained);
