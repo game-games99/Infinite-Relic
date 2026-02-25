@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.0.6</title>
+<title>RELICORE - v3.0.7</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -56,8 +56,7 @@
     .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
     .vow-name { font-weight: bold; font-size: 0.85em; color: #333; margin-bottom: 2px; }
     .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; margin-bottom: 2px; display: block; line-height: 1.3; }
-    .vow-desc { font-size: 0.7em; color: #777; line-height: 1.3; }
-
+    
     #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
     .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
     
@@ -142,7 +141,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.0.6</div>
+<div class="ver-footer">RELICORE v3.0.7</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -168,12 +167,10 @@ const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000]; 
 
 const RELIC_MASTER = [
-    {id:0, star:8, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    /* ★1: 16種類 */
+    {id:0, star:8, name:"再起の誓い", atk:0, hp:0, desc:"不屈の魂に刻まれた、再誕の原点。"},
     {id:101, star:1, name:"剣士の欠片", atk:7, hp:0}, {id:102, star:1, name:"狩人の欠片", atk:8, hp:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9, hp:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10, hp:0}, {id:105, star:1, name:"武闘家の欠片", atk:6, hp:0},
     {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50},
     {id:111, star:1, name:"魔法使いの欠片", atk:4, hp:35}, {id:112, star:1, name:"斥候の欠片", atk:3, hp:48}, {id:113, star:1, name:"冒険者の欠片", atk:5, hp:42}, {id:114, star:1, name:"見習いの欠片", atk:2, hp:30}, {id:115, star:1, name:"放浪者の欠片", atk:4, hp:44}, {id:116, star:1, name:"メモリーダスト", atk:1, hp:10},
-    /* ★2〜★7: 37種類 */
     {id:201, star:2, name:"鉄の剣", atk:20, hp:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:150}, {id:203, star:2, name:"熟練の証", atk:15, hp:80}, {id:204, star:2, name:"鋼の篭手", atk:30, hp:60}, {id:205, star:2, name:"影の残滓", atk:45, hp:90},
     {id:301, star:3, name:"魔力剣", atk:150, hp:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:800}, {id:303, star:3, name:"知恵の輪", atk:150, hp:300}, {id:304, star:3, name:"騎士の魂", atk:350, hp:600}, {id:305, star:3, name:"深淵の破片", atk:500, hp:1000},
     {id:401, star:4, name:"王宮の秘宝", atk:6000, hp:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:30000}, {id:403, star:4, name:"伝説の断片", atk:9000, hp:15000}, {id:404, star:4, name:"覇道の手引書", atk:20000, hp:35000}, {id:405, star:4, name:"破滅の引き金", atk:50000, hp:80000},
@@ -227,44 +224,29 @@ function attack() {
     let finalDmg = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
     currentBossHP -= finalDmg;
-    
     let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
-    
-    if(currentBossHP <= 0n) { 
-        currentBossHP = 0n; 
-        logHtml += `<div class="c8">【討伐成功】魔神の消滅を確認。</div>`; 
-        isModalOpen = true; 
-        document.getElementById("clear-modal").style.display = "flex"; 
-    } else {
+    if(currentBossHP <= 0n) { currentBossHP = 0n; logHtml += `<div class="c8">【討伐成功】魔神の消滅を確認。</div>`; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; }
+    else {
         const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
         let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
-        const minCut = rejStep * 5; 
-        const actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut; 
+        const actualCutPercent = Math.floor(Math.random() * (101 - (rejStep * 5))) + (rejStep * 5); 
         const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
-        
-        if (currentTotalHP > mitigatedDmg) { 
-            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
-        } else { 
+        if (currentTotalHP > mitigatedDmg) { logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); }
+        else { 
             const prevDeath = player.deathCount;
             let upHP = BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
-            player.baseHP += upHP;
-            player.deathCount += (1 + bonus); 
+            player.baseHP += upHP; player.deathCount += (1 + bonus); 
             logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${upHP.toLocaleString()})</span></div>`; 
-            VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：魂の研磨", `再起回数が ${t.toLocaleString()} に到達。\n成長と遺物獲得効率が上昇。`); });
-            REJECTION_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：因果の拒絶", `再起回数が ${t.toLocaleString()} に到達。\n最低軽減率が 5% 上昇。`); });
+            VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：魂の研磨", `再起回数が ${t.toLocaleString()} に到達。成長と遺物獲得効率が上昇。`); });
+            REJECTION_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：因果の拒絶", `再起回数が ${t.toLocaleString()} に到達。最低軽減率が 5% 上昇。`); });
         }
     }
-    
-    if(!player.hasHado && (player.inventory[116] || 0) >= 100000) {
-        if(Math.random() < 0.00001) openHadoModal();
-    }
-
+    if(!player.hasHado && (player.inventory[116] || 0) >= 100000) { if(Math.random() < 0.00001) openHadoModal(); }
     addLog(logHtml); saveGame(); refreshUI();
 }
 
 function getGuaranteedDrop() {
-    let star = 2;
-    const gRates = { 2: 90, 3: 9, 4: 0.9, 5: 0.09, 6: 0.009, 7: 0.001 };
+    let star = 2; const gRates = { 2: 90, 3: 9, 4: 0.9, 5: 0.09, 6: 0.009, 7: 0.001 };
     let roll = Math.random() * 100, curP = 0;
     for(let s in gRates) { curP += gRates[s]; if(roll <= curP) { star = parseInt(s); break; } }
     if (player.maxDmg < DROP_DATA[star].cond) star = 2;
@@ -293,8 +275,7 @@ function getRelicBonus() {
     let atk = 0n, hp = 0n, mult = 1.0;
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id); if(!r) return;
-        let baseA = BigInt(r.atk || 0) * BigInt(count);
-        let baseH = BigInt(r.hp || 0) * BigInt(count);
+        let baseA = BigInt(r.atk || 0) * BigInt(count); let baseH = BigInt(r.hp || 0) * BigInt(count);
         if(player.hasHado && r.star === 1) { baseA *= 10n; baseH *= 10n; }
         atk += baseA; hp += baseH; if(r.mult) mult *= Math.pow(r.mult, count);
     });
@@ -319,7 +300,12 @@ function renderRelics() {
     const sorted = Object.entries(player.inventory).filter(([id, c]) => c > 0).sort((a,b) => { const ra = RELIC_MASTER.find(x=>x.id==a[0]), rb = RELIC_MASTER.find(x=>x.id==b[0]); return ra.star - rb.star; });
     document.getElementById("relic-list").innerHTML = sorted.map(([id, c]) => {
         const m = RELIC_MASTER.find(x => x.id == id);
-        const effectStr = m.desc ? m.desc : (m.atk?`ATK+${(m.atk*(player.hasHado&&m.star==1?10:1)).toLocaleString()} `:``)+(m.hp?`HP+${(m.hp*(player.hasHado&&m.star==1?10:1)).toLocaleString()}`:``);
+        let effectStr = m.desc ? m.desc : (m.atk?`ATK+${(m.atk*(player.hasHado&&m.star==1?10:1)).toLocaleString()} `:``)+(m.hp?`HP+${(m.hp*(player.hasHado&&m.star==1?10:1)).toLocaleString()}`:``);
+        // ID:116 (メモリーダスト) の場合にカウントダウンを表示
+        if(m.id == 116 && !player.hasHado) {
+            const remain = 100000 - c;
+            effectStr = remain > 0 ? `あと ${remain.toLocaleString()}` : "条件達成";
+        }
         return `<div class="relic-card"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${effectStr}</div></div>`;
     }).join("");
 }
