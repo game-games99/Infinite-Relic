@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.4</title>
+<title>RELICORE - v3.2.5</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -114,7 +114,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.4</div>
+<div class="ver-footer">RELICORE v3.2.5</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -128,12 +128,10 @@ let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 let isModalOpen = false;
-let debugCount = 0;
 
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 
-// 全ての遺物で HP > ATK を適用
 const RELIC_MASTER = [
    {id:0, star:8, name:"再起の誓い", atk:0, hp:0, desc:"不屈の魂に刻まれた、再誕の原点。"},
    {id:101, star:1, name:"剣士の欠片", atk:7, hp:15}, {id:102, star:1, name:"狩人の欠片", atk:8, hp:18}, {id:103, star:1, name:"暗殺者の欠片", atk:9, hp:20}, {id:104, star:1, name:"狂戦士の欠片", atk:10, hp:22}, {id:105, star:1, name:"武闘家の欠片", atk:6, hp:12}, {id:106, star:1, name:"衛兵の欠片", atk:2, hp:45}, {id:107, star:1, name:"騎士の欠片", atk:4, hp:55}, {id:108, star:1, name:"重装兵の欠片", atk:3, hp:65}, {id:109, star:1, name:"修道士の欠片", atk:1, hp:40}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50}, {id:111, star:1, name:"魔法使いの欠片", atk:4, hp:35}, {id:112, star:1, name:"斥候の欠片", atk:3, hp:48}, {id:113, star:1, name:"冒険者の欠片", atk:5, hp:42}, {id:114, star:1, name:"見習いの欠片", atk:2, hp:30}, {id:115, star:1, name:"放浪者の欠片", atk:4, hp:44}, {id:116, star:1, name:"メモリーダスト", atk:1, hp:10},
@@ -144,10 +142,10 @@ const RELIC_MASTER = [
    {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "ダメージカット率の上限を 50% に固定する。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"}, 
    {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに再起回数が (所持数) 増加する。"}, 
-   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:180000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
+   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:180000, desc: "「死を刻む」の上昇量に 1つにつき +0.0001% 加算する。"},
    {id:501, star:5, name:"慈愛の権能", atk:250000, hp:800000}, {id:502, star:5, name:"強欲の権能", atk:450000, hp:550000}, {id:503, star:5, name:"忍耐の権能", atk:200000, hp:950000}, {id:504, star:5, name:"知恵の権能", atk:350000, hp:720000},
-   {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
-   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:10.0, desc:"災厄が詰まった箱。所持して倒すと……？"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:15.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:20.0}
+   {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.05}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.05}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.05}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.05},
+   {id:701, star:7, name:"パンドラの箱", atk:15000000, hp:35000000, mult:2.0, desc:"災厄が詰まった箱。"}, {id:702, star:7, name:"終焉の福音", atk:20000000, hp:45000000, mult:2.5}, {id:703, star:7, name:"神滅のアカシックレコード", atk:10000000, hp:55000000, mult:3.0}
 ];
 
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
@@ -175,16 +173,16 @@ function renderVow() {
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
    const kamaCount = player.inventory[406] || 0;
-   const finalRate = 0.0004 * (1 + kamaCount);
+   const finalRate = 0.0001 * (1 + kamaCount);
    const powerRate = (player.deathCount * finalRate).toFixed(4);
 
    vowList.innerHTML = `
-       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight" style="color:#007bff;">戦闘を経験するたびにランダムな遺物を１つ獲得する</span></div>
-       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight" style="color:#007bff;">HP 1 ～ ${player.deathCount.toLocaleString()} の間でランダムに上昇</span></div>
-       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight" style="color:#007bff;">稀に攻撃を無効化する ${rejStep * 5}% ～ 100% ランダムカット</span></div>
-       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight" style="color:#007bff;">生存時★2以上の遺物を確定で入手する</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight" style="color:#007bff;">遺物獲得数/再起回数：+${bonus + 1}</span></div>
-       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight" style="color:#007bff;">威力補正：${powerRate}%</span><span class="vow-sub">再起するたびに最終ダメージを増加させる</span></div>
+       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight" style="color:#007bff;">戦闘を経験するたびにランダムな遺物を獲得する</span></div>
+       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight" style="color:#007bff;">HP 1 ～ ${player.deathCount.toLocaleString()} のランダム上昇</span></div>
+       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight" style="color:#007bff;">障壁：${rejStep * 5}% ～ 100% カット</span></div>
+       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight" style="color:#007bff;">生存時★2以上の遺物を確定入手</span></div>
+       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight" style="color:#007bff;">再起加算ボーナス：+${bonus + 1}</span></div>
+       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight" style="color:#007bff;">威力補正：${powerRate}%</span></div>
    `;
 }
 
@@ -193,13 +191,15 @@ function attack() {
    const b = getRelicBonus();
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
    
-   // ATKの加算処理を整理：(基礎 + 遺物) × 特殊倍率
-   const currentStatAtk = player.baseAtk + b.atk;
-   const kamaCount = player.inventory[406] || 0;
-   const deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
+   // ステータスとしてのATK（攻撃中は固定）
+   const statAtk = player.baseAtk + b.atk;
    
-   // 最終ダメージ算出（ATKの一部を能力に加算するなどの禁止事項を回避）
-   let finalDmg = BigInt(Math.floor(Number(currentStatAtk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
+   // ダメージ補正（死を刻む：係数を 0.0001 に抑制）
+   const kamaCount = player.inventory[406] || 0;
+   const deathDmgMult = 1.0 + (player.deathCount * 0.0001 * (1 + kamaCount));
+   
+   // 最終ダメージ
+   let finalDmg = BigInt(Math.floor(Number(statAtk) * b.mult * deathDmgMult * (0.9 + Math.random()*0.2))) || 1n;
    if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
    currentBossHP -= finalDmg;
    
@@ -218,7 +218,7 @@ function attack() {
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
        
        if (currentTotalHP > mitigatedDmg) { 
-           const prevDeath = player.deathCount;
+           // 生存時の再起回数加算は行うが、UI更新までステータス計算には含めない
            const chieCount = player.inventory[405] || 0;
            if(chieCount > 0) player.deathCount += chieCount;
            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
@@ -273,7 +273,6 @@ function getDropLog(targetCount) {
 
 function refreshUI() {
    const b = getRelicBonus();
-   // 表示上のATK/HPは「基礎 + 遺物加算」×「権能倍率」の純粋な能力値とする
    const finalAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult));
    const finalHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
    document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
@@ -307,9 +306,9 @@ function renderStatus() {
 }
 
 function checkDropEligibility() {
-   let msg = "【遺物ランク解放条件】\n現在の最高ダメージ: " + player.maxDmg.toLocaleString() + "\n\n";
+   let msg = "【遺物ランク解放条件】\n最高ダメージ: " + player.maxDmg.toLocaleString() + "\n\n";
    Object.entries(getCurrentDropRates()).forEach(([star, data]) => {
-       if(star < 4) msg += `★${star}: 常に解放\n`;
+       if(star < 4) msg += `★${star}: 解放済\n`;
        else msg += `★${star}: ${player.maxDmg >= data.cond ? "解放済" : "未到達"} (必要: ${data.cond.toLocaleString()})\n`;
    });
    alert(msg);
