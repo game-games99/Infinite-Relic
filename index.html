@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.14</title>
+<title>RELICORE - v3.3.15</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.14</div>
+<div class="ver-footer">RELICORE v3.3.15</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -131,7 +131,6 @@ const BOSS_MAX_HP_BASE = 100000000000000000000n;
 const MAJIN_ATK_VALUE = 999999999999n;
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
-const RATIO_BASE = 10000n;
 
 const BASE_DROP_DATA = { 1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 const HADO_DROP_DATA = { 1:{p:78.988889,cond:0n}, 2:{p:20.0,cond:0n}, 3:{p:1.0,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
@@ -147,7 +146,7 @@ const RELIC_MASTER = [
    {id:201, star:2, name:"聖騎士の欠片", atk:412n, hp:6824n}, {id:202, star:2, name:"龍騎士の欠片", atk:867n, hp:4231n}, {id:203, star:2, name:"暗黒騎士の欠片", atk:1342n, hp:0n}, {id:204, star:2, name:"賢者の欠片", atk:521n, hp:7112n}, {id:205, star:2, name:"大魔道士の欠片", atk:1189n, hp:243n}, {id:206, star:2, name:"暗殺王の欠片", atk:1563n, hp:127n}, {id:207, star:2, name:"重装騎士の欠片", atk:0n, hp:12486n}, {id:208, star:2, name:"拳聖の欠片", atk:992n, hp:3154n}, {id:209, star:2, name:"神官の欠片", atk:42n, hp:14867n}, {id:210, star:2, name:"冒険王の欠片", atk:733n, hp:5941n},
    {id:301, star:3, name:"聖龍騎士の欠片", atk:8743n, hp:69241n}, {id:302, star:3, name:"深淵魔導の欠片", atk:13241n, hp:2147n}, {id:303, star:3, name:"金剛武神の欠片", atk:4128n, hp:148632n}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15684n, hp:0n}, {id:305, star:3, name:"大聖者の欠片", atk:527n, hp:152414n}, {id:306, star:3, name:"影の支配者の欠片", atk:14109n, hp:1284n}, {id:307, star:3, name:"竜血闘士の欠片", atk:10242n, hp:42109n}, {id:308, star:3, name:"天界騎士の欠片", atk:6127n, hp:98451n}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16248n, hp:421n}, {id:310, star:3, name:"極大賢者の欠片", atk:5421n, hp:118407n},
    {id:401, star:4, name:"【不退転】武神の魂", atk:65000n, hp:180000n, desc: "通常ドロップ群から1つをランダムに選び, 所持数分を加算する。"}, 
-   {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000n, hp:250000n, desc: "生存時も戦闘のたびにHPが上昇する。"}, 
+   {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000n, hp:250000n, desc: "再起するたびにHP増加幅+1。勝利への渇望が核に宿る。"}, 
    {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000n, hp:150000n, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000n, hp:120000n, desc: "最低★3確定。2個目以降★3を削り, 0.01%ずつ★4へ。"}, 
    {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000n, hp:220000n, desc: "生存時も攻撃のたびに戦闘経験値が (所持数) 増加する。"}, 
@@ -283,7 +282,7 @@ function refreshUI() {
 function renderVow() {
    const vowList = document.getElementById('vow-list'); if (!vowList) return;
    const bushinBonus = (player.inventory[401] || 0);
-   const expRange = player.deathCount.toLocaleString();
+   const expFormatted = player.deathCount.toLocaleString();
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
    const madoBonus = Math.min(30, player.inventory[403] || 0); 
    const finalRejMin = (rejStep * 5) + madoBonus;
@@ -291,10 +290,10 @@ function renderVow() {
    const powerRate = (BigInt(player.deathCount) * 4n * (1n + kamaCount) / 100n);
    vowList.innerHTML = `
        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物ボーナス：通常ドロップからランダム1種に +${bushinBonus}</span><span class="vow-sub">獲得した遺物の中から1つを選び, 魂を刻み込む。</span></div>
-       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${expRange} の間で上昇</span><span class="vow-sub">蓄積した経験に応じHP増加。勝利への渇望が核に宿る。</span></div>
+       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${expFormatted} の間で上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">障壁：${finalRejMin}% ～ 100% カット</span><span class="vow-sub">経験の深まりと共に下限が向上。</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時, ★2以上の遺物入手(武神効果対象外)</span><span class="vow-sub">不屈の闘志を燃やし, 新たな力を手に入れる。</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘獲得遺物/戦闘経験値</span><span class="vow-sub">戦闘で得られる経験値の効率が向上。</span></div>
+       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘獲得遺物 / 戦闘経験値</span><span class="vow-sub">戦闘で得られる経験値の効率が向上。蓄積した経験値が成長を加速させる。</span></div>
        <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${powerRate.toLocaleString()}%</span><span class="vow-sub">経験を積むたびに最終ダメージが増加。</span></div>
    `;
 }
