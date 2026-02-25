@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.9</title>
+<title>RELICORE - v3.3.0</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -114,7 +114,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.9</div>
+<div class="ver-footer">RELICORE v3.3.0</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -171,9 +171,9 @@ function attack() {
    if(isModalOpen) return;
    const b = getRelicBonus();
    const kamaCount = player.inventory[406] || 0;
-   
-   // 死を刻む: 最終ダメージへの補正。
    let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
+   
+   // ATKの永続増殖を防ぐため、player.baseAtk自体は変更せず計算
    let finalDmg = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
    
    if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
@@ -195,16 +195,17 @@ function attack() {
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
        
        if (currentTotalHP > mitigatedDmg) { 
-           // 生存
            const chieCount = player.inventory[405] || 0;
            if(chieCount > 0) player.deathCount += chieCount; 
            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
        } else {
-           // 死亡・再起
            const prevDeath = player.deathCount;
            const seijaCount = player.inventory[402] || 0;
            let totalUpHP = 0n;
-           for(let i=0; i <= seijaCount; i++) totalUpHP += BigInt(Math.floor(10 + Math.random() * (Math.max(1, player.deathCount))));
+           for(let i=0; i <= seijaCount; i++) {
+               // 定義更新：HP 1 ～ 再起回数
+               totalUpHP += BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
+           }
            player.baseHP += totalUpHP; 
            player.deathCount += (1 + bonus);
            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
@@ -249,12 +250,12 @@ function refreshUI() {
    const kamaCount = player.inventory[406] || 0;
    let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
    
-   // UI表示用の計算。ここでも絶対に累積させない。
-   const finalAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
-   const finalHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
+   // 表示用ATK/HPをクリーンに再計算（基礎値は上書きしない）
+   const displayAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
+   const displayHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
    
-   document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
-   document.getElementById("p-hp").innerText = finalHp.toLocaleString();
+   document.getElementById("p-atk").innerText = displayAtk.toLocaleString();
+   document.getElementById("p-hp").innerText = displayHp.toLocaleString();
    document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
    document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
    if(player.hasHado) document.getElementById("hado-box").style.display = "block";
