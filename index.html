@@ -55,7 +55,7 @@
    .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
    .vow-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: gold; border-radius: 8px 0 0 8px; }
    .vow-name { font-weight: bold; font-size: 0.9em; color: #333; margin-bottom: 3px; }
-   .vow-highlight { font-weight: bold; color: var(--primary); font-size: 0.82em; display: block; line-height: 1.4; }
+   .vow-highlight { font-weight: bold; font-size: 0.82em; display: block; line-height: 1.4; }
    .vow-sub { font-size: 0.72em; color: #888; display: block; margin-top: 2px; line-height: 1.3; }
 
    #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
@@ -185,14 +185,41 @@ function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_D
 function renderVow() {
    const vowList = document.getElementById('vow-list'); if (!vowList) return;
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+   let nextThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
+   const powerRate = (player.deathCount * 0.0004).toFixed(4);
+
    vowList.innerHTML = `
-       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を１つ獲得する</span></div>
-       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 ～ ${player.deathCount.toLocaleString()} の間でランダムに上昇</span></div>
-       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${rejStep * 5}% ～ 100% ランダムカット</span></div>
-       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span></div>
-       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span></div>
+       <div class="vow-item">
+           <div class="vow-name">不退転の力</div>
+           <span class="vow-highlight" style="color:#007bff;">戦闘を経験するたびにランダムな遺物を１つ獲得する</span>
+           <span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span>
+       </div>
+       <div class="vow-item">
+           <div class="vow-name">刹那の堆積</div>
+           <span class="vow-highlight" style="color:#007bff;">HP 10 ～ ${player.deathCount.toLocaleString()} の間でランダムに上昇</span>
+           <span class="vow-sub">再起するたびにHP増加幅+10。数多もの戦闘が核に刻み込まれる。</span>
+       </div>
+       <div class="vow-item">
+           <div class="vow-name">因果の拒絶</div>
+           <span class="vow-highlight" style="color:#007bff;">稀に攻撃を無効化する ${rejStep * 5}% ～ 100% ランダムカット</span>
+           <span class="vow-sub">再起の深まりと共に下限が向上（現在：第${rejStep}段階）</span>
+       </div>
+       <div class="vow-item">
+           <div class="vow-name">反撃の狼煙</div>
+           <span class="vow-highlight" style="color:#007bff;">生存時★2以上の遺物を確定で入手する</span>
+           <span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span>
+       </div>
+       <div class="vow-item">
+           <div class="vow-name">魂の研磨</div>
+           <span class="vow-highlight" style="color:#007bff;">遺物獲得数/再起回数：+${bonus + 1}</span>
+           <span class="vow-sub">再起した回数に応じて機能強化（次回：${nextThres.toLocaleString()}）</span>
+       </div>
+       <div class="vow-item">
+           <div class="vow-name">死を刻む</div>
+           <span class="vow-highlight" style="color:#007bff;">威力補正：${powerRate}%</span>
+           <span class="vow-sub">再起するたびに最終ダメージを0.0004%増加させる</span>
+       </div>
    `;
 }
 
@@ -233,9 +260,7 @@ function attack() {
    }
    
    if(!player.hasHado && (player.inventory[116] || 0) >= 100000) { if(Math.random() < 0.00001) openHadoModal(); }
-   addLog(logHtml); 
-   saveGame(); 
-   refreshUI();
+   addLog(logHtml); saveGame(); refreshUI();
 }
 
 function getGuaranteedDrop() {
