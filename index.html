@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.8</title>
+<title>RELICORE - v3.3.9</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.8</div>
+<div class="ver-footer">RELICORE v3.3.9</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -169,20 +169,30 @@ function closeUpgradeModal() { document.getElementById("upgrade-modal").style.di
 function openHadoModal() { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("hado-awaken-modal").style.display = "flex"; }
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 
+// 修正：加算と乗算を完全に分離して累積バグを防止
 function getRelicBonus() {
-    let totalAtkAdd = 0n; let totalHpAdd = 0n; let totalMultNumerator = RATIO_BASE; 
+    let totalAtkAdd = 0n; let totalHpAdd = 0n; 
+    let totalMultNumerator = RATIO_BASE; 
+    
+    // 1. 全遺物の加算値を合計
     Object.entries(player.inventory).forEach(([id, count]) => {
         const r = RELIC_MASTER.find(m => m.id == id); if(!r) return;
         let c = BigInt(count);
-        let baseA = (r.atk || 0n) * c; let baseH = (r.hp || 0n) * c;
+        let baseA = (r.atk || 0n) * c; 
+        let baseH = (r.hp || 0n) * c;
         if(player.hasHado && r.star === 1) { baseA *= 10n; baseH *= 10n; }
-        totalAtkAdd += baseA; totalHpAdd += baseH;
-        if(r.mult) {
-            for(let i=0; i<count; i++) {
-                totalMultNumerator = (totalMultNumerator * BigInt(r.mult)) / RATIO_BASE;
-            }
+        totalAtkAdd += baseA; 
+        totalHpAdd += baseH;
+    });
+
+    // 2. 乗算遺物の倍率を計算（加算とは独立して算出）
+    Object.entries(player.inventory).forEach(([id, count]) => {
+        const r = RELIC_MASTER.find(m => m.id == id); if(!r || !r.mult) return;
+        for(let i=0; i<count; i++) {
+            totalMultNumerator = (totalMultNumerator * BigInt(r.mult)) / RATIO_BASE;
         }
     });
+
     return { atk: totalAtkAdd, hp: totalHpAdd, multNum: totalMultNumerator };
 }
 
@@ -195,6 +205,7 @@ function attack() {
     const deathFactor = 10000n + deathBonusNum;
     const randNumerator = getBigIntRand(80n, 120n);
 
+    // ステータス倍率の適用
     let dmgStep1 = (player.baseAtk + b.atk) * b.multNum / RATIO_BASE; 
     let dmgStep2 = dmgStep1 * deathFactor / 10000n;
     let finalDmg = dmgStep2 * randNumerator / 100n;
@@ -248,7 +259,6 @@ function getGuaranteedDrop() {
    return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}</span></div>`;
 }
 
-// 修正：武神の重複加算を排除し、破軍の号令（1/10万）の判定を追加
 function getDropLog(targetCount) {
    let obtained = {};
    const currentRates = player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA;
