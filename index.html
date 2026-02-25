@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.8.4</title>
+<title>RELICORE - v2.8.5</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -156,7 +156,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.8.4</div>
+<div class="ver-footer">RELICORE v2.8.5</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -183,7 +183,7 @@ const POWERS = [
 
 const RELIC_MASTER = [
     {id:0, star:12, name:"再起の誓い", atk:0, hp:0, pIdx:-1, desc:"不屈の魂に刻まれた、再誕の原点。"},
-    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅의欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
+    {id:101, star:1, name:"剣神の欠片", atk:3, hp:0, pIdx:0}, {id:102, star:1, name:"不滅の欠片", atk:0, hp:14, pIdx:1}, {id:103, star:1, name:"魔導の欠片", atk:2, hp:9, pIdx:2}, {id:104, star:1, name:"覇王の欠片", atk:7, hp:15, pIdx:3}, {id:105, star:1, name:"虚無の欠片", atk:4, hp:10, pIdx:4},
     {id:201, star:2, name:"鉄の剣", atk:17, hp:0, pIdx:0}, {id:202, star:2, name:"兵士の盾", atk:0, hp:126, pIdx:1}, {id:203, star:2, name:"熟練の証", atk:13, hp:55, pIdx:2}, {id:204, star:2, name:"鋼の篭手", atk:28, hp:45, pIdx:3}, {id:205, star:2, name:"影の残滓", atk:44, hp:60, pIdx:4},
     {id:301, star:3, name:"魔力剣", atk:137, hp:0, pIdx:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:772, pIdx:1}, {id:303, star:3, name:"知恵の輪", atk:144, hp:233, pIdx:2}, {id:304, star:3, name:"騎士の魂", atk:312, hp:450, pIdx:3}, {id:305, star:3, name:"深淵の破片", atk:444, hp:666, pIdx:4},
     {id:401, star:4, name:"王宮の秘宝", atk:5777, hp:0, pIdx:0}, {id:402, star:4, name:"聖樹の種", atk:0, hp:24680, pIdx:1}, {id:403, star:4, name:"伝説の断片", atk:8192, hp:12000, pIdx:2}, {id:404, star:4, name:"覇道の手引書", atk:18888, hp:25000, pIdx:3}, {id:405, star:4, name:"破滅の引き金", atk:44444, hp:66666, pIdx:4},
@@ -194,7 +194,7 @@ const RELIC_MASTER = [
     {id:901, star:9, name:"【絶】界・多重定義", atk:10000000000, hp:0, pIdx:0, mult:2.0}, {id:902, star:9, name:"【永】死生超越の理", atk:0, hp:20000000000, pIdx:1, mult:2.0}, {id:903, star:9, name:"【叡】真理の法典", atk:9999999999, hp:150000000000, pIdx:2, mult:2.0}, {id:904, star:9, name:"【凱】覇道の極致", atk:15000000000, hp:25000000000, pIdx:3, mult:2.0}, {id:905, star:9, name:"【零】無窮の深淵", atk:25000000000, hp:40000000000, pIdx:4, mult:2.0},
     {id:1001, star:10, name:"パンドラの箱", atk:54321098765, hp:88888888888, pIdx:3, mult:100.0},
     {id:1101, star:11, name:"終焉の福音", atk:999999999999, hp:1500000000000, pIdx:4, mult:1000.0},
-    {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:-1, desc:"遥か古の、誰かの記憶が結晶化した微かな塵。たくさん集めると…？"}
+    {id:106, star:1, name:"メモリーダスト", atk:1, hp:10, pIdx:-1, desc:"だれかの記憶の欠片。たくさん集めると…？"}
 ];
 
 function saveGame() { 
@@ -273,7 +273,6 @@ function attack() {
     const b = getRelicBonus();
     let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
 
-    // 遺物獲得判定をここだけに集約（1ターンのアクションにつき1度）
     let fightDropLog = getDropLog(1 + bonus);
 
     let deathDmgMult = 1.0 + (player.deathCount * 0.000004); 
