@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.7.4</title>
+<title>RELICORE - v2.7.5</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -138,7 +138,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v2.7.4</div>
+<div class="ver-footer">RELICORE v2.7.5</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -222,7 +222,7 @@ function renderVow() {
     vowList.innerHTML = `
         <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">再起するたびにランダムな遺物を1つ獲得する</span><div class="vow-desc">死を経験するたびに深淵に漂う遺物を魂に刻む。</div></div>
         <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 〜 ${(player.deathCount * 10).toLocaleString()} の間でランダムに上昇</span><div class="vow-desc">再起するたびにHP増加幅+10。数多もの戦闘が核に刻みこまれる。</div></div>
-        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${minCut}% 〜 100% ランダムカット</span><div class="vow-desc">因果を歪め、魔神の攻撃を劇的に減衰させる。</div></div>
+        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">常時発動：障壁が攻撃を大幅減衰させる (${minCut}%〜)</span><div class="vow-desc">因果を歪め、魔神の攻撃を劇的に減衰させる。</div></div>
         <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時★2以上の遺物を確定で入手する</span><div class="vow-desc">不屈の闘志を燃やし、新たな力を手に入れる。</div></div>
         <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${bonus}</span><div class="vow-desc">再起した回数に応じて機能強化（次回：${nextThreshold}）</div></div>
         <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${(player.deathCount * 0.000004 * 100).toFixed(4)}%</span><div class="vow-desc">再起するたびに最終ダメージを0.0004%増加させる</div></div>
@@ -257,17 +257,18 @@ function attack() {
     } else {
         const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
         
-        // 因果の拒絶: 内部でランダムなカットを計算し、表示ダメージを変化させる
-        const minCut = Math.min(20, 1 + Math.floor(player.deathCount / 12500));
-        const actualCutPercent = Math.floor(Math.random() * (101 - minCut)) + minCut; 
-        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
+        // パッシブ「因果の拒絶」: 常に発動し、ランダムなカットを適用
+        const minCut = Math.min(40, 10 + Math.floor(player.deathCount / 8000));
+        // より「バラバラな」数値にするため、0.01%単位で計算
+        const actualCutRate = (Math.random() * (99.99 - minCut) + minCut) / 100; 
+        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutRate)));
 
         if (currentTotalHP > mitigatedDmg) {
-            // 生存: カット後のダメージをそのまま表示し、変化を強調
+            // 生存: カット後の生々しい数値を表示
             let guaranteedDrop = getGuaranteedDrop(); 
             logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。光の障壁が因果を拒絶した！</span></div>` + guaranteedDrop;
         } else {
-            // 再起: 耐えきれなかった場合
+            // 再起: カットしてもなお耐えきれなかった場合
             const incrementBase = player.deathCount; 
             player.deathCount += (1 + bonus); 
             player.baseHP += BigInt(Math.floor(10 + Math.random() * (Number(incrementBase) * 10)));
@@ -278,7 +279,8 @@ function attack() {
                 addLog(logHtml); saveGame(); refreshUI();
                 return;
             }
-            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ ${MAJIN_ATK_VALUE.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>` + getDropLog(1 + bonus);
+            // 死ぬ瞬間も、障壁によるわずかな減衰（生々しい数値）を表示する
+            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！ ${mitigatedDmg.toLocaleString()} ダメージ。再起の誓いによって新たなる力を得た</span></div>` + getDropLog(1 + bonus);
         }
     }
     addLog(logHtml); saveGame(); refreshUI();
