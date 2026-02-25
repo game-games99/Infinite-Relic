@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.16</title>
+<title>RELICORE - v3.3.17</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -30,7 +30,7 @@
 
    #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
    .boss-area { text-align: center; width: 100%; }
-   .boss-name { font-size: 1.0em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
+   .boss-name { font-size: 0.9em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
    .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 0 auto 8px auto; width: 100%; }
    #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.15s ease-out; }
    .hp-val-display { font-size: 1.45em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.2; letter-spacing: -1px; }
@@ -79,11 +79,11 @@
 <div id="hado-awaken-modal"><div class="hado-content"><div class="hado-title">隠しスキル【破軍の号令】覚醒</div><div class="hado-msg">戦場に漂う数多の記憶……その「残滓」が臨界を超えたとき、王者の魂が呼び覚まされた。<br><br><span style="color:var(--gold); font-weight:bold;">【効果：覇道の理】</span><br>★1遺物の基礎ステータス上昇値が<span style="color:var(--gold); font-size:1.2em;"> 10倍 </span>に固定強化される。<br>さらに、★2遺物(20%)、★3遺物(1%)の出現率が大幅に上昇する。</div><button class="story-btn" onclick="closeHadoModal()">その力を受け入れる</button></div></div>
 <div id="upgrade-modal"><div class="upgrade-content"><div id="upgrade-title" class="upgrade-title"></div><div id="upgrade-msg" class="upgrade-msg"></div><button class="story-btn" onclick="closeUpgradeModal()">承知した</button></div></div>
 <div id="story-modal"><div class="story-content"><div class="story-text">「……まだ, その魂は潰えていないのか。<br>肉体は砕け, 積み上げた研鑽も……かつて, お前が愛した世界とともに灰へと帰した。<br>絶望の淵でお前の魂を繋ぎ止める一つの輝きがある。決して折れぬ不屈の意志が呼び覚ます, 最期の光――<span class="story-highlight">『再起の誓い』</span>。</div><button class="story-btn" onclick="closeStory()">魂に刻印する</button></div></div>
-<div id="clear-modal"><div class="modal-content"><h3>討伐成功</h3><p>魔神を討伐しました。</p><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
+<div id="clear-modal"><div class="modal-content"><h3>討伐成功</h3><p>終末神アポカリス＝ディアを討伐しました。</p><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 
 <div id="header">
    <div class="boss-area">
-       <div class="boss-name" id="boss-display-name">魔神</div>
+       <div class="boss-name" id="boss-display-name">終末神アポカリス＝ディア</div>
        <div class="hp-bar-container"><div id="hp-bar-fill"></div></div>
        <div class="hp-val-display" id="bosshp-cur">0</div>
    </div>
@@ -123,7 +123,7 @@
        </div>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.16</div>
+<div class="ver-footer">RELICORE v3.3.17</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -150,7 +150,7 @@ const RELIC_MASTER = [
    {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000n, hp:150000n, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000n, hp:120000n, desc: "最低★3確定。2個目以降★3を削り, 0.01%ずつ★4へ。"}, 
    {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000n, hp:220000n, desc: "生存時も攻撃のたびに戦闘経験値が (所持数) 増加する。"}, 
-   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000n, hp:80000n, desc: "「死を刻む」の上昇量に 1つにつき +0.04% 加算する。"},
+   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000n, hp:80000n, desc: "「死を刻む」の上昇量に 1つにつき +0.004% 加算する。"},
    {id:501, star:5, name:"慈愛の権能", atk:250000n, hp:800000n}, {id:502, star:5, name:"強欲の権能", atk:450000n, hp:550000n}, {id:503, star:5, name:"忍耐の権能", atk:200000n, hp:950000n}, {id:504, star:5, name:"知恵の権能", atk:350000n, hp:720000n},
    {id:601, star:6, name:"支配の権能", atk:1500000n, hp:4500000n}, {id:602, star:6, name:"秩序の権能", atk:2500000n, hp:3500000n}, {id:603, star:6, name:"虚無の権能", atk:2000000n, hp:4000000n}, {id:604, star:6, name:"創造の権能", atk:1200000n, hp:5000000n},
    {id:701, star:7, name:"パンドラの箱", atk:150000000n, hp:350000000n}, {id:702, star:7, name:"終焉の福音", atk:200000000n, hp:450000000n}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000n, hp:550000000n}
@@ -180,11 +180,11 @@ function attack() {
     if(isModalOpen) return;
     const b = getRelicBonus();
     const kamaCount = BigInt(player.inventory[406] || 0);
-    const deathRatePerCount = 4n * (1n + kamaCount); 
-    const deathFactor = 10000n + (BigInt(player.deathCount) * deathRatePerCount / 100n);
+    const deathRatePerCount = 4n * (1n + (kamaCount / 10n)); // 鎌1つにつき0.004% = 経験値1につき4/100000加算
+    const deathFactor = 1000000n + (BigInt(player.deathCount) * 4n * (10n + kamaCount) / 10n); 
     const randNumerator = getBigIntRand(80n, 120n);
 
-    let finalDmg = ((player.baseAtk * deathFactor / 10000n) + b.atk) * randNumerator / 100n;
+    let finalDmg = ((player.baseAtk * deathFactor / 1000000n) + b.atk) * randNumerator / 100n;
     if(finalDmg < 1n) finalDmg = 1n;
 
     if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
@@ -213,7 +213,7 @@ function attack() {
                let upHP = 0n; for(let i=0; i < seijaCount; i++) { upHP += getBigIntRand(1n, BigInt(Math.max(1, player.deathCount))); }
                player.baseHP += upHP;
             }
-            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
+            logHtml += `<div><span style="color:#28a745; font-weight:bold;">神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
         } else {
             const prevExp = player.deathCount;
             const seijaCount = player.inventory[402] || 0;
@@ -221,7 +221,7 @@ function attack() {
             for(let i=0; i <= seijaCount; i++) { totalUpHP += getBigIntRand(1n, BigInt(Math.max(1, player.deathCount))); }
             player.baseHP += totalUpHP; 
             player.deathCount += (1 + bonus);
-            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
+            logHtml += `<div><span style="color:#dc3545;">神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
             VOW_THRESHOLDS.forEach(t => { if(prevExp < t && player.deathCount >= t) openUpgradeModal("経験蓄積：魂の研磨", `戦闘経験値 ${t.toLocaleString()} 到達。効率上昇。`); });
         }
     }
@@ -265,9 +265,9 @@ function getDropLog(targetCount) {
 
 function refreshUI() {
    const b = getRelicBonus();
-   const deathRate = 4n * (1n + BigInt(player.inventory[406] || 0));
-   const dFactor = 10000n + (BigInt(player.deathCount) * deathRate / 100n);
-   const displayAtk = (player.baseAtk * dFactor / 10000n) + b.atk;
+   const kamaCount = BigInt(player.inventory[406] || 0);
+   const deathFactor = 1000000n + (BigInt(player.deathCount) * 4n * (10n + kamaCount) / 10n); 
+   const displayAtk = (player.baseAtk * deathFactor / 1000000n) + b.atk;
    const displayHp = player.baseHP + b.hp;
    document.getElementById("p-atk").innerText = displayAtk.toLocaleString();
    document.getElementById("p-hp").innerText = displayHp.toLocaleString();
@@ -287,14 +287,14 @@ function renderVow() {
    const madoBonus = Math.min(30, player.inventory[403] || 0); 
    const finalRejMin = (rejStep * 5) + madoBonus;
    const kamaCount = BigInt(player.inventory[406] || 0);
-   const powerRate = (BigInt(player.deathCount) * 4n * (1n + kamaCount) / 100n);
+   const powerRate = (BigInt(player.deathCount) * 4n * (10n + kamaCount) / 10n) / 1000n; // %表記
    vowList.innerHTML = `
-       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物ボーナス：通常ドロップからランダム1種に +${bushinCount}</span><span class="vow-sub">【武神の魂】獲得遺物の中から1つを選び, 魂を刻み込む。</span></div>
+       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物ボーナス：所持加護により獲得数 +${bushinCount}</span><span class="vow-sub">戦闘をすることで、深淵に漂う遺物を手に入れる。さらに特定の遺物の加護が、獲得数を直接増加させる。</span></div>
        <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${expFormatted} の間で上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
        <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">障壁：${finalRejMin}% ～ 100% カット</span><span class="vow-sub">経験値 3,000 / 15,000 / 60,000 / 150,000 到達で下限向上。</span></div>
-       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時, ★2以上の遺物入手(武神効果対象外)</span><span class="vow-sub">不屈の闘志を燃やし, 新たな力を手に入れる。</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">獲得資格拡大中 (経験値: ${expFormatted})</span><span class="vow-sub">経験値 1,000 / 5,000 / 25,000 / 100,000 / 250,000 到達で効率上昇。</span></div>
-       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${powerRate.toLocaleString()}%</span><span class="vow-sub">経験を積むたびに最終ダメージが増加。</span></div>
+       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時, ★2以上の遺物入手</span><span class="vow-sub">不屈の闘志を燃やし, 新たな力を手に入れる。</span></div>
+       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">獲得資格拡大中 (経験値: ${expFormatted})</span><span class="vow-sub">段階(1k/5k/25k/100k/250k)に応じ、遺物獲得数と獲得経験値にボーナス(+)が付与される。</span></div>
+       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：+${powerRate.toFixed(3)}%</span><span class="vow-sub">経験値1につき威力+0.004%増加。経験を積むたびに最終ダメージが増加。</span></div>
    `;
 }
 
