@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.1.1</title>
+<title>RELICORE - v3.1.2</title>
 <style>
     :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; }
     * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -144,7 +144,7 @@
         <button class="btn-reset" onclick="resetData()">全データリセット</button>
     </div>
 </div>
-<div class="ver-footer">RELICORE v3.1.1</div>
+<div class="ver-footer">RELICORE v3.1.2</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -175,9 +175,17 @@ const RELIC_MASTER = [
     {id:101, star:1, name:"剣士の欠片", atk:7, hp:0}, {id:102, star:1, name:"狩人の欠片", atk:8, hp:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9, hp:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10, hp:0}, {id:105, star:1, name:"武闘家の欠片", atk:6, hp:0},
     {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50},
     {id:111, star:1, name:"魔法使いの欠片", atk:4, hp:35}, {id:112, star:1, name:"斥候の欠片", atk:3, hp:48}, {id:113, star:1, name:"冒険者の欠片", atk:5, hp:42}, {id:114, star:1, name:"見習いの欠片", atk:2, hp:30}, {id:115, star:1, name:"放浪者の欠片", atk:4, hp:44}, {id:116, star:1, name:"メモリーダスト", atk:1, hp:10},
-    // ★2 (上級ジョブの欠片 10種) - ★1の約100倍
-    {id:201, star:2, name:"聖騎士の欠片", atk:700, hp:5500}, {id:202, star:2, name:"龍騎士の欠片", atk:900, hp:5000}, {id:203, star:2, name:"暗黒騎士の欠片", atk:1000, hp:4500}, {id:204, star:2, name:"賢者の欠片", atk:600, hp:6000}, {id:205, star:2, name:"大魔道士の欠片", atk:950, hp:4000},
-    {id:206, star:2, name:"暗殺王の欠片", atk:1100, hp:3500}, {id:207, star:2, name:"重装騎士の欠片", atk:500, hp:8000}, {id:208, star:2, name:"拳聖の欠片", atk:850, hp:5200}, {id:209, star:2, name:"神官の欠片", atk:400, hp:9000}, {id:210, star:2, name:"冒険王の欠片", atk:800, hp:5800},
+    // ★2 (上級ジョブの欠片 10種) - 歪な数値・特化型設定
+    {id:201, star:2, name:"聖騎士の欠片", atk:412, hp:6820}, 
+    {id:202, star:2, name:"龍騎士の欠片", atk:867, hp:4230}, 
+    {id:203, star:2, name:"暗黒騎士の欠片", atk:1342, hp:0}, 
+    {id:204, star:2, name:"賢者の欠片", atk:521, hp:7110}, 
+    {id:205, star:2, name:"大魔道士の欠片", atk:1189, hp:240}, 
+    {id:206, star:2, name:"暗殺王の欠片", atk:1563, hp:120}, 
+    {id:207, star:2, name:"重装騎士の欠片", atk:0, hp:12480}, 
+    {id:208, star:2, name:"拳聖の欠片", atk:992, hp:3150}, 
+    {id:209, star:2, name:"神官の欠片", atk:42, hp:14860}, 
+    {id:210, star:2, name:"冒険王の欠片", atk:733, hp:5940},
     // ★3 (5種)
     {id:301, star:3, name:"魔力剣", atk:5000, hp:0}, {id:302, star:3, name:"命の硬玉", atk:0, hp:25000}, {id:303, star:3, name:"知恵の輪", atk:4000, hp:10000}, {id:304, star:3, name:"騎士の魂", atk:8000, hp:15000}, {id:305, star:3, name:"深淵の破片", atk:12000, hp:20000},
     // ★4 (5種)
