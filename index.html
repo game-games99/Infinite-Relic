@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.2.7</title>
+<title>RELICORE - v3.3.25</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -106,7 +106,7 @@
    <div id="vow" class="tab"><div id="vow-list"></div></div>
    <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
    <div id="status" class="tab">
-       <div class="st-box">再起回数: <span id="v-death">0</span> 回<br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
+       <div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div>
        <div id="hado-box" class="st-box" style="display:none; border:2px solid gold;">
            <span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中
        </div>
@@ -114,7 +114,7 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.2.7</div>
+<div class="ver-footer">RELICORE v3.3.25</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -138,10 +138,10 @@ const RELIC_MASTER = [
    {id:201, star:2, name:"聖騎士の欠片", atk:412, hp:6824}, {id:202, star:2, name:"龍騎士の欠片", atk:867, hp:4231}, {id:203, star:2, name:"暗黒騎士の欠片", atk:1342, hp:0}, {id:204, star:2, name:"賢者の欠片", atk:521, hp:7112}, {id:205, star:2, name:"大魔道士の欠片", atk:1189, hp:243}, {id:206, star:2, name:"暗殺王の欠片", atk:1563, hp:127}, {id:207, star:2, name:"重装騎士の欠片", atk:0, hp:12486}, {id:208, star:2, name:"拳聖の欠片", atk:992, hp:3154}, {id:209, star:2, name:"神官の欠片", atk:42, hp:14867}, {id:210, star:2, name:"冒険王の欠片", atk:733, hp:5941},
    {id:301, star:3, name:"聖龍騎士の欠片", atk:8743, hp:69241}, {id:302, star:3, name:"深淵魔導の欠片", atk:13241, hp:2147}, {id:303, star:3, name:"金剛武神の欠片", atk:4128, hp:148632}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15684, hp:0}, {id:305, star:3, name:"大聖者の欠片", atk:527, hp:152414}, {id:306, star:3, name:"影の支配者の欠片", atk:14109, hp:1284}, {id:307, star:3, name:"竜血闘士の欠片", atk:10242, hp:42109}, {id:308, star:3, name:"天界騎士の欠片", atk:6127, hp:98451}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16248, hp:421}, {id:310, star:3, name:"極大賢者の欠片", atk:5421, hp:118407},
    {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得する遺物個数を (1+所持数) 倍にする。"}, 
-   {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "再起時のHP上昇抽選を (1+所持数) 回行う。"}, 
+   {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "戦闘経験値に応じHP上昇抽選を (1+所持数) 回行う。"}, 
    {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"}, 
    {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"}, 
-   {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに再起回数が (所持数) 増加する。"}, 
+   {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに戦闘経験値が (所持数) 増加する。"}, 
    {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
    {id:501, star:5, name:"慈愛の権能", atk:250000, hp:800000}, {id:502, star:5, name:"強欲の権能", atk:450000, hp:550000}, {id:503, star:5, name:"忍耐の権能", atk:200000, hp:950000}, {id:504, star:5, name:"知恵の権能", atk:350000, hp:720000},
    {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
@@ -179,11 +179,11 @@ function renderVow() {
 
    vowList.innerHTML = `
        <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を ${dropMultDisplay} つ獲得する</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
-       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
-       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">再起の深まりと共に下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
+       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 10 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">戦闘経験を積むたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
+       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
        <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/再起回数：+${totalPolish}</span><span class="vow-sub">再起した回数に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
-       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">再起するたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>
+       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/経験値ボーナス：+${totalPolish}</span><span class="vow-sub">蓄積した戦闘経験に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
+       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>
    `;
 }
 
@@ -192,9 +192,6 @@ function attack() {
    const b = getRelicBonus();
    const kamaCount = player.inventory[406] || 0;
    let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
-   
-   // 修正：表示上のATKに既にdeathDmgMultが含まれているため、二重に掛けないようにします
-   // 正しいダメージ = (基礎+遺物) * 権能倍率 * 死を刻む倍率 * 乱数
    let rawBase = Number(player.baseAtk + b.atk) * b.mult;
    let finalDmg = BigInt(Math.floor(rawBase * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
    
@@ -228,7 +225,7 @@ function attack() {
            player.baseHP += totalUpHP; 
            player.deathCount += (1 + bonus);
            logHtml += `<div><span style="color:#dc3545;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
-           VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("再起スキル強化：魂の研磨", `再起回数 ${t.toLocaleString()} 到達。効率上昇。`); });
+           VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("スキル強化：魂の研磨", `戦闘経験値 ${t.toLocaleString()} 到達。成長効率上昇。`); });
        }
    }
    addLog(logHtml); saveGame(); refreshUI();
@@ -279,7 +276,6 @@ function refreshUI() {
    const b = getRelicBonus();
    const kamaCount = player.inventory[406] || 0;
    let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
-   // ATK表示には死を刻むの倍率を乗せる
    const finalAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
    const finalHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
    document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
