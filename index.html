@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.0</title>
+<title>RELICORE - v3.3.1</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -114,13 +114,15 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.0</div>
+<div class="ver-footer">RELICORE v3.3.1</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
 const MAJIN_ATK_VALUE = 999999999999n;
 
+const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
+const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 const BASE_DROP_DATA = { 1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 const HADO_DROP_DATA = { 1:{p:78.988889,cond:0n}, 2:{p:20.0,cond:0n}, 3:{p:1.0,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 
@@ -128,9 +130,6 @@ let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 let isModalOpen = false;
-
-const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
-const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 
 const RELIC_MASTER = [
    {id:0, star:8, name:"再起の誓い", atk:0, hp:0, desc:"不屈の魂に刻まれた、再誕の原点。"},
@@ -170,11 +169,14 @@ function getRelicBonus() {
 function attack() {
    if(isModalOpen) return;
    const b = getRelicBonus();
-   const kamaCount = player.inventory[406] || 0;
-   let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
    
-   // ATKの永続増殖を防ぐため、player.baseAtk自体は変更せず計算
-   let finalDmg = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
+   // 「死を刻む」補正：ダメージ計算の瞬間のみ使用。基礎値には一切代入しない
+   const kamaCount = player.inventory[406] || 0;
+   const deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
+   
+   // 最終ダメージ算出：(基礎ATK + 遺物ATK合計) × 遺物倍率 × 死を刻む倍率
+   const currentTotalAtkRaw = player.baseAtk + b.atk;
+   let finalDmg = BigInt(Math.floor(Number(currentTotalAtkRaw) * b.mult * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
    
    if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
    currentBossHP -= finalDmg;
@@ -195,6 +197,7 @@ function attack() {
        const mitigatedDmg = BigInt(Math.floor(Number(MAJIN_ATK_VALUE) * (1 - actualCutPercent / 100)));
        
        if (currentTotalHP > mitigatedDmg) { 
+           // 【魂研】賢者の叡智：再起回数のみを加算。UI側でステータス計算から分離済み
            const chieCount = player.inventory[405] || 0;
            if(chieCount > 0) player.deathCount += chieCount; 
            logHtml += `<div><span style="color:#28a745; font-weight:bold;">魔神の攻撃！${mitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop(); 
@@ -203,7 +206,7 @@ function attack() {
            const seijaCount = player.inventory[402] || 0;
            let totalUpHP = 0n;
            for(let i=0; i <= seijaCount; i++) {
-               // 定義更新：HP 1 ～ 再起回数
+               // 刹那の堆積：HP 1 ～ 再起回数
                totalUpHP += BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
            }
            player.baseHP += totalUpHP; 
@@ -247,17 +250,16 @@ function getDropLog(targetCount) {
 
 function refreshUI() {
    const b = getRelicBonus();
-   const kamaCount = player.inventory[406] || 0;
-   let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
-   
-   // 表示用ATK/HPをクリーンに再計算（基礎値は上書きしない）
-   const displayAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult * deathDmgMult));
+   // 重要：表示用ATKには「死を刻む」倍率を含めないことで、表示上の増殖バグを物理的に回避する
+   const displayAtk = BigInt(Math.floor(Number(player.baseAtk + b.atk) * b.mult));
    const displayHp = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
    
    document.getElementById("p-atk").innerText = displayAtk.toLocaleString();
    document.getElementById("p-hp").innerText = displayHp.toLocaleString();
+   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
    document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
    document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
+   
    if(player.hasHado) document.getElementById("hado-box").style.display = "block";
    const tid = document.querySelector(".tab.active").id;
    if(tid === 'vow') renderVow(); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
@@ -271,8 +273,7 @@ function renderVow() {
    let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
    const madoCount = player.inventory[403] || 0;
    const madoBonus = Math.min(30, madoCount); 
-   const baseRejMin = rejStep * 5;
-   const finalRejMin = baseRejMin + madoBonus;
+   const finalRejMin = (rejStep * 5) + madoBonus;
    let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
    const zankoCount = player.inventory[404] || 0;
    let starLabel = zankoCount > 0 ? "★3以上" : "★2以上";
