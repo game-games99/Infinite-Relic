@@ -236,7 +236,7 @@ function renderRelics() {
           const count = Number(c);
           if (!player.hasHado) {
               const remaining = Math.max(0, 100000 - count);
-              extra = `<div style="color:#007bff; font-weight:bold; margin-top:4px;">残り：${remaining.toLocaleString()}</div>`;
+              extra = `<div style="color:#007bff; font-weight:bold; margin-top:4px;">：${remaining.toLocaleString()}</div>`;
           } else {
               extra = `<div style="color:#28a745; font-weight:bold; margin-top:4px;">覇道の理 発現済み</div>`;
           }
