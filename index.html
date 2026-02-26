@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2</title>
+<title>RELICORE - v1.3</title>
 <style>
-  /* スタイル定義は変更なし（省略せず維持） */
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -77,9 +76,9 @@
   <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div>
   <div id="vow" class="tab"><div id="vow-list"></div></div>
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
-  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="displaynone; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
+  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.2</div>
+<div class="ver-footer">RELICORE v1.3</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -109,7 +108,7 @@ const RELIC_MASTER = [
   {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "戦闘経験値に応じHP上昇抽選を (1+所持数) 回行う。"},
   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"},
   {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"},
-  {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに戦闘経験値が (所持数) 増加する。"},
+  {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに『魂の研磨』による経験値ボーナスを直接獲得する。"},
   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
   {id:501, star:5, name:"断絶の権能", atk:382660, hp:916330, desc: "被ダメージを1つにつき500,000固定軽減する。"}, 
   {id:502, star:5, name:"強欲の権能", atk:649800, hp:812400, desc: "遺物獲得数を1つにつき+5加算する。"}, 
@@ -163,7 +162,9 @@ function attack() {
     openHadoModal();
   }
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-  // 【修正】通常ドロップの抽選を1つずつ行うように変更
+  const chieCount = player.inventory[405] || 0;
+  let totalPolish = 1 + bonus + chieCount;
+  
   let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
@@ -187,13 +188,15 @@ function attack() {
       const severanceReduction = BigInt(severanceCount * 500000);
       const finalMitigatedDmg = mitigatedDmgAfterPercent > severanceReduction ? mitigatedDmgAfterPercent - severanceReduction : 0n;
       if (currentTotalHP > finalMitigatedDmg) {
-          if((player.inventory[405] || 0) > 0) player.deathCount += player.inventory[405];
-          // 【修正】生存時の確定ドロップ（狼煙）が他倍率の影響を受けないよう分離
-          logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop();
+          // 【修正】生存中も賢者の叡智があれば魂の研磨ボーナスをそのまま加算
+          const oldDeath = player.deathCount;
+          if(chieCount > 0) player.deathCount += totalPolish;
+          logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！ ${chieCount > 0 ? '(経験値+' + totalPolish + ')' : ''}</span></div>` + getGuaranteedDrop();
+          VOW_THRESHOLDS.forEach(t => { if(oldDeath < t && player.deathCount >= t) openUpgradeModal("スキル強化", `戦闘経験値 ${t.toLocaleString()} 到達。`); });
       } else {
           const prevDeath = player.deathCount; let totalUpHP = 0n;
           for(let i=0; i <= (player.inventory[402] || 0); i++) totalUpHP += BigInt(Math.floor(10 + Math.random() * (Math.max(1, player.deathCount))));
-          player.baseHP += totalUpHP; player.deathCount += (1 + bonus);
+          player.baseHP += totalUpHP; player.deathCount += totalPolish;
           logHtml += `<div><span style="color:#dc3545;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
           VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("スキル強化", `戦闘経験値 ${t.toLocaleString()} 到達。`); });
       }
@@ -205,15 +208,12 @@ function getGuaranteedDrop() {
   if(zankoCount > 0 && Math.random() < (0.001 + (zankoCount-1)*0.0001)) star = 4;
   if (player.maxDmg < getCurrentDropRates()[star].cond) star = 2;
   let cands = RELIC_MASTER.filter(m => m.star === star); let sel = cands[Math.floor(Math.random() * cands.length)];
-  // 狼煙の個数は倍率を受けず、「1 + 狼煙の所持数（残光ボーナス）」など、スキル自身の性質に依存するようにする（現状はシンプルに1つ）
   player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
   return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×1</span></div>`;
 }
 function getDropLog(targetCount) {
   let obtained = {}; const rates = getCurrentDropRates(); 
-  // 通常ドロップ倍率（不退転 + 強欲）
   const dropMult = (1 + (player.inventory[401] || 0)) + ((player.inventory[502] || 0) * 5);
-  // 【修正】個別に抽選を行う
   for(let i=0; i < targetCount; i++) {
       for(let m = 0; m < dropMult; m++) {
           let rv = Math.random()*100, star=1, curP=0;
