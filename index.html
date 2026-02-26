@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.0</title>
+<title>RELICORE - v1.1</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -78,7 +78,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:2px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.0</div>
+<div class="ver-footer">RELICORE v1.1</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -94,8 +94,8 @@ const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 const RELIC_MASTER = [
   {id:0, star:8, name:"再起の誓い", atk:0, hp:0, desc:"不屈の魂に刻まれた、再誕の原点。"},
   {id:101, star:1, name:"剣士の欠片", atk:7.4, hp:0}, {id:102, star:1, name:"狩人の欠片", atk:8.1, hp:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9.6, hp:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10.3, hp:0}, {id:105, star:1, name:"武闘家の欠片", atk:6.7, hp:0}, {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45.2}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55.9}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65.4}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40.3}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50.8}, {id:111, star:1, name:"魔法使いの欠片", atk:4.2, hp:35.7}, {id:112, star:1, name:"斥候の欠片", atk:3.9, hp:48.1}, {id:113, star:1, name:"冒険者の欠片", atk:5.4, hp:42.6}, {id:114, star:1, name:"見習いの欠片", atk:2.1, hp:30.5}, {id:115, star:1, name:"放浪者の欠片", atk:4.7, hp:44.2}, {id:116, star:1, name:"メモリーダスト", atk:1.3, hp:10.9},
-  {id:201, star:2, name:"聖騎士の欠片", atk:412, hp:6824}, {id:202, star:2, name:"龍騎士の欠片", atk:867, hp:4231}, {id:203, star:2, name:"暗黒騎士の欠片", atk:1342, hp:0}, {id:204, star:2, name:"賢者の欠片", atk:521, hp:7112}, {id:205, star:2, name:"大魔道士の欠片", atk:1189, hp:243}, {id:206, star:2, name:"暗殺王の欠片", atk:1563, hp:127}, {id:207, star:2, name:"重装騎士の欠片", atk:0, hp:12486}, {id:208, star:2, name:"拳聖の欠片", atk:992, hp:3154}, {id:209, star:2, name:"神官の欠片", atk:42, hp:14867}, {id:210, star:2, name:"冒険王の欠片", atk:733, hp:5941},
-  {id:301, star:3, name:"聖龍騎士の欠片", atk:8743, hp:69241}, {id:302, star:3, name:"深淵魔導の欠片", atk:13241, hp:2147}, {id:303, star:3, name:"金剛武神の欠片", atk:4128, hp:148632}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:15684, hp:0}, {id:305, star:3, name:"大聖者の欠片", atk:527, hp:152414}, {id:306, star:3, name:"影の支配者の欠片", atk:14109, hp:1284}, {id:307, star:3, name:"竜血闘士の欠片", atk:10242, hp:42109}, {id:308, star:3, name:"天界騎士の欠片", atk:6127, hp:98451}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:16248, hp:421}, {id:310, star:3, name:"極大賢者の欠片", atk:5421, hp:118407},
+  {id:201, star:2, name:"聖騎士の欠片", atk:41.2, hp:682.4}, {id:202, star:2, name:"龍騎士の欠片", atk:86.7, hp:423.1}, {id:203, star:2, name:"暗黒騎士の欠片", atk:134.2, hp:0}, {id:204, star:2, name:"賢者の欠片", atk:52.1, hp:711.2}, {id:205, star:2, name:"大魔道士の欠片", atk:118.9, hp:24.3}, {id:206, star:2, name:"暗殺王の欠片", atk:156.3, hp:12.7}, {id:207, star:2, name:"重装騎士の欠片", atk:0, hp:1248.6}, {id:208, star:2, name:"拳聖の欠片", atk:99.2, hp:315.4}, {id:209, star:2, name:"神官の欠片", atk:4.2, hp:1486.7}, {id:210, star:2, name:"冒険王の欠片", atk:73.3, hp:594.1},
+  {id:301, star:3, name:"聖龍騎士の欠片", atk:874.3, hp:6924.1}, {id:302, star:3, name:"深淵魔導の欠片", atk:1324.1, hp:214.7}, {id:303, star:3, name:"金剛武神の欠片", atk:412.8, hp:14863.2}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:1568.4, hp:0}, {id:305, star:3, name:"大聖者の欠片", atk:52.7, hp:15241.4}, {id:306, star:3, name:"影の支配者の欠片", atk:1410.9, hp:128.4}, {id:307, star:3, name:"竜血闘士の欠片", atk:1024.2, hp:4210.9}, {id:308, star:3, name:"天界騎士の欠片", atk:612.7, hp:9845.1}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:1624.8, hp:42.1}, {id:310, star:3, name:"極大賢者の欠片", atk:542.1, hp:11840.7},
   {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得する遺物個数を (1+所持数) 倍にする。"},
   {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "戦闘経験値に応じHP上昇抽選を (1+所持数) 回行う。"},
   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"},
@@ -229,7 +229,7 @@ function renderRelics() {
       const m = RELIC_MASTER.find(x => x.id == id); if(!m) return "";
       let baseA = (m.atk || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
       let baseH = (m.hp || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
-      let stText = (baseA ? `ATK +${Math.floor(baseA)} ` : "") + (baseH ? `HP +${Math.floor(baseH)}` : "");
+      let stText = (baseA ? `ATK +${baseA} ` : "") + (baseH ? `HP +${baseH}` : "");
       
       let extra = "";
       if (id == "116") {
