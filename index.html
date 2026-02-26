@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.0</title>
+<title>RELICORE - v2.1</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -98,7 +98,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="displaynone; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v2.0</div>
+<div class="ver-footer">RELICORE v2.1</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -219,7 +219,7 @@ function attack() {
   const chieCount = player.inventory[405] || 0;
   let totalPolish = 1 + bonus + chieCount;
   
-  let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
+  let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>`;
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
           currentBossHP = 0n; isModalOpen = true;
@@ -244,7 +244,7 @@ function attack() {
       if (currentTotalHP > finalMitigatedDmg) {
           const oldDeath = player.deathCount;
           if(chieCount > 0) player.deathCount += totalPolish;
-          logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！ ${chieCount > 0 ? '(経験値+' + totalPolish + ')' : ''}</span></div>` + getGuaranteedDrop();
+          logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！ ${chieCount > 0 ? '(経験値+' + totalPolish + ')' : ''}</span></div>`;
           [...VOW_THRESHOLDS, ...REJECTION_THRESHOLDS].sort((a,b)=>a-b).forEach(t => {
               if(oldDeath < t && player.deathCount >= t) {
                   const up = VOW_UPGRADES[t] || { name: "未知の力", msg: "魂に新たな力が宿った。" };
@@ -264,6 +264,8 @@ function attack() {
           });
       }
   }
+  // 最後に遺物獲得を表示
+  logHtml += getDropLog(1 + bonus) + getGuaranteedDrop();
   addLog(logHtml); saveGame(); refreshUI();
 }
 
@@ -274,7 +276,7 @@ function getGuaranteedDrop() {
   let cands = RELIC_MASTER.filter(m => m.star === star); let sel = cands[Math.floor(Math.random() * cands.length)];
   player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
   if(sel.star >= 4) openRareModal(sel);
-  return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×1</span></div>`;
+  return `<div style="font-size:0.82em;">【狼煙】<span class="c${sel.star}">★${sel.star} ${sel.name}×1</span> を獲得</div>`;
 }
 
 function getDropLog(targetCount) {
@@ -294,7 +296,7 @@ function getDropLog(targetCount) {
       if(sel.star >= 4 && (!highestRelic || sel.star > highestRelic.star)) highestRelic = sel;
   }
   if(highestRelic) openRareModal(highestRelic);
-  return Object.entries(obtained).length > 0 ? `<div style="font-size:0.82em;">獲得：${Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; }).join(", ")}</div>` : "";
+  return Object.entries(obtained).length > 0 ? `<div style="font-size:0.82em;">${Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; }).join(", ")} を獲得</div>` : "";
 }
 
 function getRelicBonus() {
