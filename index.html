@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.28</title>
+<title>RELICORE - v3.3.29</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -60,8 +60,9 @@
    .vow-highlight { font-weight: bold; font-size: 0.82em; display: block; line-height: 1.4; color: var(--primary); }
    .vow-sub { font-size: 0.72em; color: #888; display: block; margin-top: 2px; line-height: 1.3; }
 
-   #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-   .modal-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 25px; text-align: center; color: #fff; max-width: 90%; }
+   #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+   .modal-content { background: #000; border: 2px solid var(--gold); border-radius: 15px; padding: 30px; text-align: left; color: #fff; max-width: 95%; line-height: 1.8; }
+   .modal-story { font-size: 0.9em; margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 20px; }
 
    .relic-list-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
    .relic-card { position: relative; border: 1px solid #e0d5f0; padding: 6px 6px 6px 10px; border-radius: 6px; background: var(--relic-bg); display: flex; flex-direction: column; min-height: 70px; box-shadow: 0 2px 4px rgba(102, 16, 242, 0.05); }
@@ -93,7 +94,25 @@
        <button class="story-btn" onclick="closeStory()">魂に刻印する</button>
    </div>
 </div>
-<div id="clear-modal"><div class="modal-content"><h3>討伐成功</h3><p>終末神アポカリス＝ティアを討伐しました。</p><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
+<div id="clear-modal">
+    <div class="modal-content">
+        <div class="modal-story">
+            「……ついに、その時が訪れた。<br><br>
+            奴の心臓を一撃で貫き、絶対不変と思われた神の理が崩壊する。<br>
+            神は最期に微かな笑みを浮かべ、砕け散った。<br><br>
+            しかし、神の死は終わりではなく、真なる絶望の始まりに過ぎなかった。<br>
+            貴公が握りしめていた『パンドラの箱』が、神の血を吸って禍々しく開く。<br><br>
+            箱の中から溢れ出したのは、神すらも飲み込む無限の混沌――。<br>
+            理の外側に座す、真なる終焉が今、顕現する。」
+        </div>
+        <div style="font-size:0.85em; color:var(--gold); font-weight:bold; margin-bottom:10px;">【警告：エンドレスモード移行】</div>
+        <div style="font-size:0.8em; color:#ccc; margin-bottom:20px;">
+            これより先は、人知を超えた『無窮の闘争』へと突入します。出現する存在は無限に近いHPを持ち、倒されることを想定していません。どこまでその深淵に肉薄できるか、貴公の限界に挑む場となります。<br><br>
+            もし、この絶望をすら塗り替え、ボスを討つ者が現れたなら――……
+        </div>
+        <button class="story-btn" onclick="closeClearModal()">深淵へ踏み出す</button>
+    </div>
+</div>
 
 <div id="header">
    <div class="boss-area">
@@ -127,17 +146,18 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.28</div>
+<div class="ver-footer">RELICORE v3.3.29</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
+const ENDLESS_HP = 1000000000000000000000000000000000000000000000000000000000000n; // 10^60
 const MAJIN_ATK_VALUE = 999999999999n;
 
 const BASE_DROP_DATA = { 1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 const HADO_DROP_DATA = { 1:{p:78.988889,cond:0n}, 2:{p:20.0,cond:0n}, 3:{p:1.0,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 
-let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false };
+let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false, bossName: "終末神アポカリス＝ティア", isEndless: false };
 let currentBossHP = BOSS_MAX_HP_BASE;
 let attackInterval = null;
 let isModalOpen = false;
@@ -162,7 +182,7 @@ const RELIC_MASTER = [
 ];
 
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), bossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
-function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); currentBossHP = BigInt(p.bossHP || BOSS_MAX_HP_BASE.toString()); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
+function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); currentBossHP = BigInt(p.bossHP || (p.isEndless ? ENDLESS_HP.toString() : BOSS_MAX_HP_BASE.toString())); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
 function openUpgradeModal(title, msg) { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("upgrade-title").innerText = title; document.getElementById("upgrade-msg").innerText = msg; document.getElementById("upgrade-modal").style.display = "flex"; }
 function closeUpgradeModal() { document.getElementById("upgrade-modal").style.display = "none"; isModalOpen = false; }
 function openHadoModal() { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("hado-awaken-modal").style.display = "flex"; }
@@ -213,21 +233,25 @@ function attack() {
    let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
    let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
    
-   // 神の不死ギミック判定
    if(finalDmg >= currentBossHP) {
        const hasPandora = (player.inventory[701] || 0) > 0;
-       if(hasPandora) {
-           currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex";
+       if(hasPandora || player.isEndless) {
+           if (!player.isEndless) {
+               currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex";
+           } else {
+               // 真裏ボス討伐（伝説）
+               logHtml += `<div><span style="color:gold; font-weight:bold;">奇跡……。理の外側にある存在を屠った。</span></div>`;
+               currentBossHP = ENDLESS_HP; // リセット
+           }
        } else {
            currentBossHP = BOSS_MAX_HP_BASE;
            logHtml += `<div><span style="color:#ff0000; font-weight:bold;">神の権能：終焉の回帰……！ 絶望が理を塗り替える。(HP全回復)</span></div>`;
        }
    } else {
        currentBossHP -= finalDmg;
-       // HPが1未満になる場合は全回復（上記の判定で漏れるケース用）
        if(currentBossHP < 1n) {
-           currentBossHP = BOSS_MAX_HP_BASE;
-           logHtml += `<div><span style="color:#ff0000; font-weight:bold;">神の権能：終焉の回帰……！ (HP全回復)</span></div>`;
+           currentBossHP = player.isEndless ? ENDLESS_HP : BOSS_MAX_HP_BASE;
+           logHtml += `<div><span style="color:#ff0000; font-weight:bold;">${player.isEndless ? '無窮の再生' : '神の権能：終焉の回帰'}……！</span></div>`;
        }
    }
    
@@ -309,7 +333,8 @@ function refreshUI() {
    document.getElementById("p-atk").innerText = finalAtk.toLocaleString();
    document.getElementById("p-hp").innerText = finalHp.toLocaleString();
    document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
-   document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BOSS_MAX_HP_BASE)}%`;
+   document.getElementById("boss-display-name").innerText = player.bossName;
+   document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / (player.isEndless ? ENDLESS_HP : BOSS_MAX_HP_BASE))}%`;
    
    if(player.hasHado) document.getElementById("hado-box").style.display = "block";
    
@@ -349,7 +374,15 @@ function checkDropEligibility() {
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
 function addLog(html) { const l = document.getElementById("log"); const d = document.createElement("div"); d.className="log-set"; d.innerHTML=html; l.prepend(d); while(l.childNodes.length > 20) l.removeChild(l.lastChild); }
 function closeStory() { player.storySeen = true; document.getElementById("story-modal").style.display = "none"; saveGame(); }
-function closeClearModal() { document.getElementById("clear-modal").style.display = "none"; isModalOpen = false; currentBossHP = BOSS_MAX_HP_BASE; refreshUI(); }
+function closeClearModal() { 
+    document.getElementById("clear-modal").style.display = "none"; 
+    isModalOpen = false; 
+    player.bossName = "無窮の混沌";
+    player.isEndless = true;
+    currentBossHP = ENDLESS_HP;
+    saveGame();
+    refreshUI(); 
+}
 function resetData() { if(confirm("全リセットしますか？")) { localStorage.clear(); location.reload(); } }
 
 const btn = document.getElementById("attackBtn");
