@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.5</title>
+<title>RELICORE - v1.6</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -78,7 +78,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.5</div>
+<div class="ver-footer">RELICORE v1.6</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -102,7 +102,10 @@ const RELIC_MASTER = [
   {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"},
   {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに戦闘経験値が (所持数) 増加する。"},
   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
-  {id:501, star:5, name:"慈愛の権能", atk:250000, hp:800000}, {id:502, star:5, name:"強欲の権能", atk:450000, hp:550000}, {id:503, star:5, name:"忍耐の権能", atk:200000, hp:950000}, {id:504, star:5, name:"知恵の権能", atk:350000, hp:720000},
+  {id:501, star:5, name:"慈愛の権能", atk:250000, hp:800000}, 
+  {id:502, star:5, name:"強欲の権能", atk:649800, hp:812400, desc: "【無限の収穫】遺物獲得数を1つにつき+5加算する。"}, 
+  {id:503, star:5, name:"忍耐の権能", atk:200000, hp:950000}, 
+  {id:504, star:5, name:"知恵の権能", atk:350000, hp:720000},
   {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"災厄が詰まった箱。神を討つための鍵。"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
@@ -184,11 +187,11 @@ function getGuaranteedDrop() {
   if(zankoCount > 0 && Math.random() < (0.001 + (zankoCount-1)*0.0001)) star = 4;
   if (player.maxDmg < getCurrentDropRates()[star].cond) star = 2;
   let cands = RELIC_MASTER.filter(m => m.star === star); let sel = cands[Math.floor(Math.random() * cands.length)];
-  const dropMult = 1 + (player.inventory[401] || 0); player.inventory[sel.id] = (player.inventory[sel.id] || 0) + dropMult;
+  const dropMult = (1 + (player.inventory[401] || 0)) + ((player.inventory[502] || 0) * 5); player.inventory[sel.id] = (player.inventory[sel.id] || 0) + dropMult;
   return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×${dropMult}</span></div>`;
 }
 function getDropLog(targetCount) {
-  let obtained = {}; const rates = getCurrentDropRates(); const dropMult = 1 + (player.inventory[401] || 0);
+  let obtained = {}; const rates = getCurrentDropRates(); const dropMult = (1 + (player.inventory[401] || 0)) + ((player.inventory[502] || 0) * 5);
   for(let i=0; i<targetCount; i++) {
       let rv = Math.random()*100, star=1, curP=0;
       for(let s in rates) { curP += rates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
