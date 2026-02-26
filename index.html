@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.4</title>
+<title>RELICORE - v1.5</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -82,6 +82,7 @@
   .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
   .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
   .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; z-index: 50; }
+  .dmg-detail-list { font-size: 0.75em; color: #666; list-style: none; padding-left: 10px; margin: 4px 0; border-left: 1px solid #ddd; }
 </style>
 </head>
 <body>
@@ -100,7 +101,9 @@
     <div class="st-box">
         戦闘経験値: <span id="v-death">0</span><br>
         最高ダメージ: <span id="st-maxdmg">0</span><br>
-        最終ダメージ倍率: <span id="st-dmgmult" style="font-weight:bold; color:var(--primary);">x1.00</span><br>
+        <hr style="border:none; border-top:1px solid #eee; margin:5px 0;">
+        最終ダメージ補正: <span id="st-dmgmult" style="font-weight:bold; color:var(--primary);">+0.00% (x1.00)</span>
+        <ul id="st-dmg-breakdown" class="dmg-detail-list"></ul>
         獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">★1まで</span>
     </div>
     <div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div>
@@ -108,7 +111,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.4</div>
+<div class="ver-footer">RELICORE v1.5</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -184,22 +187,22 @@ function openHadoModal() { clearInterval(attackInterval); attackInterval = null;
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
-// ダメージ倍率計算ロジック (超越の権能を乗算枠に配置)
-function calcFinalDmgMult() {
-  // 1. 加算枠 (死を刻む + 破壊の権能)
-  let additiveMult = 1.0;
-  const kamaCount = player.inventory[406] || 0;
-  const engraveRate = 0.0004 * (1 + kamaCount);
-  additiveMult += (player.deathCount * engraveRate) / 100;
-  const destructionCount = player.inventory[504] || 0;
-  additiveMult += (destructionCount * 0.004);
-
-  // 2. 乗算枠 (超越の権能: 所持数分だけ 1.00001 を乗算)
-  const transcendenceCount = player.inventory[503] || 0;
-  let multiplicativeMult = Math.pow(1.00001, transcendenceCount);
-
-  // 加算結果に乗算を適用
-  return additiveMult * multiplicativeMult;
+// ダメージ倍率計算（内部ロジック）
+function getDmgStats() {
+    let additiveBase = 1.0;
+    const kamaCount = player.inventory[406] || 0;
+    const engraveRate = 0.0004 * (1 + kamaCount);
+    const engraveAdd = (player.deathCount * engraveRate) / 100;
+    const destructionCount = player.inventory[504] || 0;
+    const destructionAdd = (destructionCount * 0.004);
+    
+    additiveBase += engraveAdd + destructionAdd;
+    
+    const transcendenceCount = player.inventory[503] || 0;
+    const multiFactor = Math.pow(1.00001, transcendenceCount);
+    
+    const finalMult = additiveBase * multiFactor;
+    return { finalMult, engraveAdd, destructionAdd, multiFactor, additiveBase };
 }
 
 function renderVow() {
@@ -221,17 +224,17 @@ function renderVow() {
       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/経験値ボーナス：+${totalPolish}</span><span class="vow-sub">蓄積した戦闘経験に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
-      <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>`;
+      <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに威力補正を${finalRate.toFixed(4)}%加算する</span></div>`;
 }
 
 function attack() {
   if(isModalOpen) return;
   const b = getRelicBonus();
-  const finalDmgMult = calcFinalDmgMult();
+  const dStats = getDmgStats();
   
   let rawBase = Number(player.baseAtk + b.atk) * b.mult;
   let randomizedBase = rawBase * (0.8 + Math.random() * 0.4);
-  let finalDmg = BigInt(Math.floor(randomizedBase * finalDmgMult)) || 1n;
+  let finalDmg = BigInt(Math.floor(randomizedBase * dStats.finalMult)) || 1n;
   
   if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
   
@@ -383,7 +386,17 @@ function renderRelics() {
 function renderStatus() {
   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-  document.getElementById("st-dmgmult").innerText = "x" + calcFinalDmgMult().toFixed(8);
+  
+  const d = getDmgStats();
+  const plusPercent = ((d.finalMult - 1.0) * 100).toFixed(6);
+  document.getElementById("st-dmgmult").innerText = `+${plusPercent}% (x${d.finalMult.toFixed(8)})`;
+  
+  let breakdown = "";
+  if (d.engraveAdd > 0) breakdown += `<li>・死を刻む: +${(d.engraveAdd * 100).toFixed(6)}%</li>`;
+  if (d.destructionAdd > 0) breakdown += `<li>・破壊の権能: +${(d.destructionAdd * 100).toFixed(2)}%</li>`;
+  if (d.multiFactor > 1.0) breakdown += `<li>・超越の権能: x${d.multiFactor.toFixed(8)} (乗算)</li>`;
+  document.getElementById("st-dmg-breakdown").innerHTML = breakdown;
+
   let maxStar = 1;
   const rates = getCurrentDropRates();
   for(let s in rates) { if(player.maxDmg >= rates[s].cond) maxStar = Math.max(maxStar, parseInt(s)); }
