@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.9</title>
+<title>RELICORE - v2.0</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
   
-  #rare-drop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 40000; justify-content: center; align-items: center; pointer-events: none; }
-  .rare-card { background: #000; border: 2px solid #fff; border-radius: 15px; padding: 30px; text-align: center; color: #fff; transform: scale(0); animation: card-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: auto; min-width: 280px; }
+  #rare-drop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 40000; justify-content: center; align-items: center; pointer-events: auto; }
+  .rare-card { background: #000; border: 2px solid #fff; border-radius: 15px; padding: 30px; text-align: center; color: #fff; transform: scale(0); animation: card-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: none; min-width: 280px; }
   @keyframes card-pop { 0% { transform: scale(0) rotate(-10deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
   .rare-star { font-size: 1.2em; margin-bottom: 10px; display: block; }
   .rare-name { font-size: 1.6em; font-weight: bold; margin-bottom: 15px; display: block; }
@@ -57,7 +57,7 @@
   #content-area { flex-grow: 1; overflow: hidden; background: #fff; }
   .tab { display: none; padding: 10px 10px 150px 10px; height: 100%; width: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .tab.active { display: block; }
-  .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; }
+  .btn-attack { width: 100%; padding: 16px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 0 #0056b3; flex-shrink: 0; touch-action: none; z-index: 10; }
   #log { height: 400px; font-size: 0.82em; background: #fafafa; border: 1px solid var(--border); padding: 10px; overflow-y: auto; border-radius: 8px; line-height: 1.4; }
   .log-set { border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px; }
   .vow-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px 8px 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -112,7 +112,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.9</div>
+<div class="ver-footer">RELICORE v2.0</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -126,6 +126,7 @@ let player = {
 let currentBossHP = BigInt(player.bossMaxHP);
 let attackInterval = null;
 let isModalOpen = false;
+let rareModalTimer = null;
 
 const VOW_UPGRADES = {
   1000: { name: "不退転の力", msg: "攻撃時の遺物獲得数ボーナスが向上した。" },
@@ -165,8 +166,7 @@ function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString
 function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); player.bossMaxHP = p.bossMaxHP || BOSS_MAX_HP_BASE.toString(); player.uraAtkMult = p.uraAtkMult || "1"; currentBossHP = BigInt(p.currentBossHP || player.bossMaxHP); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
 
 function openRareModal(relic) {
-  if (attackInterval) { clearInterval(attackInterval); attackInterval = null; }
-  isModalOpen = true;
+  // 攻撃を止めないよう clearInterval は実行しない
   const modal = document.getElementById("rare-drop-modal");
   const card = document.getElementById("rare-card-content");
   card.className = "rare-card glow-" + relic.star;
@@ -176,8 +176,14 @@ function openRareModal(relic) {
   let detail = (relic.atk ? `ATK +${relic.atk.toLocaleString()} ` : "") + (relic.hp ? `HP +${relic.hp.toLocaleString()} ` : "") + (relic.mult ? `(x${relic.mult})` : "");
   document.getElementById("rare-desc-label").innerHTML = detail + (relic.desc ? `<br><br>${relic.desc}` : "");
   modal.style.display = "flex";
+  
+  if(rareModalTimer) clearTimeout(rareModalTimer);
+  rareModalTimer = setTimeout(closeRareModal, 3000); // 3秒後に自動クローズ
 }
-function closeRareModal() { document.getElementById("rare-drop-modal").style.display = "none"; isModalOpen = false; }
+function closeRareModal() { 
+  document.getElementById("rare-drop-modal").style.display = "none"; 
+  if(rareModalTimer) clearTimeout(rareModalTimer);
+}
 
 function openUpgradeModal(title, msg) {
   if (attackInterval) { clearInterval(attackInterval); attackInterval = null; }
@@ -228,7 +234,7 @@ function renderVow() {
 }
 
 function attack() {
-  if(isModalOpen) { if(attackInterval) { clearInterval(attackInterval); attackInterval = null; } return; }
+  if(isModalOpen) return;
   const b = getRelicBonus();
   const dStats = getDmgStats();
   let rawBase = Number(player.baseAtk + b.atk) * b.mult;
