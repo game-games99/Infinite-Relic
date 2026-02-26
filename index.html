@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.39</title>
+<title>RELICORE - v3.3.40</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -78,7 +78,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:2px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v3.3.39</div>
+<div class="ver-footer">RELICORE v3.3.40</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -171,6 +171,7 @@ function attack() {
           VOW_THRESHOLDS.forEach(t => { if(prevDeath < t && player.deathCount >= t) openUpgradeModal("スキル強化", `戦闘経験値 ${t.toLocaleString()} 到達。`); });
       }
   }
+  if((player.inventory[116] || 0) >= 100000 && !player.hasHado) openHadoModal();
   addLog(logHtml); saveGame(); refreshUI();
 }
 function getGuaranteedDrop() {
@@ -225,15 +226,16 @@ function renderRelics() {
       let baseH = (m.hp || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
       let stText = (baseA ? `ATK +${Math.floor(baseA)} ` : "") + (baseH ? `HP +${Math.floor(baseH)}` : "");
       
-      // 条件を完全に撤廃。ID 116 であれば強制的に計算と表示を行う。
       let extra = "";
       if (id == "116") {
-          const curM = Number(player.maxDmg);
-          const diff = 100000 - curM;
-          if (diff > 0) {
-              extra = `<div style="color:#007bff; font-weight:bold; margin-top:4px;">あと: ${diff.toLocaleString()}</div>`;
+          const count = Number(c);
+          let target = 100000; let label = "破軍の号令";
+          if (count >= 100000) { target = 200000; label = "破軍の大号令"; }
+          if (count >= 200000) { target = 300000; label = "天帝の導き"; }
+          if (count >= 300000) {
+              extra = `<div style="color:#28a745; font-weight:bold; margin-top:4px;">全覚醒完了</div>`;
           } else {
-              extra = `<div style="color:#28a745; font-weight:bold; margin-top:4px;">資格獲得済み</div>`;
+              extra = `<div style="color:#007bff; font-weight:bold; margin-top:4px;">${label}まで、あと: ${(target - count).toLocaleString()}個</div>`;
           }
       }
       return `<div class="relic-card"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${m.desc ? m.desc : stText}${extra}</div></div>`;
@@ -247,7 +249,7 @@ function renderStatus() {
 }
 function checkDropEligibility() {
   let msg = "【現在の獲得資格】\n";
-  Object.entries(getCurrentDropRates()).forEach(([s, d]) => { msg += `★${s}: ${player.maxDmg >= d.cond ? '解放済み' : '未解放 (要:' + d.cond.toLocaleString() + ')'}\n`; });
+  Object.entries(getCurrentDropRates()).forEach(([s, d]) => { msg += `★${s}: ${player.maxDmg >= d.cond ? '解放済み' : '未解放 (要ダメージ:' + d.cond.toLocaleString() + ')'}\n`; });
   alert(msg);
 }
 function showTab(id) { document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active")); document.getElementById(id).classList.add("active"); document.getElementById("nav-"+id).classList.add("active"); refreshUI(); }
