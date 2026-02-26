@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.5</title>
+<title>RELICORE - v1.6</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -100,6 +100,7 @@
   <div id="status" class="tab">
     <div class="st-box">
         戦闘経験値: <span id="v-death">0</span><br>
+        遺物総獲得数: <span id="v-relic-total" style="font-weight:bold; color:var(--relic-purple);">0</span><br>
         最高ダメージ: <span id="st-maxdmg">0</span><br>
         <hr style="border:none; border-top:1px solid #eee; margin:5px 0;">
         最終ダメージ補正: <span id="st-dmgmult" style="font-weight:bold; color:var(--primary);">+0.00% (x1.00)</span>
@@ -111,7 +112,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.5</div>
+<div class="ver-footer">RELICORE v1.6</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -187,7 +188,6 @@ function openHadoModal() { clearInterval(attackInterval); attackInterval = null;
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
-// ダメージ倍率計算（内部ロジック）
 function getDmgStats() {
     let additiveBase = 1.0;
     const kamaCount = player.inventory[406] || 0;
@@ -195,12 +195,9 @@ function getDmgStats() {
     const engraveAdd = (player.deathCount * engraveRate) / 100;
     const destructionCount = player.inventory[504] || 0;
     const destructionAdd = (destructionCount * 0.004);
-    
     additiveBase += engraveAdd + destructionAdd;
-    
     const transcendenceCount = player.inventory[503] || 0;
     const multiFactor = Math.pow(1.00001, transcendenceCount);
-    
     const finalMult = additiveBase * multiFactor;
     return { finalMult, engraveAdd, destructionAdd, multiFactor, additiveBase };
 }
@@ -215,7 +212,6 @@ function renderVow() {
   let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
   const zankoCount = player.inventory[404] || 0; let starLabel = zankoCount > 0 ? "★3以上" : "★2以上";
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-  let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
   const chieCount = player.inventory[405] || 0; let totalPolish = bonus + 1 + chieCount;
   const kamaCount = player.inventory[406] || 0; const finalRate = 0.0004 * (1 + kamaCount); const powerRate = (player.deathCount * finalRate).toFixed(6);
   vowList.innerHTML = `
@@ -231,24 +227,16 @@ function attack() {
   if(isModalOpen) return;
   const b = getRelicBonus();
   const dStats = getDmgStats();
-  
   let rawBase = Number(player.baseAtk + b.atk) * b.mult;
   let randomizedBase = rawBase * (0.8 + Math.random() * 0.4);
   let finalDmg = BigInt(Math.floor(randomizedBase * dStats.finalMult)) || 1n;
-  
   if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
-  
   const dustCount = player.inventory[116] || 0;
-  if (dustCount >= 100000 && !player.hasHado && Math.random() < (1/100000)) {
-    openHadoModal(); return;
-  }
-
+  if (dustCount >= 100000 && !player.hasHado && Math.random() < (1/100000)) { openHadoModal(); return; }
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
   const chieCount = player.inventory[405] || 0;
   let totalPolish = 1 + bonus + chieCount;
-  
   let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
-  
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
           currentBossHP = 0n; isModalOpen = true;
@@ -260,7 +248,6 @@ function attack() {
   } else {
       currentBossHP -= finalDmg; if(currentBossHP < 1n) { currentBossHP = BigInt(player.bossMaxHP); logHtml += `<div><span style="color:#ff0000; font-weight:bold;">終焉の回帰……！ (HP全回復)</span></div>`; }
   }
-  
   if(currentBossHP > 0n) {
       const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
       let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
@@ -268,11 +255,9 @@ function attack() {
       let minCut = (rejStep * 5) + madoBonus; let actualCutPercent = Math.min(100, Math.floor(Math.random() * (101 - minCut)) + minCut);
       let baseBossAtk = MAJIN_ATK_BASE * BigInt(player.uraAtkMult);
       const mitigatedDmgAfterPercent = BigInt(Math.floor(Number(baseBossAtk) * (1 - actualCutPercent / 100)));
-      
       const severanceCount = player.inventory[501] || 0;
       const severanceReduction = BigInt(severanceCount * 500000);
       const finalMitigatedDmg = mitigatedDmgAfterPercent > severanceReduction ? mitigatedDmgAfterPercent - severanceReduction : 0n;
-      
       if (currentTotalHP > finalMitigatedDmg) {
           const oldDeath = player.deathCount;
           if(chieCount > 0) player.deathCount += totalPolish;
@@ -372,33 +357,24 @@ function renderRelics() {
           }
       }
       const gridClass = m.star >= 4 ? "star-high" : "star-low";
-      let displayDesc = "";
-      if (m.star >= 4) {
-          let stats = (m.atk ? `ATK +${m.atk.toLocaleString()} ` : "") + (m.hp ? `HP +${m.hp.toLocaleString()} ` : "") + (m.mult ? `(x${m.mult})` : "");
-          displayDesc = `<div style="color:#6610f2; font-weight:bold; margin-bottom:2px;">${stats}</div>` + (m.desc ? `◆ ${m.desc}` : "");
-      } else {
-          displayDesc = (baseA ? `ATK +${Math.floor(baseA).toLocaleString()} ` : "") + (baseH ? `HP +${Math.floor(baseH).toLocaleString()}` : "");
-      }
+      let displayDesc = m.star >= 4 ? `<div style="color:#6610f2; font-weight:bold; margin-bottom:2px;">${(m.atk ? `ATK +${m.atk.toLocaleString()} ` : "") + (m.hp ? `HP +${m.hp.toLocaleString()} ` : "") + (m.mult ? `(x${m.mult})` : "")}</div>` + (m.desc ? `◆ ${m.desc}` : "") : (baseA ? `ATK +${Math.floor(baseA).toLocaleString()} ` : "") + (baseH ? `HP +${Math.floor(baseH).toLocaleString()}` : "");
       return `<div class="relic-card ${gridClass}"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${displayDesc}${extra}</div></div>`;
   }).join("");
 }
 
 function renderStatus() {
   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
+  let totalRelics = Object.values(player.inventory).reduce((a, b) => a + b, 0);
+  document.getElementById("v-relic-total").innerText = totalRelics.toLocaleString();
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-  
   const d = getDmgStats();
-  const plusPercent = ((d.finalMult - 1.0) * 100).toFixed(6);
-  document.getElementById("st-dmgmult").innerText = `+${plusPercent}% (x${d.finalMult.toFixed(8)})`;
-  
+  document.getElementById("st-dmgmult").innerText = `+${((d.finalMult - 1.0) * 100).toFixed(6)}% (x${d.finalMult.toFixed(8)})`;
   let breakdown = "";
   if (d.engraveAdd > 0) breakdown += `<li>・死を刻む: +${(d.engraveAdd * 100).toFixed(6)}%</li>`;
   if (d.destructionAdd > 0) breakdown += `<li>・破壊の権能: +${(d.destructionAdd * 100).toFixed(2)}%</li>`;
   if (d.multiFactor > 1.0) breakdown += `<li>・超越の権能: x${d.multiFactor.toFixed(8)} (乗算)</li>`;
   document.getElementById("st-dmg-breakdown").innerHTML = breakdown;
-
-  let maxStar = 1;
-  const rates = getCurrentDropRates();
+  let maxStar = 1; const rates = getCurrentDropRates();
   for(let s in rates) { if(player.maxDmg >= rates[s].cond) maxStar = Math.max(maxStar, parseInt(s)); }
   document.getElementById("st-rank").innerText = `★${maxStar}まで`;
   document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/54`;
