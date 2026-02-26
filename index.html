@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.34</title>
+<title>RELICORE - v3.3.35</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -127,7 +127,7 @@
       <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.34</div>
+<div class="ver-footer">RELICORE v3.3.35</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -360,12 +360,13 @@ function renderRelics() {
       if (m.hp) statusParts.push(`HP +${Math.floor(m.hp)}`);
       let statusText = statusParts.join(" ");
 
-      // メモリーダスト専用のカウントダウン表示
+      // メモリーダスト(ID:116)専用のカウントダウン表示
       let extra = "";
       if(m.id == 116) {
-          const nextCond = 100000n;
-          if(player.maxDmg < nextCond) {
-              extra = `<div style="color:#007bff; font-size:0.9em; margin-top:2px;">あと: ${(nextCond - player.maxDmg).toLocaleString()}</div>`;
+          const nextThres = 100000n;
+          if(player.maxDmg < nextThres) {
+              const diff = nextThres - player.maxDmg;
+              extra = `<div style="color:#007bff; font-size:0.9em; margin-top:2px;">あと: ${diff.toLocaleString()}</div>`;
           }
       }
 
