@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.9</title>
+<title>RELICORE - v2.0</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -96,9 +96,9 @@
   <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div>
   <div id="vow" class="tab"><div id="vow-list"></div></div>
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
-  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
+  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="displaynone; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.9</div>
+<div class="ver-footer">RELICORE v2.0</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -156,7 +156,7 @@ function openRareModal(relic) {
   document.getElementById("rare-star-label").innerText = "★" + relic.star;
   document.getElementById("rare-star-label").className = "rare-star c" + relic.star;
   document.getElementById("rare-name-label").innerText = relic.name;
-  let detail = (relic.atk ? `ATK+${relic.atk.toLocaleString()} ` : "") + (relic.hp ? `HP+${relic.hp.toLocaleString()} ` : "") + (relic.mult ? `(x${relic.mult})` : "");
+  let detail = (relic.atk ? `ATK +${relic.atk.toLocaleString()} ` : "") + (relic.hp ? `HP +${relic.hp.toLocaleString()} ` : "") + (relic.mult ? `(x${relic.mult})` : "");
   document.getElementById("rare-desc-label").innerHTML = detail + (relic.desc ? `<br><br>${relic.desc}` : "");
   modal.style.display = "flex";
 }
@@ -331,7 +331,7 @@ function renderRelics() {
       const m = RELIC_MASTER.find(x => x.id == id); if(!m) return "";
       let baseA = (m.atk || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
       let baseH = (m.hp || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
-      let stText = (baseA ? `A+${Math.floor(baseA).toLocaleString()} ` : "") + (baseH ? `H+${Math.floor(baseH).toLocaleString()}` : "");
+      let stText = (baseA ? `ATK +${Math.floor(baseA).toLocaleString()} ` : "") + (baseH ? `HP +${Math.floor(baseH).toLocaleString()}` : "");
       let extra = "";
       if (id == "116") {
           const count = Number(c);
@@ -345,7 +345,7 @@ function renderRelics() {
       const gridClass = m.star >= 4 ? "star-high" : "star-low";
       let displayDesc = "";
       if (m.star >= 4) {
-          let stats = (m.atk ? `A+${m.atk.toLocaleString()} ` : "") + (m.hp ? `H+${m.hp.toLocaleString()} ` : "") + (m.mult ? `(x${m.mult})` : "");
+          let stats = (m.atk ? `ATK +${m.atk.toLocaleString()} ` : "") + (m.hp ? `HP +${m.hp.toLocaleString()} ` : "") + (m.mult ? `(x${m.mult})` : "");
           displayDesc = `<div style="color:#6610f2; font-weight:bold; margin-bottom:2px;">${stats}</div>` + (m.desc ? `◆ ${m.desc}` : "");
       } else {
           displayDesc = stText;
