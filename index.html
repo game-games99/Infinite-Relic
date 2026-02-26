@@ -3,85 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.4</title>
+<title>RELICORE - v1.5</title>
 <style>
-  :root { --bg: #f0f2f5; --panel: #ffffff; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #ffffff; }
+  :root { 
+    --bg: #f4f6f9; --panel: #ffffff; --border: #dee2e6; --text: #212529; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4;
+    --color-atk: #007bff; --color-hp: #dc3545; /* ステータス固定色 */
+    --tab-battle: #c82333; --tab-vow: #d4af37; --tab-relic: #6610f2; --tab-status: #198754; /* 各タブのテーマ色 */
+  }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   
   /* Modals */
   #hado-awaken-modal, #upgrade-modal, #story-modal, #clear-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 30000; justify-content: center; align-items: center; padding: 20px; }
-  #hado-awaken-modal { background: rgba(0,0,0,0.95); }
-  #upgrade-modal, #clear-modal { background: rgba(0,0,0,0.85); }
-  #story-modal { background: #000; z-index: 10000; }
-  
   .hado-content, .upgrade-content, .modal-content { background: #1a1a1a; border: 3px solid var(--gold); border-radius: 20px; padding: 30px; text-align: center; color: #fff; max-width: 450px; width: 95%; box-shadow: 0 0 40px rgba(212, 175, 55, 0.4); }
+  .story-modal { background: #000; }
   .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.2; }
   .story-text { margin-bottom: 35px; font-size: 1.05em; text-align: left; letter-spacing: 0.08em; }
   .story-line { display: block; margin-bottom: 15px; }
-  .story-vow { color: gold; font-weight: bold; display: inline-block; animation: heart-beat 1.5s infinite; text-shadow: 0 0 10px rgba(212, 175, 55, 0.8); }
+  .story-vow { color: gold; font-weight: bold; animation: heart-beat 1.5s infinite; text-shadow: 0 0 10px rgba(212, 175, 55, 0.8); }
   @keyframes heart-beat { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
-  .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; font-size: 1em; cursor: pointer; transition: 0.3s; border-radius: 4px; }
+  .story-btn { background: none; border: 1px solid gold; color: gold; padding: 12px 40px; cursor: pointer; border-radius: 4px; }
   
   /* Rarity Colors */
-  .c1 { color: #888888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #ff0000; font-weight: bold; } .c8 { color: gold; font-weight: bold; }
+  .c1 { color: #888; font-weight: bold; } .c2 { color: #28a745; font-weight: bold; } .c3 { color: #007bff; font-weight: bold; } .c4 { color: #6610f2; font-weight: bold; } .c5 { color: #e83e8c; font-weight: bold; } .c6 { color: #fd7e14; font-weight: bold; } .c7 { color: #ff0000; font-weight: bold; } .c8 { color: gold; font-weight: bold; }
 
-  /* Header & Stats */
+  /* Header */
   #header { background: var(--dark); color: #fff; padding: 12px 10px; border-bottom: 2px solid #000; flex-shrink: 0; }
   .boss-area { text-align: center; width: 100%; }
   .boss-name { font-size: 1.0em; font-weight: bold; color: #888; letter-spacing: 2px; margin-bottom: 4px; }
-  .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 0 auto 8px auto; width: 100%; }
+  .hp-bar-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin: 0 auto 8px auto; }
   #hp-bar-fill { height: 100%; background: linear-gradient(90deg, #b02a37, #dc3545); width: 100%; transition: width 0.15s ease-out; }
-  .hp-val-display { font-size: 1.45em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; word-break: break-all; }
+  .hp-val-display { font-size: 1.45em; font-weight: bold; color: #ff6b6b; font-family: 'Courier New', monospace; }
   .status-box { display: flex; gap: 8px; margin-top: 10px; }
-  .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; border-left: 4px solid var(--primary); }
-  .stat-card.hp-card { border-left-color: var(--hp); }
+  .stat-card { flex: 1; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px; border-left: 4px solid var(--color-atk); }
+  .stat-card.hp-card { border-left-color: var(--color-hp); }
   .stat-label { font-size: 0.65em; color: #aaa; text-transform: uppercase; }
   .stat-val { font-size: 0.9em; font-weight: bold; font-family: monospace; color: #fff; }
 
   /* Navigation */
   .nav { display: flex; background: #fff; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .nav button { flex: 1; padding: 14px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.85em; }
-  .nav button.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+  .nav button { flex: 1; padding: 14px 0; border: none; background: none; color: #6c757d; font-weight: bold; font-size: 0.8em; transition: 0.2s; }
+  #nav-battle.active { color: var(--tab-battle); border-bottom: 3px solid var(--tab-battle); }
+  #nav-vow.active { color: var(--tab-vow); border-bottom: 3px solid var(--tab-vow); }
+  #nav-relic.active { color: var(--tab-relic); border-bottom: 3px solid var(--tab-relic); }
+  #nav-status.active { color: var(--tab-status); border-bottom: 3px solid var(--tab-status); }
 
   /* Tabs */
   #content-area { flex-grow: 1; overflow: hidden; }
   .tab { display: none; padding: 10px 10px 100px 10px; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .tab.active { display: block; }
 
-  /* Battle Tab & Logs */
-  .btn-attack { width: 100%; padding: 18px; background: var(--primary); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #0056b3; cursor: pointer; }
-  #log { height: auto; display: flex; flex-direction: column; gap: 8px; }
-  .log-set { background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--primary); border-radius: 8px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); animation: slideIn 0.2s ease-out; }
-  @keyframes slideIn { from { opacity:0; transform: translateY(-5px); } to { opacity:1; transform: translateY(0); } }
+  /* Battle Tab & Logs (Red Theme) */
+  .btn-attack { width: 100%; padding: 18px; background: var(--tab-battle); color: #fff; font-size: 1.3em; font-weight: bold; border: none; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 0 #8c1926; }
+  .log-set { background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--tab-battle); border-radius: 8px; padding: 10px; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-  /* Vow & Status Cards */
-  .vow-item, .st-box { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 15px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 5px solid gold; }
-  .st-box { border-left-color: var(--primary); }
-  .vow-name, .st-title-flex { font-weight: bold; font-size: 0.95em; color: #333; margin-bottom: 4px; }
-  .vow-highlight { font-weight: bold; font-size: 0.85em; display: block; color: var(--primary); line-height: 1.4; }
-  .vow-sub { font-size: 0.75em; color: #777; display: block; margin-top: 4px; }
+  /* Vow Items (Gold Theme) */
+  .vow-item { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 15px; margin-bottom: 12px; border-left: 5px solid var(--tab-vow); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
 
-  /* Relic List */
+  /* Relic Cards (Purple Theme) */
   .relic-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .relic-card { position: relative; border: 1px solid var(--border); padding: 10px; border-radius: 8px; background: #fff; border-left: 5px solid var(--relic-purple); box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-  .relic-name { font-weight: bold; font-size: 0.75em; margin-bottom: 4px; }
-  .relic-effect-box { font-size: 0.65em; color: #555; }
+  .relic-card { border: 1px solid var(--border); padding: 10px; border-radius: 8px; background: #fff; border-left: 5px solid var(--tab-relic); box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
 
-  .clickable-stat { display: inline-block; color: var(--primary); border: 1px solid var(--primary); padding: 2px 10px; border-radius: 12px; font-size: 0.8em; cursor: pointer; background: #f0f7ff; margin-left: 8px; }
-  .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
+  /* Status Boxes (Green Theme) */
+  .st-box { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px 15px; margin-bottom: 12px; border-left: 5px solid var(--tab-status); box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .st-title-flex { font-weight: bold; font-size: 0.95em; color: #333; margin-bottom: 4px; }
+  .clickable-stat { display: inline-block; color: var(--tab-status); border: 1px solid var(--tab-status); padding: 2px 10px; border-radius: 12px; font-size: 0.8em; cursor: pointer; background: #f0fff4; margin-left: 8px; }
+
+  .vow-name { font-weight: bold; font-size: 0.95em; margin-bottom: 4px; }
+  .vow-highlight { font-weight: bold; font-size: 0.85em; display: block; color: var(--color-atk); line-height: 1.4; }
+  .vow-sub { font-size: 0.75em; color: #777; display: block; margin-top: 4px; }
+  .btn-reset { width: 100%; padding: 16px; background: #6c757d; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
   .ver-footer { position: fixed; bottom: 6px; right: 10px; color: #bbb; font-size: 0.7em; pointer-events: none; }
 </style>
 </head>
 <body>
 <div id="hado-awaken-modal"><div class="hado-content"><div class="hado-title">隠しスキル【破軍 of 号令】覚醒</div><div class="hado-msg">戦場に漂う数多の記憶……その「残滓」が臨界を超えたとき、王者の魂が呼び覚まされた。<br><br><span style="color:var(--gold); font-weight:bold;">【効果：覇道の理】</span><br>★1遺物の基礎ステータス上昇値が<span style="color:var(--gold); font-size:1.2em;"> 10倍 </span>に固定強化される。<br>さらに、★2遺物(20%)、★3遺物(1%)の出現率が大幅に上昇する。</div><button class="story-btn" onclick="closeHadoModal()">その力を受け入れる</button></div></div>
 <div id="upgrade-modal"><div class="upgrade-content"><div id="upgrade-title" class="upgrade-title"></div><div id="upgrade-msg" class="upgrade-msg"></div><button class="story-btn" onclick="closeUpgradeModal()">承知した</button></div></div>
-<div id="story-modal"><div class="story-content"><div class="story-text"><span class="story-line" style="color:#888;">わたしはすべてをうばわれた</span><span class="story-line" style="color:#4b0082;">奴によって世界は終わりを告げ、すべては虚無に飲まれたはずだった</span><span class="story-line" style="color:#fff;">しかし、それでもまだ諦めることを知らない光がある</span><span class="story-line"><span class="story-vow">『再起の誓い』</span><span style="color:#d4af37;">が魂を激しく鼓動させる</span></span><span class="story-line" style="color:#ff0000; font-weight:bold;">奴を一撃で葬るその日まで、わたしは止まることを知らない</span></div><button class="story-btn" onclick="closeStory()">魂に刻印する</button></div></div>
+<div id="story-modal" class="story-modal"><div class="story-content"><div class="story-text"><span class="story-line" style="color:#888;">わたしはすべてをうばわれた</span><span class="story-line" style="color:#4b0082;">奴によって世界は終わりを告げ、すべては虚無に飲まれたはずだった</span><span class="story-line" style="color:#fff;">しかし、それでもまだ諦めることを知らない光がある</span><span class="story-line"><span class="story-vow">『再起の誓い』</span><span style="color:#d4af37;">が魂を激しく鼓動させる</span></span><span class="story-line" style="color:#ff0000; font-weight:bold;">奴を一撃で葬るその日まで、わたしは止まることを知らない</span></div><button class="story-btn" onclick="closeStory()">魂に刻印する</button></div></div>
 <div id="clear-modal"><div class="modal-content"><h3 id="clear-title">討伐成功</h3><p id="clear-msg">終末神アポカリス＝ティアを討伐しました。</p><button class="story-btn" onclick="closeClearModal()">次なる戦いへ</button></div></div>
 
 <div id="header"><div class="boss-area"><div class="boss-name" id="boss-display-name">終末神アポカリス＝ティア</div><div class="hp-bar-container"><div id="hp-bar-fill"></div></div><div class="hp-val-display" id="bosshp-cur">0</div></div><div class="status-box"><div class="stat-card"><span class="stat-label">ATK</span><div class="stat-val" id="p-atk">0</div></div><div class="stat-card hp-card"><span class="stat-label">HP</span><div class="stat-val" id="p-hp">0</div></div></div></div>
 
-<div class="nav"><button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button><button onclick="showTab('vow')" id="nav-vow">再起</button><button onclick="showTab('relic')" id="nav-relic">遺物</button><button onclick="showTab('status')" id="nav-status">詳細</button></div>
+<div class="nav">
+  <button onclick="showTab('battle')" id="nav-battle" class="active">討伐</button>
+  <button onclick="showTab('vow')" id="nav-vow">再起</button>
+  <button onclick="showTab('relic')" id="nav-relic">遺物</button>
+  <button onclick="showTab('status')" id="nav-status">詳細</button>
+</div>
 
 <div id="content-area">
   <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div>
@@ -105,7 +113,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.4</div>
+<div class="ver-footer">RELICORE v1.5</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -177,7 +185,7 @@ function attack() {
   if (dustCount >= 100000 && !player.hasHado && Math.random() < (1/100000)) openHadoModal();
 
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-  let logHtml = `<div><span style="color:var(--primary); font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
+  let logHtml = `<div><span style="color:var(--tab-battle); font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
 
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
@@ -268,7 +276,7 @@ function renderRelics() {
       let baseA = (m.atk || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
       let baseH = (m.hp || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
       let stText = (baseA ? `ATK +${Math.floor(baseA)} ` : "") + (baseH ? `HP +${Math.floor(baseH)}` : "");
-      let extra = (id == "116" && !player.hasHado) ? `<div style="color:var(--primary); font-weight:bold; margin-top:4px;">残り: ${Math.max(0, 100000 - Number(c)).toLocaleString()}</div>` : "";
+      let extra = (id == "116" && !player.hasHado) ? `<div style="color:var(--tab-status); font-weight:bold; margin-top:4px;">残り: ${Math.max(0, 100000 - Number(c)).toLocaleString()}</div>` : "";
       return `<div class="relic-card" style="border-left-color: ${getStarColor(m.star)}"><div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div><div class="relic-effect-box">${m.desc ? m.desc : stText}${extra}</div></div>`;
   }).join("");
 }
