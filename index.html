@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.3</title>
+<title>RELICORE - v1.4</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -78,7 +78,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.3</div>
+<div class="ver-footer">RELICORE v1.4</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -88,6 +88,7 @@ const HADO_DROP_DATA = { 1:{p:78.988889,cond:0n}, 2:{p:20.0,cond:0n}, 3:{p:1.0,c
 let player = { 
   inventory: {
     0:1,
+    116:100000,
     301:1, 302:1, 303:1, 304:1, 305:1, 306:1, 307:1, 308:1, 309:1, 310:1,
     401:1, 402:1, 403:1, 404:1, 405:1, 406:1,
     501:1, 502:1, 503:1, 504:1
@@ -157,10 +158,13 @@ function attack() {
   const destructionBonus = 1.0 + (destructionCount * 0.004);
   finalDmg = BigInt(Math.floor(Number(finalDmg) * destructionBonus));
   if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
+  
+  // 破軍の号令 覚醒チェック
   const dustCount = player.inventory[116] || 0;
   if (dustCount >= 100000 && !player.hasHado && Math.random() < (1/100000)) {
     openHadoModal();
   }
+
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
   const chieCount = player.inventory[405] || 0;
   let totalPolish = 1 + bonus + chieCount;
@@ -188,7 +192,6 @@ function attack() {
       const severanceReduction = BigInt(severanceCount * 500000);
       const finalMitigatedDmg = mitigatedDmgAfterPercent > severanceReduction ? mitigatedDmgAfterPercent - severanceReduction : 0n;
       if (currentTotalHP > finalMitigatedDmg) {
-          // 【修正】生存中も賢者の叡智があれば魂の研磨ボーナスをそのまま加算
           const oldDeath = player.deathCount;
           if(chieCount > 0) player.deathCount += totalPolish;
           logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！ ${chieCount > 0 ? '(経験値+' + totalPolish + ')' : ''}</span></div>` + getGuaranteedDrop();
