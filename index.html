@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.4</title>
+<title>RELICORE - v1.5</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -78,7 +78,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.4</div>
+<div class="ver-footer">RELICORE v1.5</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -105,7 +105,7 @@ const RELIC_MASTER = [
   {id:101, star:1, name:"剣士の欠片", atk:7.4, hp:0}, {id:102, star:1, name:"狩人の欠片", atk:8.1, hp:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9.6, hp:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10.3, hp:0}, {id:105, star:1, name:"武闘家の欠片", atk:6.7, hp:0}, {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45.2}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55.9}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65.4}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40.3}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50.8}, {id:111, star:1, name:"魔法使いの欠片", atk:4.2, hp:35.7}, {id:112, star:1, name:"斥候の欠片", atk:3.9, hp:48.1}, {id:113, star:1, name:"冒険者の欠片", atk:5.4, hp:42.6}, {id:114, star:1, name:"見習いの欠片", atk:2.1, hp:30.5}, {id:115, star:1, name:"放浪者の欠片", atk:4.7, hp:44.2}, {id:116, star:1, name:"メモリーダスト", atk:1.3, hp:10.9},
   {id:201, star:2, name:"聖騎士の欠片", atk:41.2, hp:682.4}, {id:202, star:2, name:"龍騎士の欠片", atk:86.7, hp:423.1}, {id:203, star:2, name:"暗黒騎士の欠片", atk:134.2, hp:0}, {id:204, star:2, name:"賢者の欠片", atk:52.1, hp:711.2}, {id:205, star:2, name:"大魔道士の欠片", atk:118.9, hp:24.3}, {id:206, star:2, name:"暗殺王の欠片", atk:156.3, hp:12.7}, {id:207, star:2, name:"重装騎士の欠片", atk:0, hp:1248.6}, {id:208, star:2, name:"拳聖の欠片", atk:99.2, hp:315.4}, {id:209, star:2, name:"神官の欠片", atk:4.2, hp:1486.7}, {id:210, star:2, name:"冒険王の欠片", atk:73.3, hp:594.1},
   {id:301, star:3, name:"聖龍騎士の欠片", atk:874.3, hp:6924.1}, {id:302, star:3, name:"深淵魔導の欠片", atk:1324.1, hp:214.7}, {id:303, star:3, name:"金剛武神の欠片", atk:412.8, hp:14863.2}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:1568.4, hp:0}, {id:305, star:3, name:"大聖者の欠片", atk:52.7, hp:15241.4}, {id:306, star:3, name:"影の支配者の欠片", atk:1410.9, hp:128.4}, {id:307, star:3, name:"竜血闘士の欠片", atk:1024.2, hp:4210.9}, {id:308, star:3, name:"天界騎士の欠片", atk:612.7, hp:9845.1}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:1624.8, hp:42.1}, {id:310, star:3, name:"極大賢者の欠片", atk:542.1, hp:11840.7},
-  {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得する遺物個数を (1+所持数) 倍にする。"},
+  {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得する遺物個数を (所持数) 加算する。"},
   {id:402, star:4, name:"【刹那】聖者の遺志", atk:50000, hp:250000, desc: "戦闘経験値に応じHP上昇抽選を (1+所持数) 回行う。"},
   {id:403, star:4, name:"【因果】魔導王の記憶", atk:75000, hp:150000, desc: "「因果の拒絶」の軽減率下限を1個につき1%上昇(最大+30%)。"},
   {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"},
@@ -127,7 +127,7 @@ function closeHadoModal() { document.getElementById("hado-awaken-modal").style.d
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 function renderVow() {
   const vowList = document.getElementById('vow-list'); if (!vowList) return;
-  const bushinCount = player.inventory[401] || 0; const dropMultDisplay = 1 + bushinCount;
+  const bushinAdd = player.inventory[401] || 0;
   const hpMaxRange = player.deathCount.toLocaleString();
   let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
   const madoCount = player.inventory[403] || 0; const madoBonus = Math.min(30, madoCount);
@@ -139,7 +139,7 @@ function renderVow() {
   const chieCount = player.inventory[405] || 0; let totalPolish = bonus + 1 + chieCount;
   const kamaCount = player.inventory[406] || 0; const finalRate = 0.0004 * (1 + kamaCount); const powerRate = (player.deathCount * finalRate).toFixed(4);
   vowList.innerHTML = `
-      <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を ${dropMultDisplay} つ獲得する</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
+      <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を獲得する (追加：+${bushinAdd})</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
@@ -159,7 +159,6 @@ function attack() {
   finalDmg = BigInt(Math.floor(Number(finalDmg) * destructionBonus));
   if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
   
-  // 破軍の号令 覚醒チェック
   const dustCount = player.inventory[116] || 0;
   if (dustCount >= 100000 && !player.hasHado && Math.random() < (1/100000)) {
     openHadoModal();
@@ -216,17 +215,19 @@ function getGuaranteedDrop() {
 }
 function getDropLog(targetCount) {
   let obtained = {}; const rates = getCurrentDropRates(); 
-  const dropMult = (1 + (player.inventory[401] || 0)) + ((player.inventory[502] || 0) * 5);
-  for(let i=0; i < targetCount; i++) {
-      for(let m = 0; m < dropMult; m++) {
-          let rv = Math.random()*100, star=1, curP=0;
-          for(let s in rates) { curP += rates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
-          if (player.maxDmg < rates[star].cond) star=1;
-          let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0); 
-          let sel = cands[Math.floor(Math.random() * cands.length)];
-          player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1; 
-          obtained[sel.id] = (obtained[sel.id] || 0) + 1;
-      }
+  // 【不退転】乗算から加算へ修正
+  const bushinCount = player.inventory[401] || 0;
+  const greedCount = player.inventory[502] || 0;
+  const totalDropNum = targetCount + bushinCount + (greedCount * 5);
+  
+  for(let i=0; i < totalDropNum; i++) {
+      let rv = Math.random()*100, star=1, curP=0;
+      for(let s in rates) { curP += rates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
+      if (player.maxDmg < rates[star].cond) star=1;
+      let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0); 
+      let sel = cands[Math.floor(Math.random() * cands.length)];
+      player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1; 
+      obtained[sel.id] = (obtained[sel.id] || 0) + 1;
   }
   return Object.entries(obtained).length > 0 ? `<div style="font-size:0.82em;">獲得：${Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; }).join(", ")}</div>` : "";
 }
