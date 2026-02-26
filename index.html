@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2</title>
+<title>RELICORE - v1.3</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -108,7 +108,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.2</div>
+<div class="ver-footer">RELICORE v1.3</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -124,13 +124,13 @@ let attackInterval = null;
 let isModalOpen = false;
 
 const VOW_UPGRADES = {
-  1000: { name: "不退転の力", msg: "攻撃時の遺物獲得数ボーナスが向上した。" },
-  5000: { name: "刹那の堆積", msg: "生存時に魂へ蓄積されるHPの変動幅が増加した。" },
-  25000: { name: "因果の拒絶", msg: "深淵の記憶により、攻撃を無効化する確率の下限が引き上げられた。" },
-  60000: { name: "魂の研磨", msg: "戦闘経験の効率がさらに高まり、成長速度が加速した。" },
-  100000: { name: "死を刻む", msg: "積み上げた殺意が結晶化し、最終ダメージ倍率が跳ね上がった。" },
-  150000: { name: "反撃の狼煙", msg: "窮地を脱するたびに、より高品位な遺物を引き寄せるようになった。" },
-  250000: { name: "再起の誓い", msg: "魂の格が上昇した。全ての再起スキルが極致に近づく。" }
+  1000: { name: "不退転 of Force", msg: "攻撃時の遺物獲得数ボーナスが向上した。" },
+  5000: { name: "刹那 of Accumulation", msg: "生存時に魂へ蓄積されるHPの変動幅が増加した。" },
+  25000: { name: "因果 of Rejection", msg: "深淵の記憶により、攻撃を無効化する確率の下限が引き上げられた。" },
+  60000: { name: "魂 of Polish", msg: "戦闘経験の効率がさらに高まり、成長速度が加速した。" },
+  100000: { name: "死 of Engraving", msg: "積み上げた殺意が結晶化し、最終ダメージ倍率が跳ね上がった。" },
+  150000: { name: "反撃 of Beacon", msg: "窮地を脱するたびに、より高品位な遺物を引き寄せるようになった。" },
+  250000: { name: "再起 of Vow", msg: "魂の格が上昇した。全ての再起スキルが極致に近づく。" }
 };
 
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
@@ -184,14 +184,22 @@ function openHadoModal() { clearInterval(attackInterval); attackInterval = null;
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
+// 死を刻む・超越・破壊の効果をすべて合算した倍率を返す
 function calcFinalDmgMult() {
   let mult = 1.0;
+  // 1. 死を刻む (経験値による加算)
   const kamaCount = player.inventory[406] || 0;
-  mult += (player.deathCount * 0.0004 * (1 + kamaCount)) / 100;
+  const engraveRate = 0.0004 * (1 + kamaCount); // %単位の係数
+  mult += (player.deathCount * engraveRate) / 100;
+
+  // 2. 破壊の権能 (+0.004 / 1個)
   const destructionCount = player.inventory[504] || 0;
   mult += (destructionCount * 0.004);
+
+  // 3. 超越の権能 (+0.00001 / 1個)
   const transcendenceCount = player.inventory[503] || 0;
   mult += (transcendenceCount * 0.00001);
+
   return mult;
 }
 
@@ -207,14 +215,14 @@ function renderVow() {
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
   let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
   const chieCount = player.inventory[405] || 0; let totalPolish = bonus + 1 + chieCount;
-  const kamaCount = player.inventory[406] || 0; const finalRate = 0.0004 * (1 + kamaCount); const powerRate = (player.deathCount * finalRate).toFixed(4);
+  const kamaCount = player.inventory[406] || 0; const finalRate = 0.0004 * (1 + kamaCount); const powerRate = (player.deathCount * finalRate).toFixed(6);
   vowList.innerHTML = `
       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を獲得する (追加：+${bushinAdd})</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/経験値ボーナス：+${totalPolish}</span><span class="vow-sub">蓄積した戦闘経験に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
-      <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%加算する</span></div>`;
+      <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>`;
 }
 
 function attack() {
@@ -258,6 +266,8 @@ function attack() {
       let minCut = (rejStep * 5) + madoBonus; let actualCutPercent = Math.min(100, Math.floor(Math.random() * (101 - minCut)) + minCut);
       let baseBossAtk = MAJIN_ATK_BASE * BigInt(player.uraAtkMult);
       const mitigatedDmgAfterPercent = BigInt(Math.floor(Number(baseBossAtk) * (1 - actualCutPercent / 100)));
+      
+      // ★5 断絶の権能 (500,000軽減)
       const severanceCount = player.inventory[501] || 0;
       const severanceReduction = BigInt(severanceCount * 500000);
       const finalMitigatedDmg = mitigatedDmgAfterPercent > severanceReduction ? mitigatedDmgAfterPercent - severanceReduction : 0n;
@@ -300,6 +310,7 @@ function getGuaranteedDrop() {
 function getDropLog(targetCount) {
   let obtained = {}; const rates = getCurrentDropRates(); 
   const bushinCount = player.inventory[401] || 0;
+  // ★5 強欲の権能 (+5個 / 1個)
   const greedCount = player.inventory[502] || 0;
   const totalDropNum = targetCount + bushinCount + (greedCount * 5);
   let highestRelic = null;
@@ -325,6 +336,7 @@ function getRelicBonus() {
       if(player.hasHado && r.star === 1) { baseA *= 10; baseH *= 10; }
       atk += baseA; hp += baseH; if(r.mult) mult *= Math.pow(r.mult, count);
   });
+  // HP > ATK バランス調整 (遺物上昇分に対してHPを多めにする規定)
   return { atk: BigInt(Math.floor(atk)), hp: BigInt(Math.floor(hp)), mult };
 }
 
@@ -377,7 +389,8 @@ function renderRelics() {
 function renderStatus() {
   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
-  document.getElementById("st-dmgmult").innerText = "x" + calcFinalDmgMult().toFixed(4);
+  // 最終ダメージ倍率を小数点以下まで精密に表示
+  document.getElementById("st-dmgmult").innerText = "x" + calcFinalDmgMult().toFixed(8);
   
   let maxStar = 1;
   const rates = getCurrentDropRates();
