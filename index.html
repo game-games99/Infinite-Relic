@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.7</title>
+<title>RELICORE - v1.8</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -30,7 +30,7 @@
   #upgrade-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 20000; justify-content: center; align-items: center; padding: 20px; }
   .upgrade-content { background: #1a1a1a; border: 2px solid gold; border-radius: 15px; padding: 30px; text-align: center; color: #fff; max-width: 400px; width: 90%; box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
   .upgrade-title { color: gold; font-size: 1.4em; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px gold; }
-  .upgrade-msg { font-size: 0.95em; line-height: 1.6; margin-bottom: 25px; color: #eee; }
+  .upgrade-msg { font-size: 0.95em; line-height: 1.6; margin-bottom: 25px; color: #eee; white-space: pre-wrap; }
   
   #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; justify-content: center; align-items: center; padding: 20px; }
   .story-content { max-width: 500px; color: #fff; text-align: center; line-height: 2.2; }
@@ -112,7 +112,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.7</div>
+<div class="ver-footer">RELICORE v1.8</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -162,7 +162,7 @@ function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString
 function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); player.bossMaxHP = p.bossMaxHP || BOSS_MAX_HP_BASE.toString(); player.uraAtkMult = p.uraAtkMult || "1"; currentBossHP = BigInt(p.currentBossHP || player.bossMaxHP); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
 
 function openRareModal(relic) {
-  if (attackInterval) return;
+  if (attackInterval) { clearInterval(attackInterval); attackInterval = null; }
   isModalOpen = true;
   const modal = document.getElementById("rare-drop-modal");
   const card = document.getElementById("rare-card-content");
@@ -177,14 +177,14 @@ function openRareModal(relic) {
 function closeRareModal() { document.getElementById("rare-drop-modal").style.display = "none"; isModalOpen = false; }
 
 function openUpgradeModal(title, msg) {
-  if (attackInterval) return;
-  clearInterval(attackInterval); attackInterval = null; isModalOpen = true; 
+  if (attackInterval) { clearInterval(attackInterval); attackInterval = null; }
+  isModalOpen = true; 
   document.getElementById("upgrade-title").innerText = title; 
   document.getElementById("upgrade-msg").innerText = msg; 
   document.getElementById("upgrade-modal").style.display = "flex"; 
 }
 function closeUpgradeModal() { document.getElementById("upgrade-modal").style.display = "none"; isModalOpen = false; }
-function openHadoModal() { clearInterval(attackInterval); attackInterval = null; isModalOpen = true; document.getElementById("hado-awaken-modal").style.display = "flex"; }
+function openHadoModal() { if (attackInterval) { clearInterval(attackInterval); attackInterval = null; } isModalOpen = true; document.getElementById("hado-awaken-modal").style.display = "flex"; }
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
@@ -217,7 +217,7 @@ function renderVow() {
   let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
   vowList.innerHTML = `
       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を獲得する (追加：+${bushinAdd})</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
-      <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">再起時HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
+      <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/経験値ボーナス：+${totalPolish}</span><span class="vow-sub">蓄積した戦闘経験に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
@@ -225,7 +225,7 @@ function renderVow() {
 }
 
 function attack() {
-  if(isModalOpen) return;
+  if(isModalOpen) { if(attackInterval) { clearInterval(attackInterval); attackInterval = null; } return; }
   const b = getRelicBonus();
   const dStats = getDmgStats();
   let rawBase = Number(player.baseAtk + b.atk) * b.mult;
@@ -240,7 +240,7 @@ function attack() {
   let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
-          currentBossHP = 0n; isModalOpen = true;
+          currentBossHP = 0n; isModalOpen = true; if(attackInterval) { clearInterval(attackInterval); attackInterval = null; }
           document.getElementById("clear-title").innerText = player.isUra ? "災厄 封印成功" : "神 討伐成功";
           document.getElementById("clear-modal").style.display = "flex";
       } else {
@@ -279,7 +279,7 @@ function checkLevelUp(oldVal) {
     [...VOW_THRESHOLDS, ...REJECTION_THRESHOLDS].sort((a,b)=>a-b).forEach(t => {
         if(oldVal < t && player.deathCount >= t) {
             const up = VOW_UPGRADES[t] || { name: "未知の力", msg: "魂に新たな力が宿った。" };
-            openUpgradeModal(`${up.name} が覚醒した`, `${up.msg}\n（必要経験値 ${t.toLocaleString()} 到達）`);
+            openUpgradeModal(`${up.name} が覚醒した`, `${up.msg}\n\n（到達経験値：${t.toLocaleString()}）`);
         }
     });
 }
@@ -395,7 +395,14 @@ function closeClearModal() { document.getElementById("clear-modal").style.displa
 function resetData() { if(confirm("全リセットしますか？")) { localStorage.clear(); location.reload(); } }
 
 const btn = document.getElementById("attackBtn");
-btn.addEventListener("pointerdown", (e) => { e.preventDefault(); if(!attackInterval && !isModalOpen) { attack(); attackInterval = setInterval(attack, 120); } });
+btn.addEventListener("pointerdown", (e) => { 
+  e.preventDefault(); 
+  if(isModalOpen) return;
+  if(!attackInterval) { 
+    attack(); 
+    attackInterval = setInterval(attack, 120); 
+  } 
+});
 window.addEventListener("pointerup", () => { clearInterval(attackInterval); attackInterval = null; });
 loadGame(); refreshUI();
 </script>
