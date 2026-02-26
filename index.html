@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.33</title>
+<title>RELICORE - v3.3.34</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -127,7 +127,7 @@
       <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.33</div>
+<div class="ver-footer">RELICORE v3.3.34</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
@@ -156,7 +156,7 @@ const RELIC_MASTER = [
   {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000, desc: "最低★3確定。2個目以降★3を削り、0.01%ずつ★4へ。"},
   {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000, desc: "生存時も攻撃のたびに戦闘経験値が (所持数) 増加する。"},
   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000, desc: "「死を刻む」の上昇量に 1つにつき +0.0004% 加算する。"},
-  {id:501, star:5, name:"慈愛の権能", atk:250000, hp:800000}, {id:502, star:5, name:"強欲の権能", atk:450000, hp:550000}, {id:503, star:5, name:"忍耐の権能", atk:200000, hp:950000}, {id:504, star:5, name:"知恵の権能", atk:350000, hp:720000},
+  {id:501, star:5, name:"慈愛の権能", atk:250000, hp:800000}, {id:502, star:5, name:"強欲의権能", atk:450000, hp:550000}, {id:503, star:5, name:"忍耐の権能", atk:200000, hp:950000}, {id:504, star:5, name:"知恵の権能", atk:350000, hp:720000},
   {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"災厄が詰まった箱。神を討つための鍵。"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
@@ -349,22 +349,29 @@ function refreshUI() {
   if(tid === 'vow') renderVow(); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
 }
 
-// 遺物タブ表示ロジック（累計を消し、基本値と所持数を表示）
 function renderRelics() {
   const sorted = Object.entries(player.inventory).filter(([id, c]) => c > 0).sort((a,b) => { const ra = RELIC_MASTER.find(x=>x.id==a[0]), rb = RELIC_MASTER.find(x=>x.id==b[0]); return ra.star - rb.star; });
   document.getElementById("relic-list").innerHTML = sorted.map(([id, c]) => {
       const m = RELIC_MASTER.find(x => x.id == id);
       if(!m) return "";
       
-      // 基本ステータスを整数で取得（hadoボーナス等は計算にのみ使い、表示はマスタ準拠）
       let statusParts = [];
-      if (m.atk) statusParts.push(`ATK ${Math.floor(m.atk)}`);
-      if (m.hp) statusParts.push(`HP ${Math.floor(m.hp)}`);
+      if (m.atk) statusParts.push(`ATK +${Math.floor(m.atk)}`);
+      if (m.hp) statusParts.push(`HP +${Math.floor(m.hp)}`);
       let statusText = statusParts.join(" ");
+
+      // メモリーダスト専用のカウントダウン表示
+      let extra = "";
+      if(m.id == 116) {
+          const nextCond = 100000n;
+          if(player.maxDmg < nextCond) {
+              extra = `<div style="color:#007bff; font-size:0.9em; margin-top:2px;">あと: ${(nextCond - player.maxDmg).toLocaleString()}</div>`;
+          }
+      }
 
       return `<div class="relic-card">
           <div class="relic-name c${m.star}">★${m.star} ${m.name}×${c}</div>
-          <div class="relic-effect-box">${m.desc ? m.desc : statusText}</div>
+          <div class="relic-effect-box">${m.desc ? m.desc : statusText}${extra}</div>
       </div>`;
   }).join("");
 }
