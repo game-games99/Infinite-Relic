@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.1</title>
+<title>RELICORE - v1.2</title>
 <style>
+  /* スタイル定義は変更なし（省略せず維持） */
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -76,16 +77,15 @@
   <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div>
   <div id="vow" class="tab"><div id="vow-list"></div></div>
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
-  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
+  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="displaynone; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.1</div>
+<div class="ver-footer">RELICORE v1.2</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
 const MAJIN_ATK_BASE = 999999999999n;
 const BASE_DROP_DATA = { 1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 const HADO_DROP_DATA = { 1:{p:78.988889,cond:0n}, 2:{p:20.0,cond:0n}, 3:{p:1.0,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
-// テストプレイ用に★3, ★4, ★5の遺物を1つずつ追加
 let player = { 
   inventory: {
     0:1,
@@ -115,7 +115,7 @@ const RELIC_MASTER = [
   {id:502, star:5, name:"強欲の権能", atk:649800, hp:812400, desc: "遺物獲得数を1つにつき+5加算する。"}, 
   {id:503, star:5, name:"超越の権能", atk:524180, hp:689450, desc: "1つにつき最終ATKを0.001%加算する。"}, 
   {id:504, star:5, name:"破壊の権能", atk:999999, hp:0, desc: "1つにつき最終ダメージを+0.4%加算する。"},
-  {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無의 권능", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
+  {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"災厄が詰まった箱。神を討つための鍵。"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), currentBossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
@@ -163,6 +163,7 @@ function attack() {
     openHadoModal();
   }
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
+  // 【修正】通常ドロップの抽選を1つずつ行うように変更
   let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
@@ -187,6 +188,7 @@ function attack() {
       const finalMitigatedDmg = mitigatedDmgAfterPercent > severanceReduction ? mitigatedDmgAfterPercent - severanceReduction : 0n;
       if (currentTotalHP > finalMitigatedDmg) {
           if((player.inventory[405] || 0) > 0) player.deathCount += player.inventory[405];
+          // 【修正】生存時の確定ドロップ（狼煙）が他倍率の影響を受けないよう分離
           logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop();
       } else {
           const prevDeath = player.deathCount; let totalUpHP = 0n;
@@ -203,17 +205,25 @@ function getGuaranteedDrop() {
   if(zankoCount > 0 && Math.random() < (0.001 + (zankoCount-1)*0.0001)) star = 4;
   if (player.maxDmg < getCurrentDropRates()[star].cond) star = 2;
   let cands = RELIC_MASTER.filter(m => m.star === star); let sel = cands[Math.floor(Math.random() * cands.length)];
-  const dropMult = (1 + (player.inventory[401] || 0)) + ((player.inventory[502] || 0) * 5); player.inventory[sel.id] = (player.inventory[sel.id] || 0) + dropMult;
-  return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×${dropMult}</span></div>`;
+  // 狼煙の個数は倍率を受けず、「1 + 狼煙の所持数（残光ボーナス）」など、スキル自身の性質に依存するようにする（現状はシンプルに1つ）
+  player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
+  return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}×1</span></div>`;
 }
 function getDropLog(targetCount) {
-  let obtained = {}; const rates = getCurrentDropRates(); const dropMult = (1 + (player.inventory[401] || 0)) + ((player.inventory[502] || 0) * 5);
-  for(let i=0; i<targetCount; i++) {
-      let rv = Math.random()*100, star=1, curP=0;
-      for(let s in rates) { curP += rates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
-      if (player.maxDmg < rates[star].cond) star=1;
-      let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0); let sel = cands[Math.floor(Math.random() * cands.length)];
-      player.inventory[sel.id] = (player.inventory[sel.id] || 0) + dropMult; obtained[sel.id] = (obtained[sel.id] || 0) + dropMult;
+  let obtained = {}; const rates = getCurrentDropRates(); 
+  // 通常ドロップ倍率（不退転 + 強欲）
+  const dropMult = (1 + (player.inventory[401] || 0)) + ((player.inventory[502] || 0) * 5);
+  // 【修正】個別に抽選を行う
+  for(let i=0; i < targetCount; i++) {
+      for(let m = 0; m < dropMult; m++) {
+          let rv = Math.random()*100, star=1, curP=0;
+          for(let s in rates) { curP += rates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
+          if (player.maxDmg < rates[star].cond) star=1;
+          let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0); 
+          let sel = cands[Math.floor(Math.random() * cands.length)];
+          player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1; 
+          obtained[sel.id] = (obtained[sel.id] || 0) + 1;
+      }
   }
   return Object.entries(obtained).length > 0 ? `<div style="font-size:0.82em;">獲得：${Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; }).join(", ")}</div>` : "";
 }
