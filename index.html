@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v3.3.31</title>
+<title>RELICORE - v3.3.32</title>
 <style>
    :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
    * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -128,14 +128,17 @@
        <button class="btn-reset" onclick="resetData()">全データリセット</button>
    </div>
 </div>
-<div class="ver-footer">RELICORE v3.3.31</div>
+<div class="ver-footer">RELICORE v3.3.32</div>
 
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
 const MAJIN_ATK_BASE = 999999999999n;
 
-const BASE_DROP_DATA = { 1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
+const BASE_DROP_DATA = { 
+    1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,cond:0n}, 
+    4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} 
+};
 
 let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false, hasDaiHado:false, hasTentei:false, isUra:false, bossMaxHP: BOSS_MAX_HP_BASE.toString(), uraAtkMult: "1" };
 let currentBossHP = BigInt(player.bossMaxHP);
@@ -217,39 +220,9 @@ function getCurrentDropRates() {
        if(player.hasDaiHado) { rates[1].p -= 10; rates[2].p += 5; rates[3].p += 5; }
        if(player.hasTentei) { rates[1].p -= 15; rates[2].p += 7.5; rates[3].p += 7.5; }
    }
+   // 各段階の条件(cond)をBigIntとして復元
    for(let s in rates) rates[s].cond = BigInt(BASE_DROP_DATA[s].cond);
    return rates;
-}
-
-function renderVow() {
-   const vowList = document.getElementById('vow-list'); if (!vowList) return;
-   const bushinCount = player.inventory[401] || 0;
-   const dropMultDisplay = 1 + bushinCount;
-   const hpMaxRange = player.deathCount.toLocaleString();
-   let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
-   const madoCount = player.inventory[403] || 0;
-   const madoBonus = Math.min(30, madoCount); 
-   const baseRejMin = rejStep * 5;
-   const finalRejMin = baseRejMin + madoBonus;
-   let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
-   const zankoCount = player.inventory[404] || 0;
-   let starLabel = zankoCount > 0 ? "★3以上" : "★2以上";
-   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-   let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
-   const chieCount = player.inventory[405] || 0;
-   let totalPolish = bonus + 1 + chieCount;
-   const kamaCount = player.inventory[406] || 0;
-   const finalRate = 0.0004 * (1 + kamaCount);
-   const powerRate = (player.deathCount * finalRate).toFixed(4);
-
-   vowList.innerHTML = `
-       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">戦闘を経験するたびにランダムな遺物を ${dropMultDisplay} つ獲得する</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
-       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。勝利への渇望が核に宿る。</span></div>
-       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
-       <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
-       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">遺物獲得数/経験値ボーナス：+${totalPolish}</span><span class="vow-sub">蓄積した戦闘経験に応じて機能強化（次回：${nextVowThres.toLocaleString()}）</span></div>
-       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>
-   `;
 }
 
 function attack() {
@@ -316,7 +289,7 @@ function attack() {
        }
    }
    
-   // 覚醒チェック
+   // 覚醒判定
    const dustCount = player.inventory[116] || 0;
    if(!player.hasHado && dustCount >= 100000 && Math.random() < (1/100000)) openHadoModal('HADO');
    else if(player.hasHado && !player.hasDaiHado && dustCount >= 200000 && Math.random() < (1/200000)) openHadoModal('DAIHADO');
@@ -359,10 +332,13 @@ function getRelicBonus() {
    let atk = 0, hp = 0, mult = 1.0;
    Object.entries(player.inventory).forEach(([id, count]) => {
        const r = RELIC_MASTER.find(m => m.id == id); if(!r) return;
-       let baseA = (r.atk || 0) * count; let baseH = (r.hp || 0) * count;
-       if(player.hasHado && r.star === 1) { baseA *= 10; baseH *= 10; }
-       if(player.hasDaiHado && r.star === 2) { baseA *= 10; baseH *= 10; }
-       if(player.hasTentei && r.star === 3) { baseA *= 10; baseH *= 10; }
+       let bonusMult = 1;
+       if(player.hasHado && r.star === 1) bonusMult = 10;
+       if(player.hasDaiHado && r.star === 2) bonusMult = 10;
+       if(player.hasTentei && r.star === 3) bonusMult = 10;
+
+       let baseA = (r.atk || 0) * count * bonusMult;
+       let baseH = (r.hp || 0) * count * bonusMult;
        atk += baseA; hp += baseH; if(r.mult) mult *= Math.pow(r.mult, count);
    });
    return { atk: BigInt(Math.floor(atk)), hp: BigInt(Math.floor(hp)), mult };
@@ -428,7 +404,7 @@ function renderStatus() {
    document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
    const currentRates = getCurrentDropRates();
    document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/54`;
-   document.getElementById("prob-list").innerHTML = Object.entries(currentRates).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p.toFixed(6)}%</td></tr>`).join("");
+   document.getElementById("prob-list").innerHTML = Object.entries(currentRates).sort((a,b)=>a[0]-b[0]).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p.toFixed(6)}%</td></tr>`).join("");
 }
 
 function checkDropEligibility() {
