@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.0</title>
+<title>RELICORE - v1.1</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -78,14 +78,23 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.0</div>
+<div class="ver-footer">RELICORE v1.1</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
 const MAJIN_ATK_BASE = 999999999999n;
 const BASE_DROP_DATA = { 1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 const HADO_DROP_DATA = { 1:{p:78.988889,cond:0n}, 2:{p:20.0,cond:0n}, 3:{p:1.0,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
-let player = { inventory: {0:1}, deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false, isUra:false, bossMaxHP: BOSS_MAX_HP_BASE.toString(), uraAtkMult: "1" };
+// テストプレイ用に★3, ★4, ★5の遺物を1つずつ追加
+let player = { 
+  inventory: {
+    0:1,
+    301:1, 302:1, 303:1, 304:1, 305:1, 306:1, 307:1, 308:1, 309:1, 310:1,
+    401:1, 402:1, 403:1, 404:1, 405:1, 406:1,
+    501:1, 502:1, 503:1, 504:1
+  }, 
+  deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false, isUra:false, bossMaxHP: BOSS_MAX_HP_BASE.toString(), uraAtkMult: "1" 
+};
 let currentBossHP = BigInt(player.bossMaxHP);
 let attackInterval = null;
 let isModalOpen = false;
@@ -106,7 +115,7 @@ const RELIC_MASTER = [
   {id:502, star:5, name:"強欲の権能", atk:649800, hp:812400, desc: "遺物獲得数を1つにつき+5加算する。"}, 
   {id:503, star:5, name:"超越の権能", atk:524180, hp:689450, desc: "1つにつき最終ATKを0.001%加算する。"}, 
   {id:504, star:5, name:"破壊の権能", atk:999999, hp:0, desc: "1つにつき最終ダメージを+0.4%加算する。"},
-  {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
+  {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無의 권능", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"災厄が詰まった箱。神を討つための鍵。"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), currentBossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
@@ -140,30 +149,21 @@ function renderVow() {
 function attack() {
   if(isModalOpen) return;
   const b = getRelicBonus(); const kamaCount = player.inventory[406] || 0;
-  
-  // 【超越の権能】効果適用 (1つにつき0.001%)
   const transcendenceCount = player.inventory[503] || 0;
   const transcendenceBonus = 1.0 + (transcendenceCount * 0.00001);
-  
   let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
   let rawBase = Number(player.baseAtk + b.atk) * b.mult * transcendenceBonus;
   let finalDmg = BigInt(Math.floor(rawBase * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
-  
-  // 【破壊の権能】効果適用 (1つにつき+0.4%)
   const destructionCount = player.inventory[504] || 0;
   const destructionBonus = 1.0 + (destructionCount * 0.004);
   finalDmg = BigInt(Math.floor(Number(finalDmg) * destructionBonus));
-
   if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
-
   const dustCount = player.inventory[116] || 0;
   if (dustCount >= 100000 && !player.hasHado && Math.random() < (1/100000)) {
     openHadoModal();
   }
-
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
   let logHtml = `<div><span style="color:#007bff; font-weight:bold;">${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus);
-  
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
           currentBossHP = 0n; isModalOpen = true;
@@ -180,15 +180,11 @@ function attack() {
       let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
       const madoBonus = Math.min(30, player.inventory[403] || 0);
       let minCut = (rejStep * 5) + madoBonus; let actualCutPercent = Math.min(100, Math.floor(Math.random() * (101 - minCut)) + minCut);
-      
       let baseBossAtk = MAJIN_ATK_BASE * BigInt(player.uraAtkMult);
       const mitigatedDmgAfterPercent = BigInt(Math.floor(Number(baseBossAtk) * (1 - actualCutPercent / 100)));
-      
-      // 【断絶の権能】効果適用 (1つにつき500,000固定軽減)
       const severanceCount = player.inventory[501] || 0;
       const severanceReduction = BigInt(severanceCount * 500000);
       const finalMitigatedDmg = mitigatedDmgAfterPercent > severanceReduction ? mitigatedDmgAfterPercent - severanceReduction : 0n;
-
       if (currentTotalHP > finalMitigatedDmg) {
           if((player.inventory[405] || 0) > 0) player.deathCount += player.inventory[405];
           logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！</span></div>` + getGuaranteedDrop();
@@ -239,14 +235,8 @@ function refreshUI() {
   document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BigInt(player.bossMaxHP))}%`;
   document.getElementById("boss-display-name").innerText = player.isUra ? "真裏ボス - 溢れし災厄" : "終末神アポカリス＝ティア";
   document.getElementById("boss-display-name").style.color = player.isUra ? "#ff00ff" : "#888";
-  
   const hadoBox = document.getElementById("hado-box");
-  if(player.hasHado) {
-    hadoBox.style.display = "block";
-  } else {
-    hadoBox.style.display = "none";
-  }
-
+  if(player.hasHado) { hadoBox.style.display = "block"; } else { hadoBox.style.display = "none"; }
   const tid = document.querySelector(".tab.active").id;
   if(tid === 'vow') renderVow(); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
 }
@@ -260,7 +250,6 @@ function renderRelics() {
       let baseA = (m.atk || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
       let baseH = (m.hp || 0) * (player.hasHado && m.star === 1 ? 10 : 1);
       let stText = (baseA ? `ATK +${Math.floor(baseA)} ` : "") + (baseH ? `HP +${Math.floor(baseH)}` : "");
-      
       let extra = "";
       if (id == "116") {
           const count = Number(c);
@@ -278,7 +267,6 @@ function renderStatus() {
   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
   document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/54`;
-  
   const rates = getCurrentDropRates();
   document.getElementById("prob-list").innerHTML = Object.entries(rates).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p.toFixed(6)}%</td></tr>`).join("");
 }
