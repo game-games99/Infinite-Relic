@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2</title>
+<title>RELICORE - v2.3</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -98,7 +98,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="displaynone; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v2.2</div>
+<div class="ver-footer">RELICORE v2.3</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -160,7 +160,6 @@ function renderVow() {
   const madoCount = player.inventory[403] || 0; const madoBonus = Math.min(30, madoCount);
   const finalRejMin = (rejStep * 5) + madoBonus;
   let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
-  const zankoCount = player.inventory[404] || 0; let starLabel = zankoCount > 0 ? "★3以上" : "★2以上";
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
   let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
   const chieCount = player.inventory[405] || 0;
@@ -169,7 +168,7 @@ function renderVow() {
       <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物獲得ボーナス：+${bonus} (追加：+${bushinAdd})</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
       <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
       <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
-      <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時${starLabel}の遺物を確定で入手する</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
+      <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時、★2以上の遺物をランダムに獲得</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
       <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘経験値ボーナス：+${bonus} ${chieCount > 0 ? '(生存時＋' + chieCount + ')' : ''}</span><span class="vow-sub">蓄積した戦闘経験に応じて成長速度が向上（次回：${nextVowThres.toLocaleString()}）</span></div>
       <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>`;
 }
