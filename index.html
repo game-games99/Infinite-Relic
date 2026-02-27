@@ -122,9 +122,10 @@ const VOW_UPGRADES = {
 
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
+
 const RELIC_MASTER = [
   {id:0, star:8, name:"再起の誓い", atk:0, hp:0, desc:"不屈の魂に刻まれた、再誕の原点。"},
-  {id:101, star:1, name:"剣士の欠片", atk:7.4, hp:0}, {id:102, star:1, name:"狩人の欠片", atk:8.1, hp:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9.6, hp:0}, {id:104, star:1, name:"狂戦士의欠片", atk:10.3, hp:0}, {id:105, star:1, name:"武闘家の欠片", atk:6.7, hp:0}, {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45.2}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55.9}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65.4}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40.3}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50.8}, {id:111, star:1, name:"魔法使いの欠片", atk:4.2, hp:35.7}, {id:112, star:1, name:"斥候の欠片", atk:3.9, hp:48.1}, {id:113, star:1, name:"冒険者の欠片", atk:5.4, hp:42.6}, {id:114, star:1, name:"見習いの欠片", atk:2.1, hp:30.5}, {id:115, star:1, name:"放浪者の欠片", atk:4.7, hp:44.2}, {id:116, star:1, name:"メモリーダスト", atk:1.3, hp:10.9},
+  {id:101, star:1, name:"剣士の欠片", atk:7.4, hp:0}, {id:102, star:1, name:"狩人の欠片", atk:8.1, hp:0}, {id:103, star:1, name:"暗殺者の欠片", atk:9.6, hp:0}, {id:104, star:1, name:"狂戦士の欠片", atk:10.3, hp:0}, {id:105, star:1, name:"武闘家の欠片", atk:6.7, hp:0}, {id:106, star:1, name:"衛兵の欠片", atk:0, hp:45.2}, {id:107, star:1, name:"騎士の欠片", atk:0, hp:55.9}, {id:108, star:1, name:"重装兵の欠片", atk:0, hp:65.4}, {id:109, star:1, name:"修道士の欠片", atk:0, hp:40.3}, {id:110, star:1, name:"盾持ちの欠片", atk:0, hp:50.8}, {id:111, star:1, name:"魔法使いの欠片", atk:4.2, hp:35.7}, {id:112, star:1, name:"斥候の欠片", atk:3.9, hp:48.1}, {id:113, star:1, name:"冒険者の欠片", atk:5.4, hp:42.6}, {id:114, star:1, name:"見習いの欠片", atk:2.1, hp:30.5}, {id:115, star:1, name:"放浪者の欠片", atk:4.7, hp:44.2}, {id:116, star:1, name:"メモリーダスト", atk:1.3, hp:10.9},
   {id:201, star:2, name:"聖騎士の欠片", atk:41.2, hp:682.4}, {id:202, star:2, name:"龍騎士の欠片", atk:86.7, hp:423.1}, {id:203, star:2, name:"暗黒騎士の欠片", atk:134.2, hp:0}, {id:204, star:2, name:"賢者の欠片", atk:52.1, hp:711.2}, {id:205, star:2, name:"大魔道士の欠片", atk:118.9, hp:24.3}, {id:206, star:2, name:"暗殺王の欠片", atk:156.3, hp:12.7}, {id:207, star:2, name:"重装騎士の欠片", atk:0, hp:1248.6}, {id:208, star:2, name:"拳聖の欠片", atk:99.2, hp:315.4}, {id:209, star:2, name:"神官の欠片", atk:4.2, hp:1486.7}, {id:210, star:2, name:"冒険王の欠片", atk:73.3, hp:594.1},
   {id:301, star:3, name:"聖龍騎士の欠片", atk:874.3, hp:6924.1}, {id:302, star:3, name:"深淵魔導の欠片", atk:1324.1, hp:214.7}, {id:303, star:3, name:"金剛武神の欠片", atk:412.8, hp:14863.2}, {id:304, star:3, name:"暗黒皇帝の欠片", atk:1568.4, hp:0}, {id:305, star:3, name:"大聖者の欠片", atk:52.7, hp:15241.4}, {id:306, star:3, name:"影の支配者の欠片", atk:1410.9, hp:128.4}, {id:307, star:3, name:"竜血闘士の欠片", atk:1024.2, hp:4210.9}, {id:308, star:3, name:"天界騎士の欠片", atk:612.7, hp:9845.1}, {id:309, star:3, name:"虚空の暗殺者の欠片", atk:1624.8, hp:42.1}, {id:310, star:3, name:"極大賢者の欠片", atk:542.1, hp:11840.7},
   {id:401, star:4, name:"【不退転】武神の魂", atk:65000, hp:180000, desc: "獲得遺物数を (所持数) 加算。"},
@@ -152,40 +153,64 @@ function openHadoModal() { clearInterval(attackInterval); attackInterval = null;
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
+// --- スキルLv計算用関数 ---
+function getVowLv(type) {
+  const dc = player.deathCount;
+  switch(type) {
+    case 'power': return Math.floor(dc / 1000); // 不退転
+    case 'stack': return Math.floor(dc / 5000); // 刹那
+    case 'rej':   return Math.floor(dc / 3000); // 因果
+    case 'polish':return Math.floor(dc / 6000); // 魂研
+    case 'death': return Math.floor(dc / 100);  // 死刻（成長が早め）
+    case 'beacon':return Math.floor(dc / 15000); // 狼煙
+    default: return 0;
+  }
+}
+
 function renderVow() {
   const vowList = document.getElementById('vow-list'); if (!vowList) return;
   const bushinAdd = player.inventory[401] || 0;
   const hpMaxRange = Math.max(1, player.deathCount).toLocaleString();
-  let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
+  
+  // 因果の拒絶計算
+  let rejLv = getVowLv('rej');
   const madoCount = player.inventory[403] || 0; const madoBonus = Math.min(30, madoCount);
-  const finalRejMin = (rejStep * 5) + madoBonus;
-  let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
+  const finalRejMin = Math.min(95, (rejLv * 2) + madoBonus);
+  
+  // 研磨・不退転
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
-  let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
   const chieCount = player.inventory[405] || 0;
-  const kamaCount = player.inventory[406] || 0; const finalRate = 0.0004 * (1 + kamaCount); const powerRate = (player.deathCount * finalRate).toFixed(4);
+  
+  // 死を刻む
+  const kamaCount = player.inventory[406] || 0;
+  const finalRate = 0.0004 * (1 + kamaCount);
+  const powerRate = (player.deathCount * finalRate).toFixed(4);
+
   vowList.innerHTML = `
-      <div class="vow-item"><div class="vow-name">不退転の力</div><span class="vow-highlight">遺物獲得ボーナス：+${bonus} (追加：+${bushinAdd})</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
-      <div class="vow-item"><div class="vow-name">刹那の堆積</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
-      <div class="vow-item"><div class="vow-name">因果の拒絶</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上（次回：${nextRejThres.toLocaleString()}）${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
-      <div class="vow-item"><div class="vow-name">反撃の狼煙</div><span class="vow-highlight">生存時、★2以上の遺物をランダムに獲得</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
-      <div class="vow-item"><div class="vow-name">魂の研磨</div><span class="vow-highlight">戦闘経験値ボーナス：+${bonus} ${chieCount > 0 ? '(生存時＋' + chieCount + ')' : ''}</span><span class="vow-sub">蓄積した戦闘経験に応じて成長速度が向上（次回：${nextVowThres.toLocaleString()}）</span></div>
-      <div class="vow-item"><div class="vow-name">死を刻む</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>`;
+      <div class="vow-item"><div class="vow-name">不退転の力 [Lv.${getVowLv('power')}]</div><span class="vow-highlight">遺物獲得ボーナス：+${bonus} (追加：+${bushinAdd})</span><span class="vow-sub">攻撃するたびに深淵に漂う遺物を魂に刻む。</span></div>
+      <div class="vow-item"><div class="vow-name">刹那の堆積 [Lv.${getVowLv('stack')}]</div><span class="vow-highlight">HP 1 ～ ${hpMaxRange} の間でランダムに上昇</span><span class="vow-sub">再起するたびにHP増加幅+1。確かな意思が核に宿る。</span></div>
+      <div class="vow-item"><div class="vow-name">因果の拒絶 [Lv.${rejLv}]</div><span class="vow-highlight">稀に攻撃を無効化する ${finalRejMin}% ～ 100% ランダムカット</span><span class="vow-sub">経験値が深まるごとに下限が向上。${madoBonus > 0 ? '<br>魔導王の加護により下限+' + madoBonus + '%' : ''}</span></div>
+      <div class="vow-item"><div class="vow-name">反撃の狼煙 [Lv.${getVowLv('beacon')}]</div><span class="vow-highlight">生存時、★2以上の遺物をランダムに獲得</span><span class="vow-sub">不屈の闘志を燃やし、新たな力を手に入れる。</span></div>
+      <div class="vow-item"><div class="vow-name">魂の研磨 [Lv.${getVowLv('polish')}]</div><span class="vow-highlight">戦闘経験値ボーナス：+${bonus} ${chieCount > 0 ? '(生存時＋' + chieCount + ')' : ''}</span><span class="vow-sub">蓄積した戦闘経験に応じて成長速度が向上。</span></div>
+      <div class="vow-item"><div class="vow-name">死を刻む [Lv.${getVowLv('death')}]</div><span class="vow-highlight">威力補正：${powerRate}%</span><span class="vow-sub">経験を積むたびに最終ダメージを${finalRate.toFixed(4)}%増加させる</span></div>`;
 }
 
 function attack() {
   if(isModalOpen) return;
-  const b = getRelicBonus(); const kamaCount = player.inventory[406] || 0;
+  const b = getRelicBonus();
+  const kamaCount = player.inventory[406] || 0;
   const transcendenceCount = player.inventory[503] || 0;
   const transcendenceBonus = 1.0 + (transcendenceCount * 0.00001);
+  
   let deathDmgMult = 1.0 + (player.deathCount * 0.0004 * (1 + kamaCount));
   let rawBase = Number(player.baseAtk + b.atk) * b.mult * transcendenceBonus;
   let finalDmg = BigInt(Math.floor(rawBase * deathDmgMult * (0.8 + Math.random()*0.4))) || 1n;
+  
   const destructionCount = player.inventory[504] || 0;
   const destructionBonus = 1.0 + (destructionCount * 0.004);
   finalDmg = BigInt(Math.floor(Number(finalDmg) * destructionBonus));
-  if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
   
+  if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
   if ((player.inventory[116] || 0) >= 100000 && !player.hasHado && Math.random() < (1/100000)) { openHadoModal(); return; }
 
   let bonusLevel = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonusLevel++; });
@@ -198,24 +223,39 @@ function attack() {
 
   if(currentBossHP > 0n) {
       const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-      let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
+      
+      // 因果の拒絶計算
+      let rejLv = getVowLv('rej');
       const madoBonus = Math.min(30, player.inventory[403] || 0);
-      let minCut = (rejStep * 5) + madoBonus; let actualCutPercent = Math.min(100, Math.floor(Math.random() * (101 - minCut)) + minCut);
+      let minCut = Math.min(95, (rejLv * 2) + madoBonus); 
+      let actualCutPercent = Math.min(100, Math.floor(Math.random() * (101 - minCut)) + minCut);
+      
       let baseBossAtk = MAJIN_ATK_BASE * BigInt(player.uraAtkMult);
       const mitigatedDmg = BigInt(Math.floor(Number(baseBossAtk) * (1 - actualCutPercent / 100)));
       const finalMitigatedDmg = mitigatedDmg > BigInt((player.inventory[501] || 0) * 500000) ? mitigatedDmg - BigInt((player.inventory[501] || 0) * 500000) : 0n;
+      
       const oldDeath = player.deathCount;
       const chieCount = player.inventory[405] || 0;
 
       if (currentTotalHP > finalMitigatedDmg) {
-          let expGain = bonusLevel + chieCount; player.deathCount += expGain;
+          // 生存時：賢者の叡智(chieCount)がある時のみ経験値加算
+          let expGain = (chieCount > 0) ? (bonusLevel + chieCount) : 0;
+          player.deathCount += expGain;
           logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。障壁展開(${actualCutPercent}%)！ ${expGain > 0 ? '(経験値+' + expGain + ')' : ''}</span></div>` + getGuaranteedDrop();
       } else {
-          let totalUpHP = 0n; for(let i=0; i <= (player.inventory[402] || 0); i++) totalUpHP += BigInt(Math.floor(1 + Math.random() * (Math.max(1, player.deathCount))));
-          player.baseHP += totalUpHP; player.deathCount += bonusLevel;
-          logHtml += `<div><span style="color:#dc3545;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()}) ${bonusLevel > 0 ? '(経験値+' + bonusLevel + ')' : ''}</span></div>`;
+          // 死亡・再起時：常に経験値加算
+          let totalUpHP = 0n;
+          const upCount = 1 + (player.inventory[402] || 0);
+          for(let i=0; i < upCount; i++) totalUpHP += BigInt(Math.floor(1 + Math.random() * Math.max(1, player.deathCount)));
+          
+          player.baseHP += totalUpHP;
+          let expGain = 1 + bonusLevel; // 基礎1 + ボーナス
+          player.deathCount += expGain;
+          logHtml += `<div><span style="color:#dc3545;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()}) (経験値+${expGain})</span></div>`;
       }
-      [...VOW_THRESHOLDS, ...REJECTION_THRESHOLDS].sort((a,b)=>a-b).forEach(t => { if(oldDeath < t && player.deathCount >= t) { const up = VOW_UPGRADES[t] || { name: "未知の力", msg: "魂に新たな力が宿った。" }; openUpgradeModal(`${up.name} が覚醒した`, `${up.msg}\n（必要経験値 ${t.toLocaleString()} 到達）`); } });
+      
+      // アップグレード通知
+      [...VOW_THRESHOLDS].forEach(t => { if(oldDeath < t && player.deathCount >= t) { const up = VOW_UPGRADES[t]; if(up) openUpgradeModal(`${up.name} が覚醒した`, `${up.msg}\n（必要経験値 ${t.toLocaleString()} 到達）`); } });
   }
   addLog(logHtml); saveGame(); refreshUI();
 }
