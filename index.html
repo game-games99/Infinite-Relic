@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.2</title>
+<title>RELICORE - v1.3</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -96,9 +96,9 @@
   <div id="battle" class="tab active"><button class="btn-attack" id="attackBtn">こうげき</button><div id="log"></div></div>
   <div id="vow" class="tab"><div id="vow-list"></div></div>
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
-  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box" style="border-left-color:#ff69b4;"><div class="st-title-flex"><span>最終補正値（死を刻む）</span></div><div style="font-size:1.1em; color:#ff69b4; font-weight:bold; margin-top:5px;">威力：<span id="st-final-mult">0.0000</span>%</div></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
+  <div id="status" class="tab"><div class="st-box">戦闘経験値: <span id="v-death">0</span><br>最高ダメージ: <span id="st-maxdmg">0</span><br>獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">確認中...</span></div><div id="hado-box" class="st-box" style="display:none; border:none; border-left: 4px solid gold;"><span style="color:gold; font-weight:bold;">習得済み：覇軍の号令</span><br>★1遺物10倍強化 ＆ ★2・★3ドロップ率上昇中</div><div class="st-box" style="border-left-color:#ff69b4;"><div class="st-title-flex"><span>トータル威力補正</span></div><div style="font-size:1.1em; color:#ff69b4; font-weight:bold; margin-top:5px;">最終増幅：<span id="st-final-mult">0.0000</span>%</div><div style="font-size:0.7em; color:#888;">（死を刻む ＋ 破壊の権能）</div></div><div class="st-box"><div class="st-title-flex"><span>遺物出現率</span><span id="st-collection" style="color:#666; font-size:0.9em;">0/54</span></div><table style="width:100%; font-size:0.9em; margin-top:5px;" id="prob-list"></table></div><button class="btn-reset" onclick="resetData()">全データリセット</button></div>
 </div>
-<div class="ver-footer">RELICORE v1.2</div>
+<div class="ver-footer">RELICORE v1.3</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -182,7 +182,6 @@ function renderVow() {
   const madoCount = player.inventory[403] || 0; const madoBonus = Math.min(30, madoCount);
   const finalRejMin = (rejStep * 5) + madoBonus;
   let nextRejThres = REJECTION_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
-  const zankoCount = player.inventory[404] || 0;
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
   let nextVowThres = VOW_THRESHOLDS.find(t => player.deathCount < t) || "MAX";
   const chieCount = player.inventory[405] || 0; let totalPolish = bonus + 1 + chieCount;
@@ -347,8 +346,11 @@ function renderStatus() {
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
   document.getElementById("st-collection").innerText = `${Object.keys(player.inventory).length}/54`;
   const kamaCount = player.inventory[406] || 0;
-  const powerRate = (player.deathCount * 0.0004 * (1 + kamaCount)).toFixed(4);
-  document.getElementById("st-final-mult").innerText = powerRate;
+  const deathRate = player.deathCount * 0.0004 * (1 + kamaCount);
+  const destructionCount = player.inventory[504] || 0;
+  const destructionRate = destructionCount * 0.4;
+  const totalRate = (deathRate + destructionRate).toFixed(4);
+  document.getElementById("st-final-mult").innerText = totalRate;
   const rates = getCurrentDropRates();
   document.getElementById("prob-list").innerHTML = Object.entries(rates).map(([s,d])=>`<tr><td class="c${s}">★${s}</td><td style="text-align:right;">${d.p.toFixed(6)}%</td></tr>`).join("");
 }
