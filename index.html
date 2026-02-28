@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.4</title>
+<title>RELICORE - v1.0</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -98,6 +98,7 @@
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab">
     <div class="st-box">
+        総攻撃数: <span id="st-totalclicks">0</span><br>
         戦闘経験値: <span id="v-death">0</span><br>
         最高ダメージ: <span id="st-maxdmg">0</span><br>
         最終ダメージ倍率: <span id="st-dmgmult" style="font-weight:bold; color:var(--primary);">x1.00</span><br>
@@ -108,7 +109,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.4</div>
+<div class="ver-footer">RELICORE v1.0</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -117,7 +118,8 @@ const BASE_DROP_DATA = { 1:{p:99.888889,cond:0n}, 2:{p:0.1,cond:0n}, 3:{p:0.01,c
 const HADO_DROP_DATA = { 1:{p:78.988889,cond:0n}, 2:{p:20.0,cond:0n}, 3:{p:1.0,cond:0n}, 4:{p:0.001,cond:100000n}, 5:{p:0.0001,cond:1000000n}, 6:{p:0.00001,cond:10000000n}, 7:{p:0.000001,cond:100000000n} };
 let player = { 
   inventory: { 0:1, 116:0 }, 
-  deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false, isUra:false, bossMaxHP: BOSS_MAX_HP_BASE.toString(), uraAtkMult: "1" 
+  deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false, isUra:false, bossMaxHP: BOSS_MAX_HP_BASE.toString(), uraAtkMult: "1",
+  totalClicks: 0
 };
 let currentBossHP = BigInt(player.bossMaxHP);
 let attackInterval = null;
@@ -149,13 +151,13 @@ const RELIC_MASTER = [
   {id:501, star:5, name:"断絶の権能", atk:382660, hp:916330, desc: "被ダメージを500,000固定軽減。"}, 
   {id:502, star:5, name:"強欲の権能", atk:649800, hp:812400, desc: "遺物獲得数を1つにつき+5加算。"}, 
   {id:503, star:5, name:"超越の権能", atk:524180, hp:689450, desc: "最終ダメージ倍率を所持数分乗算(x1.00001)する。"}, 
-  {id:504, star:5, name:"破壊の権能", atk:999999, hp:0, desc: "最終ダメージ倍率を+0.004加算する。"},
+  {id:504, star:5, name:"破壊의 권능", atk:999999, hp:0, desc: "最終ダメージ倍率を+0.004加算する。"},
   {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"災厄の箱。神を討つための鍵。"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
 
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), currentBossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
-function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); player.bossMaxHP = p.bossMaxHP || BOSS_MAX_HP_BASE.toString(); player.uraAtkMult = p.uraAtkMult || "1"; currentBossHP = BigInt(p.currentBossHP || player.bossMaxHP); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
+function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); player.bossMaxHP = p.bossMaxHP || BOSS_MAX_HP_BASE.toString(); player.uraAtkMult = p.uraAtkMult || "1"; player.totalClicks = p.totalClicks || 0; currentBossHP = BigInt(p.currentBossHP || player.bossMaxHP); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
 
 function openRareModal(relic) {
   if (attackInterval) return;
@@ -184,21 +186,15 @@ function openHadoModal() { clearInterval(attackInterval); attackInterval = null;
 function closeHadoModal() { document.getElementById("hado-awaken-modal").style.display = "none"; isModalOpen = false; player.hasHado = true; saveGame(); refreshUI(); }
 function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_DROP_DATA; }
 
-// ダメージ倍率計算ロジック (超越の権能を乗算枠に配置)
 function calcFinalDmgMult() {
-  // 1. 加算枠 (死を刻む + 破壊の権能)
   let additiveMult = 1.0;
   const kamaCount = player.inventory[406] || 0;
   const engraveRate = 0.0004 * (1 + kamaCount);
   additiveMult += (player.deathCount * engraveRate) / 100;
   const destructionCount = player.inventory[504] || 0;
   additiveMult += (destructionCount * 0.004);
-
-  // 2. 乗算枠 (超越の権能: 所持数分だけ 1.00001 を乗算)
   const transcendenceCount = player.inventory[503] || 0;
   let multiplicativeMult = Math.pow(1.00001, transcendenceCount);
-
-  // 加算結果に乗算を適用
   return additiveMult * multiplicativeMult;
 }
 
@@ -226,6 +222,7 @@ function renderVow() {
 
 function attack() {
   if(isModalOpen) return;
+  player.totalClicks++;
   const b = getRelicBonus();
   const finalDmgMult = calcFinalDmgMult();
   
@@ -381,6 +378,7 @@ function renderRelics() {
 }
 
 function renderStatus() {
+  document.getElementById("st-totalclicks").innerText = player.totalClicks.toLocaleString();
   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
   document.getElementById("st-dmgmult").innerText = "x" + calcFinalDmgMult().toFixed(8);
