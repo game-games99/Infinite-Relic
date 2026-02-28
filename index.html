@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.1</title>
+<title>RELICORE - v1.2</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -85,6 +85,12 @@
   .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
   .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
   .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; z-index: 50; }
+  
+  /* v1.2追加：称号表示用 */
+  .rank-display { text-align: center; padding: 15px; background: #000; color: #fff; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
+  .rank-lv { font-size: 0.8em; color: #aaa; margin-bottom: 4px; }
+  .rank-title { font-size: 1.4em; font-weight: bold; letter-spacing: 2px; }
+  .rank-title.max { color: gold; text-shadow: 0 0 10px gold; }
 </style>
 </head>
 <body>
@@ -100,6 +106,10 @@
   <div id="vow" class="tab"><div id="vow-list"></div></div>
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab">
+    <div class="rank-display">
+        <div class="rank-lv" id="st-rank-lv">Lv.1</div>
+        <div class="rank-title" id="st-rank-title">初心者</div>
+    </div>
     <div class="st-box">
         総攻撃数: <span id="st-totalclicks">0</span><br>
         戦闘経験値: <span id="v-death">0</span><br>
@@ -112,7 +122,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.1</div>
+<div class="ver-footer">RELICORE v1.2</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -128,6 +138,11 @@ let currentBossHP = BigInt(player.bossMaxHP);
 let attackInterval = null;
 let isModalOpen = false;
 
+const PLAYER_TITLES = [
+  "初心者", "修練者", "熟練者", "探求者", "到達者", 
+  "解放者", "支配者", "超越者", "救世主", "極致：唯一神"
+];
+
 const VOW_UPGRADES = {
   1000: { name: "不退転 of Force", msg: "攻撃時の遺物獲得数ボーナスが向上した。" },
   5000: { name: "刹那 of Accumulation", msg: "生存時に魂へ蓄積されるHPの変動幅が増加した。" },
@@ -141,13 +156,15 @@ const VOW_UPGRADES = {
 const VOW_THRESHOLDS = [1000, 5000, 25000, 100000, 250000];
 const REJECTION_THRESHOLDS = [3000, 15000, 60000, 150000];
 
-// スキルLv算出（経験値に応じて 1-10）
-function getSkillLv(skillName) {
+// スキル/称号Lv算出（経験値に応じて 1-10）
+function getLevelByDeath() {
     const d = player.deathCount;
-    let lv = 1;
-    const baseStep = 25000; // 25万でLv.10になる計算
-    lv = Math.min(10, Math.floor(d / baseStep) + 1);
-    return lv;
+    const baseStep = 25000; 
+    return Math.min(10, Math.floor(d / baseStep) + 1);
+}
+
+function getSkillLv(skillName) {
+    return getLevelByDeath();
 }
 
 const RELIC_MASTER = [
@@ -201,7 +218,7 @@ function getCurrentDropRates() { return player.hasHado ? HADO_DROP_DATA : BASE_D
 
 function calcFinalDmgMult() {
   let additiveMult = 1.0;
-  const lv = getSkillLv("死を刻む");
+  const lv = getLevelByDeath();
   const kamaCount = player.inventory[406] || 0;
   const engraveRate = (0.0004 + (lv * 0.0001)) * (1 + kamaCount);
   additiveMult += (player.deathCount * engraveRate) / 100;
@@ -277,14 +294,12 @@ function attack() {
     openHadoModal(); return;
   }
 
-  // スキルLv補正反映
-  const lvFutaiten = getSkillLv("不退転の力");
-  const lvKonken = getSkillLv("魂の研磨");
+  const lvCommon = getLevelByDeath();
   let bonus = 0; VOW_THRESHOLDS.forEach(t => { if(player.deathCount >= t) bonus++; });
   const chieCount = player.inventory[405] || 0;
-  let totalPolish = 1 + bonus + chieCount + lvKonken;
+  let totalPolish = 1 + bonus + chieCount + lvCommon;
   
-  let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus + lvFutaiten - 1);
+  let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + bonus + lvCommon - 1);
   
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) {
@@ -300,10 +315,9 @@ function attack() {
   
   if(currentBossHP > 0n) {
       const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-      const lvInga = getSkillLv("因果の拒絶");
       let rejStep = 0; REJECTION_THRESHOLDS.forEach(t => { if(player.deathCount >= t) rejStep++; });
       const madoBonus = Math.min(30, player.inventory[403] || 0);
-      let minCut = (rejStep * 5) + madoBonus + lvInga; 
+      let minCut = (rejStep * 5) + madoBonus + lvCommon; 
       let actualCutPercent = Math.min(100, Math.floor(Math.random() * (101 - minCut)) + minCut);
       let baseBossAtk = MAJIN_ATK_BASE * BigInt(player.uraAtkMult);
       const mitigatedDmgAfterPercent = BigInt(Math.floor(Number(baseBossAtk) * (1 - actualCutPercent / 100)));
@@ -319,11 +333,10 @@ function attack() {
           checkLevelUp(oldDeath);
       } else {
           const prevDeath = player.deathCount; 
-          const lvSetsuna = getSkillLv("刹那の堆積");
           let totalUpHP = 0n;
           for(let i=0; i <= (player.inventory[402] || 0); i++) {
               let gain = BigInt(Math.floor(10 + Math.random() * (Math.max(1, player.deathCount))));
-              totalUpHP += BigInt(Math.floor(Number(gain) * (1 + lvSetsuna * 0.5)));
+              totalUpHP += BigInt(Math.floor(Number(gain) * (1 + lvCommon * 0.5)));
           }
           player.baseHP += totalUpHP; player.deathCount += totalPolish;
           logHtml += `<div><span style="color:#dc3545;">敵の攻撃！${finalMitigatedDmg.toLocaleString()} ダメージ。</span><span style="color:#007bff; font-weight:bold;">再起の誓いによって新たなる力を得た </span><span style="color:var(--growth); font-weight:bold;">(基礎HP+${totalUpHP.toLocaleString()})</span></div>`;
@@ -334,6 +347,11 @@ function attack() {
 }
 
 function checkLevelUp(oldVal) {
+    const oldLv = Math.min(10, Math.floor(oldVal / 25000) + 1);
+    const newLv = getLevelByDeath();
+    if (newLv > oldLv) {
+        openUpgradeModal(`再起Lv.${newLv} 到達`, `称号が【${PLAYER_TITLES[newLv-1]}】に昇格した！\nすべての再起スキルが強化されます。`);
+    }
     [...VOW_THRESHOLDS, ...REJECTION_THRESHOLDS].sort((a,b)=>a-b).forEach(t => {
         if(oldVal < t && player.deathCount >= t) {
             const up = VOW_UPGRADES[t] || { name: "未知の力", msg: "魂に新たな力が宿った。" };
@@ -343,9 +361,9 @@ function checkLevelUp(oldVal) {
 }
 
 function getGuaranteedDrop() {
-  const lvHangeki = getSkillLv("反撃の狼煙");
+  const lvCommon = getLevelByDeath();
   const zankoCount = player.inventory[404] || 0; let star = (zankoCount > 0) ? 3 : 2;
-  const hangekiBonus = 0.001 + (zankoCount * 0.0001) + (lvHangeki * 0.0001);
+  const hangekiBonus = 0.001 + (zankoCount * 0.0001) + (lvCommon * 0.0001);
   if(zankoCount > 0 && Math.random() < hangekiBonus) star = 4;
   if (player.maxDmg < getCurrentDropRates()[star].cond) star = 2;
   let cands = RELIC_MASTER.filter(m => m.star === star); let sel = cands[Math.floor(Math.random() * cands.length)];
@@ -430,6 +448,15 @@ function renderRelics() {
 }
 
 function renderStatus() {
+  const lv = getLevelByDeath();
+  const title = PLAYER_TITLES[lv - 1];
+  const rankLvElem = document.getElementById("st-rank-lv");
+  const rankTitleElem = document.getElementById("st-rank-title");
+  
+  rankLvElem.innerText = `Lv.${lv}`;
+  rankTitleElem.innerText = title;
+  if(lv >= 10) rankTitleElem.classList.add("max"); else rankTitleElem.classList.remove("max");
+
   document.getElementById("st-totalclicks").innerText = player.totalClicks.toLocaleString();
   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
