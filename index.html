@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.9</title>
+<title>RELICORE - v2.0</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -134,7 +134,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.9</div>
+<div class="ver-footer">RELICORE v2.0</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -201,7 +201,7 @@ function closeHadoModal() { document.getElementById("hado-awaken-modal").style.d
 
 function calcFinalDmgMult() {
   const lv = getLevelByDeath();
-  const baseRate = 0.0000004 * lv; // Lv1で0.00004%, Lv10で0.0004%
+  const baseRate = 0.0000004 * lv; 
   const kamaBoost = 1 + (player.inventory[406] || 0);
   let mult = 1.0 + (player.deathCount * baseRate * kamaBoost);
   mult += ((player.inventory[504] || 0) * 0.004);
@@ -227,7 +227,7 @@ function renderVow() {
           let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0); 
           highlight = `無効化範囲：${minCut}% ～ 100%`;
       }
-      else if(s.id === "hangeki") highlight = `生存ドロップ：★${(player.inventory[404] || 0) > 0 ? 3 : 2}以上`;
+      else if(s.id === "hangeki") highlight = `生存ドロップ：★${(player.inventory[404] || 0) > 0 ? 3 : 2}以上 (1～${lv}個)`;
       else if(s.id === "konken") highlight = `全ボーナス加算：+${lv + (player.inventory[405] || 0)}`;
       else if(s.id === "shikoku") {
           const rate = (0.00004 * lv).toFixed(5);
@@ -287,12 +287,27 @@ function attack() {
 }
 
 function getGuaranteedDrop() {
-  const lv = getLevelByDeath(); const zanko = player.inventory[404] || 0; let star = zanko > 0 ? 3 : 2;
-  if(zanko > 0 && Math.random() < (0.001 + zanko * 0.0001 + lv * 0.0001)) star = 4;
-  let cands = RELIC_MASTER.filter(m => m.star === star); let sel = cands[Math.floor(Math.random() * cands.length)];
-  player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
-  if(sel.star >= 4) openRareModal(sel);
-  return `<div style="font-size:0.82em;">【狼煙】獲得：<span class="c${sel.star}">★${sel.star} ${sel.name}</span></div>`;
+  const lv = getLevelByDeath(); const zanko = player.inventory[404] || 0; 
+  const count = Math.floor(Math.random() * lv) + 1;
+  let obtained = {};
+  let highest = null;
+
+  for(let i=0; i < count; i++) {
+    let star = zanko > 0 ? 3 : 2;
+    if(zanko > 0 && Math.random() < (0.001 + zanko * 0.0001 + lv * 0.0001)) star = 4;
+    let cands = RELIC_MASTER.filter(m => m.star === star); 
+    let sel = cands[Math.floor(Math.random() * cands.length)];
+    player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
+    obtained[sel.id] = (obtained[sel.id] || 0) + 1;
+    if(sel.star >= 4 && (!highest || sel.star > highest.star)) highest = sel;
+  }
+  
+  if(highest) openRareModal(highest);
+  const itemsStr = Object.entries(obtained).map(([id, c]) => {
+      const m = RELIC_MASTER.find(x=>x.id==id);
+      return `<span class="c${m.star}">★${m.star} ${m.name}${c > 1 ? '×' + c : ''}</span>`;
+  }).join(", ");
+  return `<div style="font-size:0.82em;">【狼煙】獲得：${itemsStr}</div>`;
 }
 
 function getDropLog(count) {
@@ -307,7 +322,7 @@ function getDropLog(count) {
       if(sel.star >= 4 && (!highest || sel.star > highest.star)) highest = sel;
   }
   if(highest) openRareModal(highest);
-  return Object.entries(obtained).length > 0 ? `<div style="font-size:0.82em;">獲得：${Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}×${c}</span>`; }).join(", ")}</div>` : "";
+  return Object.entries(obtained).length > 0 ? `<div style="font-size:0.82em;">獲得：${Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}${c > 1 ? '×' + c : ''}</span>`; }).join(", ")}</div>` : "";
 }
 
 function getRelicBonus() {
