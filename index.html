@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.6</title>
+<title>RELICORE - v2.7</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -126,6 +126,7 @@
     <div class="st-box">
         総攻撃数: <span id="st-totalclicks">0</span><br>
         戦闘経験値: <span id="v-death">0</span><br>
+        累計遺物獲得数: <span id="st-totalrelics" style="font-weight:bold; color:var(--relic-purple);">0</span><br>
         最高ダメージ: <span id="st-maxdmg">0</span><br>
         最終ダメージ倍率: <span id="st-dmgmult" style="font-weight:bold; color:var(--primary);">x1.00</span><br>
         獲得資格: <span id="st-rank" class="clickable-stat" onclick="checkDropEligibility()">★1まで</span>
@@ -135,7 +136,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v2.6</div>
+<div class="ver-footer">RELICORE v2.7</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -164,7 +165,7 @@ const HADO_DROP_DATA = {
 let player = { 
   inventory: { 0:1 }, 
   deathCount:0, baseAtk:10n, baseHP:100n, maxDmg:0n, storySeen:false, hasHado:false, isUra:false, bossMaxHP: BOSS_MAX_HP_BASE.toString(), uraAtkMult: "1",
-  totalClicks: 0
+  totalClicks: 0, totalRelics: 0
 };
 let currentBossHP = BigInt(player.bossMaxHP);
 let attackInterval = null;
@@ -196,7 +197,7 @@ const RELIC_MASTER = [
 ];
 
 function saveGame() { const data = { ...player, baseAtk: player.baseAtk.toString(), baseHP: player.baseHP.toString(), maxDmg: player.maxDmg.toString(), currentBossHP: currentBossHP.toString() }; localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }
-function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); currentBossHP = BigInt(p.currentBossHP || p.bossMaxHP || BOSS_MAX_HP_BASE.toString()); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
+function loadGame() { let saved = localStorage.getItem(SAVE_KEY); if(saved) { const p = JSON.parse(saved); Object.assign(player, p); player.baseAtk = BigInt(p.baseAtk || "10"); player.baseHP = BigInt(p.baseHP || "100"); player.maxDmg = BigInt(p.maxDmg || "0"); player.totalRelics = p.totalRelics || 0; currentBossHP = BigInt(p.currentBossHP || p.bossMaxHP || BOSS_MAX_HP_BASE.toString()); } if(!player.storySeen) document.getElementById("story-modal").style.display = "flex"; }
 
 function openRankUpModal(newLv) { if (attackInterval) { clearInterval(attackInterval); attackInterval = null; } isModalOpen = true; const titleStr = PLAYER_TITLES[Math.min(9, newLv-1)] || "超越者"; document.getElementById("rank-up-msg-text").innerHTML = `魂の核が激しく鼓動する……！<br><br><span style="font-size:1.4em; color:var(--growth); font-weight:bold;">再起Lv.${newLv} 到達</span><br>称号が【${titleStr}】に昇格した。`; document.getElementById("rank-up-modal").style.display = "flex"; }
 function closeRankUpModal() { document.getElementById("rank-up-modal").style.display = "none"; isModalOpen = false; saveGame(); refreshUI(); }
@@ -300,6 +301,7 @@ function getGuaranteedDrop() {
     let sel = cands[Math.floor(Math.random() * cands.length)];
     player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
     obtained[sel.id] = (obtained[sel.id] || 0) + 1;
+    player.totalRelics++;
     if(sel.star >= 4 && (!highest || sel.star > highest.star)) highest = sel;
   }
   if(highest) openRareModal(highest);
@@ -315,6 +317,7 @@ function getDropLog(count) {
       if (player.maxDmg < rates[star].cond) star=1;
       let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0); let sel = cands[Math.floor(Math.random() * cands.length)];
       player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1; obtained[sel.id] = (obtained[sel.id] || 0) + 1;
+      player.totalRelics++;
       if(sel.star >= 4 && (!highest || sel.star > highest.star)) highest = sel;
   }
   if(highest) openRareModal(highest);
@@ -382,6 +385,7 @@ function renderStatus() {
   const lv = getLevelByDeath(); 
   document.getElementById("st-totalclicks").innerText = player.totalClicks.toLocaleString();
   document.getElementById("v-death").innerText = player.deathCount.toLocaleString();
+  document.getElementById("st-totalrelics").innerText = (player.totalRelics || 0).toLocaleString();
   document.getElementById("st-maxdmg").innerText = player.maxDmg.toLocaleString();
   document.getElementById("st-dmgmult").innerText = "x" + calcFinalDmgMult().toFixed(8);
   let maxStar = 1; const rates = getCurrentDropRates(); for(let s in rates) { if(player.maxDmg >= rates[s].cond) maxStar = Math.max(maxStar, parseInt(s)); }
