@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.7</title>
+<title>RELICORE - v2.8</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -136,7 +136,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v2.7</div>
+<div class="ver-footer">RELICORE v2.8</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -233,17 +233,34 @@ function renderVow() {
   let html = "";
   skills.forEach(s => {
       let highlight = "";
-      if(s.id === "futaiten") highlight = `獲得遺物ボーナス：+${(player.inventory[401] || 0) + lv - 1 + ((player.inventory[502] || 0) * 5)}`;
-      else if(s.id === "setsuna") highlight = `HP増加幅: +${lv} / 上限: ${player.deathCount.toLocaleString()}`;
-      else if(s.id === "inga") {
-          let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0); 
-          highlight = `無効化範囲：${minCut}% ～ 100% / 固定軽減: +${((player.inventory[501] || 0) * 500000).toLocaleString()}`;
+      if(s.id === "futaiten") {
+          const futaitenVal = player.inventory[401] || 0;
+          const gouyokuVal = (player.inventory[502] || 0) * 5;
+          highlight = `獲得遺物ボーナス：+${lv - 1} 【不退転：+${futaitenVal}】【権能：+${gouyokuVal}】`;
       }
-      else if(s.id === "hangeki") highlight = `生存時に★2以上の遺物を獲得する：★${(player.inventory[404] || 0) > 0 ? 3 : 2}以上 (1～${lv}個)`;
-      else if(s.id === "konken") highlight = `戦闘経験値：+${lv + (player.inventory[405] || 0)}`;
+      else if(s.id === "setsuna") {
+          const setsunaVal = player.inventory[402] || 0;
+          highlight = `HP増加幅: +${lv} / 上限: ${player.deathCount.toLocaleString()} 【刹那：+${setsunaVal}回】`;
+      }
+      else if(s.id === "inga") {
+          let baseCut = lv * 2;
+          let ingaVal = Math.min(30, player.inventory[403] || 0);
+          let fixedMitigation = (player.inventory[501] || 0) * 500000;
+          highlight = `無効化範囲：${baseCut + ingaVal}% ～ 100% 【因果：+${ingaVal}%】 / 固定軽減: +${fixedMitigation.toLocaleString()}`;
+      }
+      else if(s.id === "hangeki") {
+          const zanko = player.inventory[404] || 0;
+          const minStar = zanko > 0 ? 3 : 2;
+          highlight = `生存時に遺物を獲得する：★${minStar}以上 (1～${lv}個) ${zanko > 0 ? '【反撃：★3昇格】' : ''}`;
+      }
+      else if(s.id === "konken") {
+          const konkenVal = player.inventory[405] || 0;
+          highlight = `戦闘経験値：+${lv} 【魂研：+${konkenVal}】`;
+      }
       else if(s.id === "shikoku") {
+          const kama = player.inventory[406] || 0;
           const rate = (0.00004 * lv).toFixed(5);
-          highlight = `戦闘毎の上昇：+${rate}% / 倍率：x${calcFinalDmgMult().toFixed(6)}`;
+          highlight = `戦闘毎の上昇：+${rate}% / 倍率：x${calcFinalDmgMult().toFixed(6)} ${kama > 0 ? '【死刻：変換2倍】' : ''}`;
       }
       const isMax = lv >= 10;
       const lvText = isMax ? `<span class="vow-lv max">極 (Lv.${lv})</span>` : `<span class="vow-lv">Lv.${lv}</span>`;
