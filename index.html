@@ -228,7 +228,7 @@ function renderVow() {
       { id: "futaiten", name: "不退転の力", desc: "攻撃時に追加の遺物を刻む。" },
       { id: "setsuna", name: "刹那の堆積", desc: "再起するたびにHP増加幅+(Lv)。確かな意思が核に宿る。" },
       { id: "inga", name: "因果の拒絶", desc: "敵の攻撃を無効化する。" },
-      { id: "hangeki", name: "反撃の狼煙", desc: "生存時に遺物を獲得する。" },
+      { id: "hangeki", name: "反撃の狼煙", desc: "生存ボーナスを獲得する。" },
       { id: "konken", name: "魂の研磨", desc: "成長速度を加速させる。" },
       { id: "shikoku", name: "死を刻む", desc: "経験をダメージに変換する。" }
   ];
@@ -236,16 +236,16 @@ function renderVow() {
   skills.forEach(s => {
       let highlight = "";
       if(s.id === "futaiten") highlight = `獲得遺物ボーナス：+${(player.inventory[401] || 0) + lv - 1 + ((player.inventory[502] || 0) * 5)}`;
-      else if(s.id === "setsuna") highlight = `HP増加保証: +${lv} / 上限: ${player.deathCount.toLocaleString()}`;
+      else if(s.id === "setsuna") highlight = `HP増加幅: +${lv} / 上限: ${player.deathCount.toLocaleString()}`;
       else if(s.id === "inga") {
           let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0); 
           highlight = `無効化範囲：${minCut}% ～ 100% / 固定軽減: +${((player.inventory[501] || 0) * 500000).toLocaleString()}`;
       }
-      else if(s.id === "hangeki") highlight = `生存ドロップ：★${(player.inventory[404] || 0) > 0 ? 3 : 2}以上 (1～${lv}個)`;
-      else if(s.id === "konken") highlight = `全ボーナス加算：+${lv + (player.inventory[405] || 0)}`;
+      else if(s.id === "hangeki") highlight = `生存時に★2以上の遺物を獲得する：★${(player.inventory[404] || 0) > 0 ? 3 : 2}以上 (1～${lv}個)`;
+      else if(s.id === "konken") highlight = `戦闘経験値：+${lv + (player.inventory[405] || 0)}`;
       else if(s.id === "shikoku") {
           const rate = (0.00004 * lv).toFixed(5);
-          highlight = `1経験毎の上昇：+${rate}% / 倍率：x${calcFinalDmgMult().toFixed(6)}`;
+          highlight = `戦闘毎の上昇：+${rate}% / 倍率：x${calcFinalDmgMult().toFixed(6)}`;
       }
       const isMax = lv >= 10;
       const lvText = isMax ? `<span class="vow-lv max">極 (Lv.${lv})</span>` : `<span class="vow-lv">Lv.${lv}</span>`;
