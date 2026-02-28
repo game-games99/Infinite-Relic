@@ -3,18 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.7</title>
+<title>RELICORE - v1.8</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
   
-  /* 称号エリアの動的スタイル用ベース */
   .rank-display { text-align: center; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #333; transition: all 0.5s ease; background: #000; color: #fff; }
   .rank-lv { font-size: 0.85em; margin-bottom: 6px; font-weight: bold; }
   .rank-title { font-size: 1.5em; font-weight: bold; letter-spacing: 3px; }
-
-  /* 特殊ランクエフェクト */
   .rank-glow-mid { box-shadow: 0 0 15px rgba(102, 16, 242, 0.4); border-color: var(--relic-purple); }
   .rank-glow-high { box-shadow: 0 0 25px rgba(212, 175, 55, 0.6); border-color: var(--gold); animation: rank-pulse 2s infinite alternate; }
   .rank-glow-max { box-shadow: 0 0 40px rgba(255, 255, 255, 0.8); border-color: #fff; background: linear-gradient(135deg, #000 0%, #444 100%); animation: rank-ultra-glow 1.5s infinite alternate; }
@@ -137,7 +134,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.7</div>
+<div class="ver-footer">RELICORE v1.8</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -225,7 +222,10 @@ function renderVow() {
       let highlight = "";
       if(s.id === "futaiten") highlight = `獲得遺物ボーナス：+${(player.inventory[401] || 0) + lv - 1}`;
       else if(s.id === "setsuna") highlight = `HP増加保証: +${lv} / 上限: ${player.deathCount.toLocaleString()}`;
-      else if(s.id === "inga") highlight = `無効化範囲：${Math.min(30, player.inventory[403] || 0) + lv}% ～ 100%`;
+      else if(s.id === "inga") {
+          let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0); 
+          highlight = `無効化範囲：${minCut}% ～ 100%`;
+      }
       else if(s.id === "hangeki") highlight = `生存ドロップ：★${(player.inventory[404] || 0) > 0 ? 3 : 2}以上`;
       else if(s.id === "konken") highlight = `全ボーナス加算：+${lv + (player.inventory[405] || 0)}`;
       else if(s.id === "shikoku") highlight = `最終倍率：x${calcFinalDmgMult().toFixed(6)}`;
@@ -260,7 +260,7 @@ function attack() {
   
   if(currentBossHP > 0n) {
       const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
-      let minCut = Math.min(30, player.inventory[403] || 0) + lv; 
+      let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0); 
       let finalMitigated = BigInt(Math.floor(Number(MAJIN_ATK_BASE * BigInt(player.uraAtkMult)) * (1 - (Math.floor(Math.random() * (101 - minCut)) + minCut) / 100))) - BigInt((player.inventory[501] || 0) * 500000);
       if(finalMitigated < 0n) finalMitigated = 0n;
 
@@ -325,27 +325,15 @@ function refreshUI() {
   document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BigInt(player.bossMaxHP))}%`;
   document.getElementById("boss-display-name").innerText = player.isUra ? "真裏ボス - 溢れし災厄" : "終末神アポカリス＝ティア";
   
-  // 称号エリアの更新
   const area = document.getElementById("st-rank-area");
   const title = document.getElementById("st-rank-title");
   document.getElementById("st-rank-lv").innerText = `Lv.${lv}`;
   title.innerText = PLAYER_TITLES[lv - 1];
-  
-  // クラスリセット
   area.className = "rank-display";
   title.style.color = "#fff";
-
-  if (lv >= 4 && lv <= 6) {
-      area.classList.add("rank-glow-mid");
-      title.style.color = "var(--relic-purple)";
-  } else if (lv >= 7 && lv <= 9) {
-      area.classList.add("rank-glow-high");
-      title.style.color = "var(--gold)";
-  } else if (lv >= 10) {
-      area.classList.add("rank-glow-max");
-      title.style.color = "gold";
-      title.style.textShadow = "0 0 10px #fff, 0 0 20px gold";
-  }
+  if (lv >= 4 && lv <= 6) { area.classList.add("rank-glow-mid"); title.style.color = "var(--relic-purple)"; }
+  else if (lv >= 7 && lv <= 9) { area.classList.add("rank-glow-high"); title.style.color = "var(--gold)"; }
+  else if (lv >= 10) { area.classList.add("rank-glow-max"); title.style.color = "gold"; title.style.textShadow = "0 0 10px #fff, 0 0 20px gold"; }
 
   document.getElementById("hado-box").style.display = player.hasHado ? "block" : "none";
   const tid = document.querySelector(".tab.active").id;
