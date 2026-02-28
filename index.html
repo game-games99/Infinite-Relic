@@ -3,12 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.6</title>
+<title>RELICORE - v1.7</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
   
+  /* 称号エリアの動的スタイル用ベース */
+  .rank-display { text-align: center; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #333; transition: all 0.5s ease; background: #000; color: #fff; }
+  .rank-lv { font-size: 0.85em; margin-bottom: 6px; font-weight: bold; }
+  .rank-title { font-size: 1.5em; font-weight: bold; letter-spacing: 3px; }
+
+  /* 特殊ランクエフェクト */
+  .rank-glow-mid { box-shadow: 0 0 15px rgba(102, 16, 242, 0.4); border-color: var(--relic-purple); }
+  .rank-glow-high { box-shadow: 0 0 25px rgba(212, 175, 55, 0.6); border-color: var(--gold); animation: rank-pulse 2s infinite alternate; }
+  .rank-glow-max { box-shadow: 0 0 40px rgba(255, 255, 255, 0.8); border-color: #fff; background: linear-gradient(135deg, #000 0%, #444 100%); animation: rank-ultra-glow 1.5s infinite alternate; }
+  
+  @keyframes rank-pulse { from { transform: scale(1); } to { transform: scale(1.02); } }
+  @keyframes rank-ultra-glow { from { box-shadow: 0 0 20px #fff; } to { box-shadow: 0 0 50px gold, 0 0 20px #fff; } }
+
   #rank-up-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 50000; justify-content: center; align-items: center; padding: 20px; }
   .rank-up-content { background: #000; border: 2px solid var(--growth); border-radius: 20px; padding: 40px 20px; text-align: center; color: #fff; max-width: 450px; width: 95%; box-shadow: 0 0 40px rgba(255, 105, 180, 0.4); animation: heartbeat-pulse 2s infinite; }
   @keyframes heartbeat-pulse { 0% { transform: scale(1); box-shadow: 0 0 20px rgba(255,105,180,0.4); } 5% { transform: scale(1.05); box-shadow: 0 0 50px rgba(255,105,180,0.8); } 10% { transform: scale(1); } 15% { transform: scale(1.03); } 20% { transform: scale(1); } 100% { transform: scale(1); } }
@@ -92,11 +105,6 @@
   .st-title-flex { display: flex; justify-content: space-between; align-items: baseline; font-weight: bold; }
   .btn-reset { width: 100%; padding: 16px; background: #dc3545; color: #fff; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
   .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; z-index: 50; }
-  
-  .rank-display { text-align: center; padding: 15px; background: #000; color: #fff; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
-  .rank-lv { font-size: 0.8em; color: #aaa; margin-bottom: 4px; }
-  .rank-title { font-size: 1.4em; font-weight: bold; letter-spacing: 2px; }
-  .rank-title.max { color: gold; text-shadow: 0 0 10px gold; }
 </style>
 </head>
 <body>
@@ -113,7 +121,7 @@
   <div id="vow" class="tab"><div id="vow-list"></div></div>
   <div id="relic" class="tab"><div class="relic-list-container" id="relic-list"></div></div>
   <div id="status" class="tab">
-    <div class="rank-display">
+    <div class="rank-display" id="st-rank-area">
         <div class="rank-lv" id="st-rank-lv">Lv.1</div>
         <div class="rank-title" id="st-rank-title">初心者</div>
     </div>
@@ -129,7 +137,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.6</div>
+<div class="ver-footer">RELICORE v1.7</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -171,7 +179,7 @@ const RELIC_MASTER = [
   {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000},
   {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000},
   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000},
-  {id:501, star:5, name:"断絶の権能", atk:382660, hp:916330}, {id:502, star:5, name:"強欲の権能", atk:649800, hp:812400}, {id:503, star:5, name:"超越の権能", atk:524180, hp:689450}, {id:504, star:5, name:"破壊の権能", atk:999999, hp:0},
+  {id:501, star:5, name:"断絶の権能", atk:382660, hp:916330}, {id:502, star:5, name:"強欲의 権能", atk:649800, hp:812400}, {id:503, star:5, name:"超越の権能", atk:524180, hp:689450}, {id:504, star:5, name:"破壊の権能", atk:999999, hp:0},
   {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
@@ -262,7 +270,6 @@ function attack() {
           logHtml += `<div><span style="color:#28a745; font-weight:bold;">敵の攻撃！${finalMitigated.toLocaleString()} ダメージ。障壁展開！</span></div>` + getGuaranteedDrop();
       } else {
           let totalUpHP = 0n; 
-          // 刹那の堆積： 1〜経験値 の乱数 ＋ Lv加算
           const rollCount = 1 + (player.inventory[402] || 0);
           for(let i=0; i < rollCount; i++) {
               totalUpHP += BigInt(Math.floor(Math.random() * Math.max(1, player.deathCount)) + 1 + lv);
@@ -317,9 +324,29 @@ function refreshUI() {
   document.getElementById("bosshp-cur").innerText = currentBossHP.toLocaleString();
   document.getElementById("hp-bar-fill").style.width = `${Number(currentBossHP * 100n / BigInt(player.bossMaxHP))}%`;
   document.getElementById("boss-display-name").innerText = player.isUra ? "真裏ボス - 溢れし災厄" : "終末神アポカリス＝ティア";
+  
+  // 称号エリアの更新
+  const area = document.getElementById("st-rank-area");
+  const title = document.getElementById("st-rank-title");
   document.getElementById("st-rank-lv").innerText = `Lv.${lv}`;
-  document.getElementById("st-rank-title").innerText = PLAYER_TITLES[lv - 1];
-  if(lv >= 10) document.getElementById("st-rank-title").classList.add("max");
+  title.innerText = PLAYER_TITLES[lv - 1];
+  
+  // クラスリセット
+  area.className = "rank-display";
+  title.style.color = "#fff";
+
+  if (lv >= 4 && lv <= 6) {
+      area.classList.add("rank-glow-mid");
+      title.style.color = "var(--relic-purple)";
+  } else if (lv >= 7 && lv <= 9) {
+      area.classList.add("rank-glow-high");
+      title.style.color = "var(--gold)";
+  } else if (lv >= 10) {
+      area.classList.add("rank-glow-max");
+      title.style.color = "gold";
+      title.style.textShadow = "0 0 10px #fff, 0 0 20px gold";
+  }
+
   document.getElementById("hado-box").style.display = player.hasHado ? "block" : "none";
   const tid = document.querySelector(".tab.active").id;
   if(tid === 'vow') renderVow(); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
