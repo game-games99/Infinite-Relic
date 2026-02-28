@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.0</title>
+<title>RELICORE - v2.2</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -134,7 +134,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v2.0</div>
+<div class="ver-footer">RELICORE v2.2</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -176,7 +176,10 @@ const RELIC_MASTER = [
   {id:404, star:4, name:"【反撃】勇者の残光", atk:90000, hp:120000},
   {id:405, star:4, name:"【魂研】賢者の叡智", atk:55000, hp:220000},
   {id:406, star:4, name:"【死刻】死神の鎌", atk:110000, hp:80000},
-  {id:501, star:5, name:"断絶の権能", atk:382660, hp:916330}, {id:502, star:5, name:"強欲의 権能", atk:649800, hp:812400}, {id:503, star:5, name:"超越の権能", atk:524180, hp:689450}, {id:504, star:5, name:"破壊の権能", atk:999999, hp:0},
+  {id:501, star:5, name:"断絶の権能", atk:382660, hp:916330, desc:"1つにつき、受けるダメージを50万軽減する。"}, 
+  {id:502, star:5, name:"強欲の権能", atk:649800, hp:812400, desc:"1つにつき、攻撃時の獲得遺物数を+5増加。"}, 
+  {id:503, star:5, name:"超越の権能", atk:524180, hp:689450, desc:"1つにつき、最終ダメージを1.1倍（乗算）する。"}, 
+  {id:504, star:5, name:"破壊の権能", atk:999999, hp:0, desc:"1つにつき、最終ダメージを+1%（加算）する。"},
   {id:601, star:6, name:"支配の権能", atk:1500000, hp:4500000, mult:1.1}, {id:602, star:6, name:"秩序の権能", atk:2500000, hp:3500000, mult:1.1}, {id:603, star:6, name:"虚無の権能", atk:2000000, hp:4000000, mult:1.1}, {id:604, star:6, name:"創造の権能", atk:1200000, hp:5000000, mult:1.1},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0}
 ];
@@ -203,9 +206,11 @@ function calcFinalDmgMult() {
   const lv = getLevelByDeath();
   const baseRate = 0.0000004 * lv; 
   const kamaBoost = 1 + (player.inventory[406] || 0);
+  // 基本倍率 + 加算分(破壊の権能: +1%)
   let mult = 1.0 + (player.deathCount * baseRate * kamaBoost);
-  mult += ((player.inventory[504] || 0) * 0.004);
-  return mult * Math.pow(1.00001, (player.inventory[503] || 0));
+  mult += ((player.inventory[504] || 0) * 0.01);
+  // 乗算分(超越の権能: x1.1)
+  return mult * Math.pow(1.1, (player.inventory[503] || 0));
 }
 
 function renderVow() {
@@ -221,11 +226,11 @@ function renderVow() {
   let html = "";
   skills.forEach(s => {
       let highlight = "";
-      if(s.id === "futaiten") highlight = `獲得遺物ボーナス：+${(player.inventory[401] || 0) + lv - 1}`;
+      if(s.id === "futaiten") highlight = `獲得遺物ボーナス：+${(player.inventory[401] || 0) + lv - 1 + ((player.inventory[502] || 0) * 5)}`;
       else if(s.id === "setsuna") highlight = `HP増加保証: +${lv} / 上限: ${player.deathCount.toLocaleString()}`;
       else if(s.id === "inga") {
           let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0); 
-          highlight = `無効化範囲：${minCut}% ～ 100%`;
+          highlight = `無効化範囲：${minCut}% ～ 100% / 固定軽減: +${((player.inventory[501] || 0) * 500000).toLocaleString()}`;
       }
       else if(s.id === "hangeki") highlight = `生存ドロップ：★${(player.inventory[404] || 0) > 0 ? 3 : 2}以上 (1～${lv}個)`;
       else if(s.id === "konken") highlight = `全ボーナス加算：+${lv + (player.inventory[405] || 0)}`;
@@ -253,6 +258,7 @@ function attack() {
   const lv = getLevelByDeath();
   const totalPolish = lv + (player.inventory[405] || 0);
   
+  // 強欲の権能ボーナス(+5個)
   let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + (player.inventory[401] || 0) + lv - 1 + ((player.inventory[502] || 0) * 5));
   
   if(finalDmg >= currentBossHP) {
@@ -265,6 +271,7 @@ function attack() {
   if(currentBossHP > 0n) {
       const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
       let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0); 
+      // 断絶の権能ボーナス(50万カット)
       let finalMitigated = BigInt(Math.floor(Number(MAJIN_ATK_BASE * BigInt(player.uraAtkMult)) * (1 - (Math.floor(Math.random() * (101 - minCut)) + minCut) / 100))) - BigInt((player.inventory[501] || 0) * 500000);
       if(finalMitigated < 0n) finalMitigated = 0n;
 
