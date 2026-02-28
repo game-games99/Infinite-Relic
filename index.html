@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.2</title>
+<title>RELICORE - v2.3</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -134,7 +134,7 @@
     <button class="btn-reset" onclick="resetData()">全データリセット</button>
   </div>
 </div>
-<div class="ver-footer">RELICORE v2.2</div>
+<div class="ver-footer">RELICORE v2.3</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -174,12 +174,9 @@ function closeHadoModal() { document.getElementById("hado-awaken-modal").style.d
 
 function calcFinalDmgMult() {
   const lv = getLevelByDeath(); const baseRate = 0.0000004 * lv; const kamaBoost = 1 + (player.inventory[406] || 0);
-  // v2.2 破壊の権能による加算(1つにつき1%)
   const destructionBoost = (player.inventory[504] || 0) * 0.01;
   let mult = 1.0 + (player.deathCount * baseRate * kamaBoost) + destructionBoost;
-  // 他の加算効果
-  mult += ((player.inventory[503] || 0) * 0.004); // 超越の旧効果は維持
-  // v2.2 超越の権能による乗算(1つにつき1.1倍)
+  mult += ((player.inventory[503] || 0) * 0.004);
   let finalMult = mult * Math.pow(1.1, (player.inventory[503] || 0)) * Math.pow(1.00001, (player.inventory[503] || 0));
   return finalMult;
 }
@@ -194,9 +191,8 @@ function attack() {
   if (player.inventory[116] >= 100000 && !player.hasHado && Math.random() < (1/100000)) { openHadoModal(); return; }
 
   const lv = getLevelByDeath(); const totalPolish = lv + (player.inventory[405] || 0);
-  // v2.2 強欲の権能による遺物数増加(+5個)
   const greedBonus = (player.inventory[502] || 0) * 5;
-  let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + (player.inventory[401] || 0) + lv - 1 + ((player.inventory[502] || 0) * 5) + greedBonus);
+  let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + (player.inventory[401] || 0) + lv - 1 + greedBonus);
   
   if(finalDmg >= currentBossHP) {
       if((player.inventory[701] || 0) > 0) { currentBossHP = 0n; isModalOpen = true; document.getElementById("clear-modal").style.display = "flex"; } 
@@ -208,10 +204,9 @@ function attack() {
   if(currentBossHP > 0n) {
       const currentTotalHP = BigInt(Math.floor(Number(player.baseHP + b.hp) * b.mult));
       let minCut = (lv * 2) + Math.min(30, player.inventory[403] || 0);
-      // v2.2 断絶の権能によるダメージ軽減(-50万)
       const severanceCut = BigInt(player.inventory[501] || 0) * 500000n;
       let enemyRawAtk = BigInt(Math.floor(Number(MAJIN_ATK_BASE * BigInt(player.uraAtkMult)) * (1 - (Math.floor(Math.random() * (101 - minCut)) + minCut) / 100)));
-      let finalMitigated = enemyRawAtk - severanceCut - BigInt((player.inventory[501] || 0) * 500000); // 既存の断絶計算も統合
+      let finalMitigated = enemyRawAtk - severanceCut;
       if(finalMitigated < 0n) finalMitigated = 0n;
 
       const oldLv = getLevelByDeath();
@@ -286,6 +281,27 @@ function refreshUI() {
   document.getElementById("hado-box").style.display = player.hasHado ? "block" : "none";
   const tid = document.querySelector(".tab.active").id;
   if(tid === 'vow') renderVow(); else if(tid === 'relic') renderRelics(); else if(tid === 'status') renderStatus();
+}
+
+function renderVow() {
+  const lv = getLevelByDeath(); const fMult = calcFinalDmgMult();
+  const nextThreshold = getExpThreshold(lv + 1); const kamaCount = player.inventory[406] || 0;
+  const greedCount = player.inventory[502] || 0;
+  const vowList = [
+    { name: "不退転の力", val: `(1 + ${lv - 1 + (player.inventory[401] || 0)} + ${greedCount * 5}) 個`, sub: "戦闘を経験するたびにランダムな遺物を獲得する。攻撃するたびに深淵に漂う遺物を魂に刻む。" },
+    { name: "刹那の堆積", val: `基礎HP +${(1 + (player.inventory[402] || 0))} 回抽選`, sub: `HP 1 ～ ${player.deathCount.toLocaleString()} の間でランダムに上昇。戦闘経験を積むたびにHP増加幅+1。確かな意思が核に宿る。` },
+    { name: "因果の拒絶", val: `${(lv * 2) + Math.min(30, player.inventory[403] || 0)}% ～ 100%`, sub: `稀に攻撃を無効化する。経験値が深まるごとに下限が向上（次回：${nextThreshold.toLocaleString()}）。魔導王の加護により下限+${Math.min(30, player.inventory[403] || 0)}%。` },
+    { name: "反撃の狼煙", val: `★${(player.inventory[404] || 0) > 0 ? "3 ～ 4" : "2"} 確定`, sub: "生存時、特定のランクの遺物を確定で入手する。不屈の闘志を燃やし、新たな力を手に入れる。" },
+    { name: "魂の研磨", val: `獲得経験値 +${lv + (player.inventory[405] || 0)}`, sub: `遺物獲得数/経験値ボーナス。蓄積した戦闘経験に応じて機能強化（次回：${nextThreshold.toLocaleString()}）。` },
+    { name: "死を刻む", val: `最終ダメージ x${fMult.toFixed(8)}`, sub: `経験値と死神の鎌(${kamaCount}個)により最終ダメージを増加させる。経験を積むたびにその威力は増していく。` }
+  ];
+  document.getElementById("vow-list").innerHTML = vowList.map(v => `
+    <div class="vow-item">
+      <div class="vow-header"><span class="vow-name">${v.name}</span><span class="vow-lv ${lv>=10?'max':''}">解析済</span></div>
+      <span class="vow-highlight">${v.val}</span>
+      <span class="vow-sub">${v.sub}</span>
+    </div>
+  `).join("");
 }
 
 function renderRelics() {
