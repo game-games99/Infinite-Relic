@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v1.0</title>
+<title>RELICORE - v1.1</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -177,7 +177,7 @@ RELICORE 開発者　げぇいむ＆AI
     <div class="privacy-link" onclick="openPolicy()">プライバシーポリシー</div>
   </div>
 </div>
-<div class="ver-footer">RELICORE v1.0</div>
+<div class="ver-footer">RELICORE v1.1</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
@@ -216,7 +216,6 @@ const PLAYER_TITLES = ["初心者", "修練者", "熟練者", "探求者", "到�
 
 function getExpThreshold(lv) { if (lv <= 1) return 0; let threshold = 1000; for (let i = 2; i < lv; i++) threshold *= i; return threshold; }
 
-// 【修正：核のレベルからオーバーロードを除外】
 function getLevelByDeath() { 
   let lv = 1; while (lv < 10 && player.deathCount >= getExpThreshold(lv + 1)) lv++; 
   return lv; 
@@ -234,7 +233,7 @@ const RELIC_MASTER = [
   {id:504, star:5, name:"破壊の権能", atk:999999, hp:0, desc:"1つにつき、最終ダメージを+1%加算。"},
   {id:601, star:6, name:"絶対統率レリック・オーバーロード", atk:1500000, hp:4500000, mult:1.1, desc:"1個につき再起スキルLv上限を無視して+1。"}, 
   {id:602, star:6, name:"魂律解放レリ・クシア", atk:2500000, hp:3500000, mult:1.1, desc:"刻んだ遺物の総数分、ATKを加算。"}, 
-  {id:603, star:6, name:"原初核冠レリコア・レガリア", atk:2000000, hp:4000000, mult:1.1, desc:"所持遺物の種類数×1%의 ダメージ倍率加算。"}, 
+  {id:603, star:6, name:"原初核冠レリコア・レガリア", atk:2000000, hp:4000000, mult:1.1, desc:"所持遺物の種類数×1%のダメージ倍率加算。"}, 
   {id:604, star:6, name:"虚無終焉レリ・ノヴァ", atk:5000000, hp:0, mult:1.1, desc:"最終ダメージ倍率に+999%加算。"},
   {id:701, star:7, name:"パンドラの箱", atk:150000000, hp:350000000, mult:100.0, desc:"神を屠る唯一の条件。災厄の底に希望を宿す。"}, {id:702, star:7, name:"終焉の福音", atk:200000000, hp:450000000, mult:150.0, desc:"終わりの始まりを告げる、黄金の調べ。"}, {id:703, star:7, name:"神滅のアカシックレコード", atk:100000000, hp:550000000, mult:200.0, desc:"全宇宙の事象を書き換え、神話を否定する。"}
 ];
@@ -254,7 +253,6 @@ function openPolicy() { if (attackInterval) { clearInterval(attackInterval); att
 function closePolicy() { document.getElementById("policy-modal").style.display = "none"; isModalOpen = false; }
 
 function calcFinalDmgMult() { 
-  // 【修正：スキルの計算にはオーバーロードを加味】
   const lv = getLevelByDeath() + (player.inventory[601] || 0); 
   const baseRate = 0.0000004 * lv; 
   const kamaBoost = (player.inventory[406] || 0) * 0.000004; 
@@ -267,16 +265,15 @@ function calcFinalDmgMult() {
 }
 
 function renderVow() {
-  // 【修正：再起スキル画面のLv表示にはオーバーロードを合算】
   const baseLv = getLevelByDeath();
   const lv = baseLv + (player.inventory[601] || 0);
   const skills = [
-      { id: "futaiten", name: "不退転の力", desc: "攻撃時に追加の遺物を刻む。" },
-      { id: "setsuna", name: "刹那の堆積", desc: "再起するたびにHP増加幅+(Lv)。確かな意思が核に宿る。" },
-      { id: "inga", name: "因果の拒絶", desc: "敵の攻撃を無効化する。" },
-      { id: "hangeki", name: "反撃の狼煙", desc: "生存ボーナスを獲得する。" },
-      { id: "konken", name: "魂の研磨", desc: "成長速度を加速させる。" },
-      { id: "shikoku", name: "死を刻む", desc: "経験をダメージに変換する。" }
+      { id: "futaiten", name: "不退転 of 力", nameJp: "不退転の力", desc: "攻撃時に追加の遺物を刻む。" },
+      { id: "setsuna", name: "刹那 of 堆積", nameJp: "刹那の堆積", desc: "再起するたびにHP増加幅+(Lv)。確かな意思が核に宿る。" },
+      { id: "inga", name: "因果 of 拒絶", nameJp: "因果の拒絶", desc: "敵の攻撃を無効化する。" },
+      { id: "hangeki", name: "反撃 of 狼煙", nameJp: "反撃の狼煙", desc: "生存ボーナスを獲得する。" },
+      { id: "konken", name: "魂 of 研磨", nameJp: "魂の研磨", desc: "成長速度を加速させる。" },
+      { id: "shikoku", name: "死 to 刻む", nameJp: "死を刻む", desc: "経験をダメージに変換する。" }
   ];
   let html = "";
   skills.forEach(s => {
@@ -284,7 +281,7 @@ function renderVow() {
       if(s.id === "futaiten") {
           const futaitenVal = player.inventory[401] || 0;
           const gouyokuVal = (player.inventory[502] || 0) * 5;
-          highlight = `獲得遺物ボーナス：+${lv - 1} 【不退転：+${futaitenVal}】【権能：+${gouyokuVal}】`;
+          highlight = `獲得遺物ボーナス：+${lv - 1} 【不退転：+${futaitenVal}】【強欲：+${gouyokuVal}】`;
       }
       else if(s.id === "setsuna") {
           const setsunaVal = (player.inventory[402] || 0) * 5;
@@ -314,7 +311,7 @@ function renderVow() {
       }
       const isMax = baseLv >= 10;
       const lvText = isMax ? `<span class="vow-lv max">極 (Lv.${lv})</span>` : `<span class="vow-lv">Lv.${lv}</span>`;
-      html += `<div class="vow-item"><div class="vow-header"><span class="vow-name">${s.name}</span>${lvText}</div><span class="vow-highlight">${highlight}</span><span class="vow-sub">${s.desc}</span></div>`;
+      html += `<div class="vow-item"><div class="vow-header"><span class="vow-name">${s.nameJp}</span>${lvText}</div><span class="vow-highlight">${highlight}</span><span class="vow-sub">${s.desc}</span></div>`;
   });
   document.getElementById('vow-list').innerHTML = html;
 }
@@ -328,7 +325,6 @@ function attack() {
   if(finalDmg > player.maxDmg) player.maxDmg = finalDmg;
   if (player.inventory[116] >= 100000 && !player.hasHado && Math.random() < (1/100000)) { openHadoModal(); return; }
   
-  // 【修正：攻撃・成長の計算にはオーバーロードを合算した実効Lvを使用】
   const lv = getLevelByDeath() + (player.inventory[601] || 0);
   const totalPolish = lv + (player.inventory[405] || 0);
   let logHtml = `<div><span style="color:#007bff; font-weight:bold;">攻撃！${finalDmg.toLocaleString()} ダメージ！</span></div>` + getDropLog(1 + (player.inventory[401] || 0) + lv - 1 + ((player.inventory[502] || 0) * 5));
@@ -365,34 +361,44 @@ function getGuaranteedDrop() {
   const lv = getLevelByDeath() + (player.inventory[601] || 0);
   const zanko = player.inventory[404] || 0; 
   const count = Math.floor(Math.random() * lv) + 1;
-  let obtained = {}; let highest = null;
+  let obtained = {}; let showRare = null;
   for(let i=0; i < count; i++) {
     let star = zanko > 0 ? 3 : 2;
     if(zanko > 0 && Math.random() < (0.01 + zanko * 0.001 + lv * 0.001)) star = 4;
     let cands = RELIC_MASTER.filter(m => m.star === star); 
     let sel = cands[Math.floor(Math.random() * cands.length)];
+    
+    // 【初回獲得判定】★4以上かつ未所持なら演出フラグを立てる
+    if (sel.star >= 4 && !player.inventory[sel.id]) {
+        if (!showRare || sel.star > showRare.star) showRare = sel;
+    }
+    
     player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1;
     obtained[sel.id] = (obtained[sel.id] || 0) + 1;
     player.totalRelics++;
-    if(sel.star >= 4 && (!highest || sel.star > highest.star)) highest = sel;
   }
-  if(highest) openRareModal(highest);
+  if(showRare) openRareModal(showRare);
   const itemsStr = Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}${c > 1 ? '×' + c : ''}</span>`; }).join(", ");
   return `<div style="font-size:0.82em;">【狼煙】獲得：${itemsStr}</div>`;
 }
 
 function getDropLog(count) {
-  let obtained = {}; const rates = getCurrentDropRates(); let highest = null;
+  let obtained = {}; const rates = getCurrentDropRates(); let showRare = null;
   for(let i=0; i < count; i++) {
       let rv = Math.random()*100, star=1, curP=0;
       for(let s in rates) { curP += rates[s].p; if(rv <= curP) { star=parseInt(s); break; } }
       if (player.maxDmg < rates[star].cond) star=1;
       let cands = RELIC_MASTER.filter(m => m.star === star && m.id !== 0); let sel = cands[Math.floor(Math.random() * cands.length)];
+      
+      // 【初回獲得判定】★4以上かつ未所持なら演出フラグを立てる
+      if (sel.star >= 4 && !player.inventory[sel.id]) {
+          if (!showRare || sel.star > showRare.star) showRare = sel;
+      }
+      
       player.inventory[sel.id] = (player.inventory[sel.id] || 0) + 1; obtained[sel.id] = (obtained[sel.id] || 0) + 1;
       player.totalRelics++;
-      if(sel.star >= 4 && (!highest || sel.star > highest.star)) highest = sel;
   }
-  if(highest) openRareModal(highest);
+  if(showRare) openRareModal(showRare);
   return Object.entries(obtained).length > 0 ? `<div style="font-size:0.82em;">獲得：${Object.entries(obtained).map(([id, c]) => { const m = RELIC_MASTER.find(x=>x.id==id); return `<span class="c${m.star}">★${m.star} ${m.name}${c > 1 ? '×' + c : ''}</span>`; }).join(", ")}</div>` : "";
 }
 
