@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RELICORE - v2.9</title>
+<title>RELICORE - v1.0</title>
 <style>
   :root { --bg: #ffffff; --panel: #f8f9fa; --border: #dee2e6; --primary: #007bff; --text: #212529; --hp: #dc3545; --dark: #1a1a1a; --gold: #d4af37; --growth: #ff69b4; --relic-purple: #6610f2; --relic-bg: #fcfaff; }
   * { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -105,14 +105,48 @@
   .privacy-link { display: block; text-align: center; font-size: 0.75em; color: #888; text-decoration: underline; cursor: pointer; padding: 10px; }
   
   #policy-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 60000; justify-content: center; align-items: center; padding: 20px; }
-  .policy-content { background: #fff; border-radius: 15px; padding: 25px; color: #333; max-width: 450px; width: 95%; max-height: 80vh; overflow-y: auto; text-align: left; }
-  .policy-title { font-weight: bold; font-size: 1.1em; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; text-align: center; }
-  .policy-text { font-size: 0.85em; line-height: 1.6; margin-bottom: 20px; }
+  .policy-content { background: #fff; border-radius: 15px; padding: 25px; color: #333; max-width: 500px; width: 95%; max-height: 85vh; overflow-y: auto; text-align: left; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+  .policy-title { font-weight: bold; font-size: 1.2em; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 8px; text-align: center; }
+  .policy-text { font-size: 0.82em; line-height: 1.7; margin-bottom: 20px; color: #444; }
+  .policy-divider { border: 0; border-top: 1px solid #ddd; margin: 15px 0; }
+  .policy-footer { font-size: 0.75em; color: #777; text-align: right; margin-top: 20px; line-height: 1.4; }
   .ver-footer { position: fixed; bottom: 4px; right: 4px; color: #bbb; font-size: 0.65em; pointer-events: none; z-index: 50; }
 </style>
 </head>
 <body>
-<div id="policy-modal"><div class="policy-content"><div class="policy-title">プライバシーポリシー</div><div class="policy-text">本ゲーム（RELICORE）のデータ管理について：<br><br>1. **データの保存**: プレイ中の進行状況、獲得した遺物、ステータス等のデータは、お客様が使用されているブラウザのローカルストレージ（localStorage）にのみ保存されます。<br><br>2. **外部への送信**: 保存されたデータが外部のサーバーや第三者に送信・共有されることは一切ありません。完全なオフライン動作を基本としています。<br><br>3. **データの削除**: 「詳細」タブ内にある「全データリセット」を実行することで、ブラウザに保存されたすべてのプレイデータを即座に削除することが可能です。<br><br>4. **個人情報**: 当アプリがお客様の氏名、連絡先、位置情報などの個人情報を収集することはありません。</div><button class="btn-attack" style="padding:10px; font-size:1em;" onclick="closePolicy()">閉じる</button></div></div>
+<div id="policy-modal"><div class="policy-content"><div class="policy-title">プライバシーポリシー</div><div class="policy-text">
+RELICORE（以下「本サービス」）は、ユーザーのプライバシーを尊重し、適切な取り扱いと保護に努めます。<br><hr class="policy-divider">
+<strong>1. 取得する情報について</strong><br>
+本サービスでは、以下の情報を取得する場合があります。
+<ul>
+  <li>ブラウザのローカルストレージに保存されるゲームデータ</li>
+  <li>アクセス解析ツールにより収集される匿名のアクセス情報（使用している場合）</li>
+  <li>サーバーの標準ログ情報（IPアドレス、閲覧日時など）</li>
+</ul>
+※本サービスでは、氏名・住所・電話番号・メールアドレス等の個人情報は取得しておりません。<br><hr class="policy-divider">
+<strong>2. 情報の利用目的</strong><br>
+取得した情報は以下の目的で利用します。
+<ul>
+  <li>ゲームの進行状況保存</li>
+  <li>不具合調査および改善</li>
+  <li>利用状況の分析</li>
+  <li>サービス品質向上</li>
+</ul><hr class="policy-divider">
+<strong>3. 第三者提供について</strong><br>
+取得した情報を、法令に基づく場合を除き、第三者へ提供することはありません。<br><hr class="policy-divider">
+<strong>4. 外部サービスの利用について</strong><br>
+本サービスがGoogle Analytics等の外部サービスを利用する場合、それらのサービス提供者のプライバシーポリシーが適用される場合があります。<br><hr class="policy-divider">
+<strong>5. データの保存について</strong><br>
+ゲームデータはユーザーのブラウザ内に保存されます。ブラウザの削除やキャッシュクリア等によりデータが消失する場合があります。<br><hr class="policy-divider">
+<strong>6. 免責事項</strong><br>
+本サービスの利用により生じた損害について、開発者は一切の責任を負いません。<br><hr class="policy-divider">
+<strong>7. 改定</strong><br>
+本ポリシーは予告なく変更される場合があります。<br>
+<div class="policy-footer">
+制定日：2026年3月1日<br>
+RELICORE 開発者　げぇいむ＆AI
+</div>
+</div><button class="btn-attack" style="padding:10px; font-size:1em;" onclick="closePolicy()">閉じる</button></div></div>
 <div id="rank-up-modal"><div class="rank-up-content"><div class="rank-up-title">覚醒</div><div class="rank-up-msg" id="rank-up-msg-text">魂の核が激しく鼓動する……！</div><button class="story-btn" onclick="closeRankUpModal()">高みへ</button><div class="rank-up-sub">※すべての再起スキルが強化されました。</div></div></div>
 <div id="rare-drop-modal" onclick="closeRareModal()"><div id="rare-card-content" class="rare-card"><span id="rare-star-label" class="rare-star"></span><span id="rare-name-label" class="rare-name"></span><div id="rare-desc-label" class="rare-desc"></div><div style="margin-top:20px; font-size:0.7em; color:#888;">画面タップで閉じる</div></div></div>
 <div id="hado-awaken-modal"><div class="hado-content"><div class="hado-title">隠しスキル【破軍の号令】覚醒</div><div class="hado-msg">戦場に漂う数多の記憶……その「残滓」が臨界を超えたとき、王者の魂が呼び覚まされた。<br><br><span style="color:var(--gold); font-weight:bold;">【効果：覇道の理】</span><br>★1遺物の基礎ステータス上昇値が<span style="color:var(--gold); font-size:1.2em;"> 10倍 </span>に固定強化される。<br>さらに、★2以上の遺物ドロップ率がベースの<span style="color:var(--gold); font-size:1.2em;"> 10倍 </span>に跳ね上がる。</div><button class="story-btn" onclick="closeHadoModal()">その力を受け入れる</button></div></div>
@@ -144,7 +178,7 @@
     <div class="privacy-link" onclick="openPolicy()">プライバシーポリシー</div>
   </div>
 </div>
-<div class="ver-footer">RELICORE v2.9</div>
+<div class="ver-footer">RELICORE v1.0</div>
 <script>
 const SAVE_KEY = "relicore_player_data";
 const BOSS_MAX_HP_BASE = 100000000000000000000n;
